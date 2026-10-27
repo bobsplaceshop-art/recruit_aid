@@ -27,9 +27,9 @@ final class EngagementController
         /** @var EngagementRepository $engagements */
         $engagements = $this->container->get(EngagementRepository::class);
 
-        $search = trim((string) $request->query('q', ''));
-        $status = trim((string) $request->query('status', ''));
-        $page   = max(1, (int) $request->query('page', 1));
+        $search = trim($request->queryStringValue('q', ''));
+        $status = trim($request->queryStringValue('status', ''));
+        $page   = max(1, $request->queryInt('page', 1));
 
         $result = $engagements->paginate(['search' => $search, 'status' => $status], $page, 25);
         $counts = $engagements->countsByStatus();
@@ -71,19 +71,21 @@ final class EngagementController
         $orgs = $this->container->get(OrganisationRepository::class);
 
         $preselectedOrg = null;
-        $orgCode = (string) $request->query('organisation', '');
+        $orgCode = $request->queryStringValue('organisation', '');
+        
         if ($orgCode !== '') {
             $preselectedOrg = $orgs->findByCode($orgCode);
         }
 
-        $orgList = $orgs->paginate(['status' => 'active'], 1, 500)['rows'];
+        // Fetch all organisations (any status) so prospects can be engaged too.
+        $orgList = $orgs->paginate([], 1, 500)['rows'];
 
         $html = $view->render('engagements/form', [
             'title'          => 'New Engagement',
             'user'           => $auth->user(),
             'engagement'     => null,
             'organisations'  => $orgList,
-            'preselectedOrg' => $preselectedOrg,
+            'preselectedOrg' => $preselectedOrg, // The view expects the OBJECT
             'packages'       => $engagements->packages(),
             'old'            => [],
             'errors'         => [],
@@ -107,7 +109,7 @@ final class EngagementController
         /** @var EngagementRepository $engagements */
         $engagements = $this->container->get(EngagementRepository::class);
 
-        $orgCode = trim((string) $request->input('organisation_code', ''));
+        $orgCode = trim($request->inputString('organisation_code', ''));
         $org = $orgs->findByCode($orgCode);
 
         if (!$org) {
@@ -138,7 +140,7 @@ final class EngagementController
 
     public function show(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var EngagementRepository $engagements */
         $engagements = $this->container->get(EngagementRepository::class);
@@ -181,7 +183,7 @@ final class EngagementController
 
     public function showEdit(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var EngagementRepository $engagements */
         $engagements = $this->container->get(EngagementRepository::class);
@@ -215,7 +217,7 @@ final class EngagementController
 
     public function update(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var EngagementRepository $engagements */
         $engagements = $this->container->get(EngagementRepository::class);
@@ -269,7 +271,7 @@ final class EngagementController
 
     public function destroy(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
         /** @var EngagementRepository $engagements */
         $engagements = $this->container->get(EngagementRepository::class);
         $engagement = $engagements->findByCode($code, true);
@@ -283,8 +285,8 @@ final class EngagementController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $phrase = (string) $request->input('confirmation', '');
-        $reason = trim((string) $request->input('reason', '')) ?: null;
+        $phrase = $request->inputString('confirmation', '');
+        $reason = trim($request->inputString('reason', '')) ?: null;
 
         $result = $service->delete($engagement->id, $phrase, $reason);
 
@@ -299,7 +301,7 @@ final class EngagementController
 
     public function deleteInfo(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
         /** @var EngagementRepository $engagements */
         $engagements = $this->container->get(EngagementRepository::class);
         $engagement = $engagements->findByCode($code, true);
@@ -326,9 +328,9 @@ final class EngagementController
 
     public function assignRecruiter(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
-        $userId = (int) $request->input('user_id', 0);
-        $role = (string) $request->input('role', 'recruiter');
+        $code = ($params['code'] ?? '');
+        $userId = $request->inputInt('user_id', 0);
+        $role = $request->inputString('role', 'recruiter');
 
         /** @var EngagementRepository $engagements */
         $engagements = $this->container->get(EngagementRepository::class);
@@ -355,8 +357,8 @@ final class EngagementController
 
     public function unassignRecruiter(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
-        $userId = (int) $request->input('user_id', 0);
+        $code = ($params['code'] ?? '');
+        $userId = $request->inputInt('user_id', 0);
 
         /** @var EngagementRepository $engagements */
         $engagements = $this->container->get(EngagementRepository::class);
@@ -381,7 +383,7 @@ final class EngagementController
 
     private function lifecycleAction(Request $request, array $params, string $method): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
         /** @var EngagementRepository $engagements */
         $engagements = $this->container->get(EngagementRepository::class);
         $engagement = $engagements->findByCode($code, true);
@@ -395,7 +397,7 @@ final class EngagementController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $reason = trim((string) $request->input('reason', '')) ?: null;
+        $reason = trim($request->inputString('reason', '')) ?: null;
 
         try {
             $result = $method === 'archive'
@@ -425,17 +427,17 @@ final class EngagementController
 
         return [
             'package_id'                  => $request->input('package_id', null),
-            'name'                        => trim((string) $request->input('name', '')),
-            'service_type'                => trim((string) $request->input('service_type', '3_month')),
-            'status'                      => trim((string) $request->input('status', 'draft')),
-            'start_date'                  => trim((string) $request->input('start_date', '')),
-            'end_date'                    => trim((string) $request->input('end_date', '')),
-            'agreed_active_role_capacity' => (int) $request->input('agreed_active_role_capacity', 1),
-            'reporting_frequency'         => trim((string) $request->input('reporting_frequency', 'monthly')),
+            'name'                        => trim($request->inputString('name', '')),
+            'service_type'                => trim($request->inputString('service_type', '3_month')),
+            'status'                      => trim($request->inputString('status', 'draft')),
+            'start_date'                  => trim($request->inputString('start_date', '')),
+            'end_date'                    => trim($request->inputString('end_date', '')),
+            'agreed_active_role_capacity' => $request->inputInt('agreed_active_role_capacity', 1),
+            'reporting_frequency'         => trim($request->inputString('reporting_frequency', 'monthly')),
             'countries'                   => $countries,
-            'scope_description'           => trim((string) $request->input('scope_description', '')),
+            'scope_description'           => trim($request->inputString('scope_description', '')),
             'stages_included'             => $stages,
-            'notes'                       => trim((string) $request->input('notes', '')),
+            'notes'                       => trim($request->inputString('notes', '')),
             'cf'                          => $cf,
         ];
     }

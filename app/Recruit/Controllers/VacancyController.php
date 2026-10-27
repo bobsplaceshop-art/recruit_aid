@@ -31,9 +31,9 @@ final class VacancyController
         /** @var VacancyRepository $vacancies */
         $vacancies = $this->container->get(VacancyRepository::class);
 
-        $search = trim((string) $request->query('q', ''));
-        $status = trim((string) $request->query('status', ''));
-        $page   = max(1, (int) $request->query('page', 1));
+        $search = trim($request->queryStringValue('q', ''));
+        $status = trim($request->queryStringValue('status', ''));
+        $page   = max(1, $request->queryInt('page', 1));
 
         $result = $vacancies->paginate(['search' => $search, 'status' => $status], $page, 25);
         $counts = $vacancies->countsByStatus();
@@ -102,7 +102,7 @@ final class VacancyController
             'title'                 => 'New Vacancy',
             'user'                  => $auth->user(),
             'vacancy'               => null,
-            'organisations'         => $orgs->paginate(['status' => 'active'], 1, 500)['rows'],
+            'organisations'         => $orgs->paginate([], 1, 500)['rows'],
             'preselectedOrg'        => $preselectedOrg,
             'preselectedEngagement' => $preselectedEngagement,
             'staffUsers'            => $users->listForAssignment(),
@@ -133,7 +133,7 @@ final class VacancyController
         /** @var Auth $auth */
         $auth = $this->container->get(Auth::class);
 
-        $orgCode = trim((string) $request->input('organisation_code', ''));
+        $orgCode = trim($request->inputString('organisation_code', ''));
         $org = $orgs->findByCode($orgCode);
 
         if (!$org) {
@@ -149,7 +149,7 @@ final class VacancyController
                 'title'          => 'New Vacancy',
                 'user'           => $auth->user(),
                 'vacancy'        => null,
-                'organisations'  => $orgs->paginate(['status' => 'active'], 1, 500)['rows'],
+                'organisations'  => $orgs->paginate([], 1, 500)['rows'],
                 'preselectedOrg' => $org,
                 'preselectedEngagement' => null,
                 'staffUsers'     => $users->listForAssignment(),
@@ -175,7 +175,7 @@ final class VacancyController
 
     public function show(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var VacancyRepository $vacancies */
         $vacancies = $this->container->get(VacancyRepository::class);
@@ -222,7 +222,7 @@ final class VacancyController
 
     public function showEdit(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var VacancyRepository $vacancies */
         $vacancies = $this->container->get(VacancyRepository::class);
@@ -251,7 +251,7 @@ final class VacancyController
             'title'                 => 'Edit Vacancy · ' . $vacancy->title,
             'user'                  => $auth->user(),
             'vacancy'               => $vacancy,
-            'organisations'         => $orgs->paginate(['status' => 'active'], 1, 500)['rows'],
+            'organisations'         => $orgs->paginate([], 1, 500)['rows'],
             'preselectedOrg'        => $orgs->findById($vacancy->organisationId),
             'preselectedEngagement' => $vacancy->engagementId ? $engagements->findById($vacancy->engagementId) : null,
             'staffUsers'            => $users->listForAssignment(),
@@ -267,7 +267,7 @@ final class VacancyController
 
     public function update(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var VacancyRepository $vacancies */
         $vacancies = $this->container->get(VacancyRepository::class);
@@ -298,7 +298,7 @@ final class VacancyController
                 'title'          => 'Edit Vacancy · ' . $vacancy->title,
                 'user'           => $auth->user(),
                 'vacancy'        => $vacancy,
-                'organisations'  => $orgs->paginate(['status' => 'active'], 1, 500)['rows'],
+                'organisations'  => $orgs->paginate([], 1, 500)['rows'],
                 'preselectedOrg' => $orgs->findById($vacancy->organisationId),
                 'preselectedEngagement' => $vacancy->engagementId ? $this->container->get(EngagementRepository::class)->findById($vacancy->engagementId) : null,
                 'staffUsers'     => $users->listForAssignment(),
@@ -325,7 +325,7 @@ final class VacancyController
 
     public function destroy(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
         /** @var VacancyRepository $vacancies */
         $vacancies = $this->container->get(VacancyRepository::class);
         $vacancy = $vacancies->findByCode($code, true);
@@ -339,8 +339,8 @@ final class VacancyController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $phrase = (string) $request->input('confirmation', '');
-        $reason = trim((string) $request->input('reason', '')) ?: null;
+        $phrase = $request->inputString('confirmation', '');
+        $reason = trim($request->inputString('reason', '')) ?: null;
 
         $result = $service->delete($vacancy->id, $phrase, $reason);
 
@@ -355,7 +355,7 @@ final class VacancyController
 
     public function deleteInfo(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
         /** @var VacancyRepository $vacancies */
         $vacancies = $this->container->get(VacancyRepository::class);
         $vacancy = $vacancies->findByCode($code, true);
@@ -382,7 +382,7 @@ final class VacancyController
 
     private function lifecycleAction(Request $request, array $params, string $method): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
         /** @var VacancyRepository $vacancies */
         $vacancies = $this->container->get(VacancyRepository::class);
         $vacancy = $vacancies->findByCode($code, true);
@@ -396,7 +396,7 @@ final class VacancyController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $reason = trim((string) $request->input('reason', '')) ?: null;
+        $reason = trim($request->inputString('reason', '')) ?: null;
 
         try {
             $result = $method === 'archive'
@@ -431,35 +431,35 @@ final class VacancyController
 
         return [
             'engagement_id'             => $request->input('engagement_id', null),
-            'title'                     => trim((string) $request->input('title', '')),
-            'department'                => trim((string) $request->input('department', '')),
-            'country_code'              => trim((string) $request->input('country_code', '')),
-            'city'                      => trim((string) $request->input('city', '')),
-            'work_mode'                 => trim((string) $request->input('work_mode', 'onsite')),
-            'employment_type'           => trim((string) $request->input('employment_type', 'permanent')),
-            'seniority'                 => trim((string) $request->input('seniority', 'mid')),
-            'positions_count'           => (int) $request->input('positions_count', 1),
-            'opening_date'              => trim((string) $request->input('opening_date', '')),
-            'target_hire_date'          => trim((string) $request->input('target_hire_date', '')),
+            'title'                     => trim($request->inputString('title', '')),
+            'department'                => trim($request->inputString('department', '')),
+            'country_code'              => trim($request->inputString('country_code', '')),
+            'city'                      => trim($request->inputString('city', '')),
+            'work_mode'                 => trim($request->inputString('work_mode', 'onsite')),
+            'employment_type'           => trim($request->inputString('employment_type', 'permanent')),
+            'seniority'                 => trim($request->inputString('seniority', 'mid')),
+            'positions_count'           => $request->inputInt('positions_count', 1),
+            'opening_date'              => trim($request->inputString('opening_date', '')),
+            'target_hire_date'          => trim($request->inputString('target_hire_date', '')),
             'recruiter_id'              => $request->input('recruiter_id', null),
             'hiring_manager_contact_id' => $request->input('hiring_manager_contact_id', null),
-            'salary_min'                => trim((string) $request->input('salary_min', '')),
-            'salary_max'                => trim((string) $request->input('salary_max', '')),
-            'currency'                  => trim((string) $request->input('currency', '')),
-            'description'               => trim((string) $request->input('description', '')),
-            'responsibilities'          => trim((string) $request->input('responsibilities', '')),
-            'requirements'              => trim((string) $request->input('requirements', '')),
-            'preferred_qualifications'  => trim((string) $request->input('preferred_qualifications', '')),
+            'salary_min'                => trim($request->inputString('salary_min', '')),
+            'salary_max'                => trim($request->inputString('salary_max', '')),
+            'currency'                  => trim($request->inputString('currency', '')),
+            'description'               => trim($request->inputString('description', '')),
+            'responsibilities'          => trim($request->inputString('responsibilities', '')),
+            'requirements'              => trim($request->inputString('requirements', '')),
+            'preferred_qualifications'  => trim($request->inputString('preferred_qualifications', '')),
             'responsibilities_list'     => $respList,
             'requirements_list'         => $reqList,
             'preferred_list'            => $prefList,
             'skills'                    => $skills,
             'languages'                 => $languages,
-            'assessment_criteria'       => trim((string) $request->input('assessment_criteria', '')),
-            'internal_notes'            => trim((string) $request->input('internal_notes', '')),
-            'client_notes'              => trim((string) $request->input('client_notes', '')),
-            'status'                    => trim((string) $request->input('status', 'draft')),
-            'is_public'                 => (bool) $request->input('is_public', false),
+            'assessment_criteria'       => trim($request->inputString('assessment_criteria', '')),
+            'internal_notes'            => trim($request->inputString('internal_notes', '')),
+            'client_notes'              => trim($request->inputString('client_notes', '')),
+            'status'                    => trim($request->inputString('status', 'draft')),
+            'is_public'                 => $request->inputBool('is_public', false),
             'cf'                        => $cf,
         ];
     }
