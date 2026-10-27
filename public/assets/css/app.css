@@ -1,0 +1,965 @@
+/* ============================================================
+   Recruit Aid — Application Stylesheet
+   Single source of truth. Structure:
+     1. Reset
+     2. Theme palettes (dark, light, system)
+     3. Layout constants
+     4. Base typography
+     5. Layout shell (sidebar, topbar, content)
+     6. Sidebar internals
+     7. Topbar internals
+     8. Page components (band, tiles, cards, tables, badges, alerts)
+     9. Forms and buttons
+    10. Interactive components (toggle, pills, dropdowns)
+    11. Responsive rules (single mobile block at bottom)
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   1. RESET
+   ------------------------------------------------------------ */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+
+/* ------------------------------------------------------------
+   2. THEME PALETTES
+   ------------------------------------------------------------ */
+
+/* ---------- Dark (default) ---------- */
+:root,
+html[data-theme="dark"] {
+    --ra-bg:            #0b1220;
+    --ra-surface:       #111c33;
+    --ra-surface-2:     #0f172a;
+    --ra-surface-3:     #0b1424;
+    --ra-border:        #1f2a44;
+    --ra-border-soft:   #16233f;
+    --ra-text:          #e2e8f0;
+    --ra-text-strong:   #ffffff;
+    --ra-muted:         #94a3b8;
+    --ra-muted-2:       #64748b;
+    --ra-primary:       #0f4c81;
+    --ra-primary-hover: #0d416e;
+    --ra-accent:        #f5a623;
+    --ra-link:          #93c5fd;
+    --ra-link-hover:    #bfdbfe;
+
+    --ra-badge-bg:      #152748;
+    --ra-badge-fg:      #93c5fd;
+
+    --ra-success-bg:    #0f2c1c;
+    --ra-success-fg:    #bbf7d0;
+    --ra-success-bd:    #166534;
+    --ra-error-bg:      #3b1414;
+    --ra-error-fg:      #fecaca;
+    --ra-error-bd:      #7f1d1d;
+    --ra-warn-bg:       #3b2414;
+    --ra-warn-fg:       #fde68a;
+    --ra-warn-bd:       #92400e;
+
+    --ra-hover-row:     rgba(255,255,255,.02);
+    --ra-hover-nav:     rgba(255,255,255,.04);
+    --ra-active-nav-bg: rgba(15,76,129,.25);
+    --ra-shadow-lg:     0 20px 60px rgba(0,0,0,.5);
+    --ra-input-bg:      #0b1424;
+    --ra-page-band-bg:  linear-gradient(180deg, #0b1424 0%, transparent 100%);
+}
+
+/* ---------- Light (explicit) ---------- */
+html[data-theme="light"] {
+    --ra-bg:            #eef2f7;
+    --ra-surface:       #ffffff;
+    --ra-surface-2:     #f8fafc;
+    --ra-surface-3:     #f1f5f9;
+    --ra-border:        #d8dfe8;
+    --ra-border-soft:   #e8edf3;
+    --ra-text:          #0f172a;
+    --ra-text-strong:   #020617;
+    --ra-muted:         #475569;
+    --ra-muted-2:       #64748b;
+    --ra-primary:       #0f4c81;
+    --ra-primary-hover: #0d416e;
+    --ra-accent:        #f5a623;
+    --ra-link:          #0f4c81;
+    --ra-link-hover:    #0d416e;
+
+    --ra-badge-bg:      #e0ecff;
+    --ra-badge-fg:      #0b4270;
+
+    --ra-success-bg:    #d1fae5;
+    --ra-success-fg:    #065f46;
+    --ra-success-bd:    #6ee7b7;
+    --ra-error-bg:      #fee2e2;
+    --ra-error-fg:      #991b1b;
+    --ra-error-bd:      #fca5a5;
+    --ra-warn-bg:       #fef3c7;
+    --ra-warn-fg:       #92400e;
+    --ra-warn-bd:       #fcd34d;
+
+    --ra-hover-row:     rgba(15,76,129,.04);
+    --ra-hover-nav:     rgba(15,76,129,.07);
+    --ra-active-nav-bg: rgba(15,76,129,.12);
+    --ra-shadow-lg:     0 20px 60px rgba(15,23,42,.15);
+    --ra-input-bg:      #ffffff;
+    --ra-page-band-bg:  linear-gradient(180deg, #dbeafe 0%, #f8fafc 100%);
+}
+
+/* ---------- System (respects OS) ---------- */
+@media (prefers-color-scheme: light) {
+    html[data-theme="system"] {
+        --ra-bg:            #eef2f7;
+        --ra-surface:       #ffffff;
+        --ra-surface-2:     #f8fafc;
+        --ra-surface-3:     #f1f5f9;
+        --ra-border:        #d8dfe8;
+        --ra-border-soft:   #e8edf3;
+        --ra-text:          #0f172a;
+        --ra-text-strong:   #020617;
+        --ra-muted:         #475569;
+        --ra-muted-2:       #64748b;
+        --ra-primary:       #0f4c81;
+        --ra-primary-hover: #0d416e;
+        --ra-accent:        #f5a623;
+        --ra-link:          #0f4c81;
+        --ra-link-hover:    #0d416e;
+
+        --ra-badge-bg:      #e0ecff;
+        --ra-badge-fg:      #0b4270;
+
+        --ra-success-bg:    #d1fae5;
+        --ra-success-fg:    #065f46;
+        --ra-success-bd:    #6ee7b7;
+        --ra-error-bg:      #fee2e2;
+        --ra-error-fg:      #991b1b;
+        --ra-error-bd:      #fca5a5;
+        --ra-warn-bg:       #fef3c7;
+        --ra-warn-fg:       #92400e;
+        --ra-warn-bd:       #fcd34d;
+
+        --ra-hover-row:     rgba(15,76,129,.04);
+        --ra-hover-nav:     rgba(15,76,129,.07);
+        --ra-active-nav-bg: rgba(15,76,129,.12);
+        --ra-shadow-lg:     0 20px 60px rgba(15,23,42,.15);
+        --ra-input-bg:      #ffffff;
+        --ra-page-band-bg:  linear-gradient(180deg, #dbeafe 0%, #f8fafc 100%);
+    }
+}
+
+
+/* ------------------------------------------------------------
+   3. LAYOUT CONSTANTS
+   ------------------------------------------------------------ */
+:root {
+    --ra-sidebar-w: 258px;
+    --ra-topbar-h:  60px;
+    --ra-radius:    10px;
+    --ra-radius-lg: 14px;
+}
+
+
+/* ------------------------------------------------------------
+   4. BASE TYPOGRAPHY
+   ------------------------------------------------------------ */
+body {
+    background: var(--ra-bg);
+    color: var(--ra-text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+a { color: var(--ra-link); text-decoration: none; transition: color .12s ease; }
+a:hover { color: var(--ra-link-hover); }
+
+.muted { color: var(--ra-muted); }
+.small { font-size: .85rem; }
+
+
+/* ------------------------------------------------------------
+   5. LAYOUT SHELL
+   Sidebar: fixed, pinned to the left, scrolls independently.
+   Topbar:  fixed, pinned top-right of the content area.
+   Content: offset by sidebar width and topbar height.
+   ------------------------------------------------------------ */
+
+.ra-shell {
+    min-height: 100vh;
+}
+
+.ra-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--ra-sidebar-w);
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--ra-surface-2);
+    border-right: 1px solid var(--ra-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 40;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+.ra-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--ra-sidebar-w);
+    right: 0;
+    height: var(--ra-topbar-h);
+    background: var(--ra-surface-2);
+    border-bottom: 1px solid var(--ra-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.25rem;
+    z-index: 30;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+.ra-content {
+    margin-left: var(--ra-sidebar-w);
+    margin-top: var(--ra-topbar-h);
+    padding: 2rem 2rem 4rem;
+    max-width: 1400px;
+    width: calc(100% - var(--ra-sidebar-w));
+    min-height: calc(100vh - var(--ra-topbar-h));
+}
+
+/* Sidebar scrollbar (subtle) */
+.ra-sidebar::-webkit-scrollbar { width: 8px; }
+.ra-sidebar::-webkit-scrollbar-track { background: transparent; }
+.ra-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, .2);
+    border-radius: 4px;
+}
+.ra-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, .35);
+}
+.ra-sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, .2) transparent;
+}
+
+
+/* ------------------------------------------------------------
+   6. SIDEBAR INTERNALS
+   ------------------------------------------------------------ */
+
+.ra-brand {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--ra-border);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--ra-text-strong);
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.ra-brand-mark {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, var(--ra-primary), var(--ra-accent));
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.ra-nav {
+    padding: .75rem .5rem 2rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.ra-nav-group { margin-bottom: 1.25rem; }
+
+.ra-nav-group-label {
+    padding: .35rem .85rem;
+    font-size: .7rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ra-muted-2);
+    font-weight: 600;
+}
+
+.ra-nav-item {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .55rem .85rem;
+    border-radius: 8px;
+    color: var(--ra-muted);
+    font-size: .92rem;
+    text-decoration: none;
+    transition: background .12s ease, color .12s ease;
+    margin-bottom: 1px;
+}
+
+.ra-nav-item:hover {
+    background: var(--ra-hover-nav);
+    color: var(--ra-text);
+}
+
+.ra-nav-item.is-active {
+    background: var(--ra-active-nav-bg);
+    color: var(--ra-text-strong);
+    box-shadow: inset 3px 0 0 var(--ra-accent);
+}
+
+.ra-nav-item i,
+.ra-nav-item .ra-nav-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.ra-nav-footer {
+    padding: .75rem;
+    border-top: 1px solid var(--ra-border);
+    flex-shrink: 0;
+}
+
+
+/* ------------------------------------------------------------
+   7. TOPBAR INTERNALS
+   ------------------------------------------------------------ */
+
+.ra-search {
+    background: var(--ra-input-bg);
+    border: 1px solid var(--ra-border);
+    color: var(--ra-text);
+    padding: .45rem .85rem;
+    border-radius: 8px;
+    width: 260px;
+    font-size: .88rem;
+}
+.ra-search::placeholder { color: var(--ra-muted-2); }
+.ra-search:focus { outline: 0; border-color: var(--ra-primary); }
+
+.ra-icon-btn {
+    background: transparent;
+    border: 1px solid var(--ra-border);
+    color: var(--ra-muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+    padding: 0;
+}
+.ra-icon-btn:hover { background: var(--ra-hover-nav); color: var(--ra-text); }
+
+.ra-hamburger { display: none; }
+
+.ra-user-menu {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .35rem .6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .12s ease;
+    position: relative;
+}
+.ra-user-menu:hover { background: var(--ra-hover-nav); }
+
+.ra-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--ra-primary), var(--ra-accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: .8rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.ra-breadcrumbs {
+    display: flex;
+    gap: .4rem;
+    font-size: .82rem;
+    color: var(--ra-muted-2);
+}
+.ra-breadcrumbs a { color: var(--ra-muted); }
+.ra-breadcrumbs a:hover { color: var(--ra-text); }
+
+
+/* ------------------------------------------------------------
+   8. PAGE COMPONENTS
+   ------------------------------------------------------------ */
+
+/* ---------- Page header band ---------- */
+.ra-page-band {
+    background: var(--ra-page-band-bg);
+    border-bottom: 1px solid var(--ra-border);
+    margin: -2rem -2rem 2rem;
+    padding: 1.5rem 2rem 1.75rem;
+}
+
+.ra-page-band-label {
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ra-muted);
+    font-weight: 600;
+    margin-bottom: .25rem;
+}
+
+.ra-page-band-title {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--ra-text-strong);
+    margin: 0;
+    letter-spacing: -.02em;
+}
+
+.ra-page-band-actions {
+    display: flex;
+    gap: .6rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.ra-page-band-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* ---------- Tiles (shortcut cards) ---------- */
+.ra-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.ra-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    padding: 1.25rem 1rem;
+    background: var(--ra-surface);
+    border: 1px solid var(--ra-border);
+    border-radius: var(--ra-radius);
+    text-align: center;
+    text-decoration: none;
+    color: var(--ra-text);
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    min-height: 130px;
+}
+.ra-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ra-shadow-lg);
+    color: var(--ra-text-strong);
+    border-color: var(--ra-primary);
+}
+
+.ra-tile-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.ra-tile-icon--rose  { background: linear-gradient(135deg, #c084a6, #a86a8a); }
+.ra-tile-icon--mint  { background: linear-gradient(135deg, #7bb097, #5f9679); }
+.ra-tile-icon--clay  { background: linear-gradient(135deg, #d4917a, #b9765e); }
+.ra-tile-icon--sage  { background: linear-gradient(135deg, #8ba888, #6f8a6c); }
+.ra-tile-icon--sky   { background: linear-gradient(135deg, #6aa3d1, #4d86b6); }
+.ra-tile-icon--plum  { background: linear-gradient(135deg, #9b7ac7, #7e5caa); }
+.ra-tile-icon--amber { background: linear-gradient(135deg, #e0a341, #c48a2c); }
+.ra-tile-icon--slate { background: linear-gradient(135deg, #7d8fa3, #617387); }
+
+.ra-tile-label {
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--ra-text);
+    line-height: 1.3;
+}
+
+/* ---------- Cards ---------- */
+.ra-card {
+    background: var(--ra-surface);
+    border: 1px solid var(--ra-border);
+    border-radius: var(--ra-radius-lg);
+    padding: 1.75rem;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+.ra-card + .ra-card { margin-top: 1.25rem; }
+
+/* Light theme: give cards a shadow so they float */
+html[data-theme="light"] .ra-card,
+html[data-theme="light"] .ra-table-card,
+html[data-theme="light"] .ra-table-wrap {
+    box-shadow: 0 1px 3px rgba(15,23,42,.05), 0 1px 2px rgba(15,23,42,.03);
+}
+@media (prefers-color-scheme: light) {
+    html[data-theme="system"] .ra-card,
+    html[data-theme="system"] .ra-table-card,
+    html[data-theme="system"] .ra-table-wrap {
+        box-shadow: 0 1px 3px rgba(15,23,42,.05), 0 1px 2px rgba(15,23,42,.03);
+    }
+}
+
+/* ---------- Tables ---------- */
+.ra-table-wrap,
+.ra-table-card {
+    background: var(--ra-surface);
+    border: 1px solid var(--ra-border);
+    border-radius: var(--ra-radius-lg);
+    overflow: hidden;
+}
+
+.ra-table-title {
+    padding: 1rem 1.25rem .5rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ra-text-strong);
+}
+
+.ra-table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--ra-border);
+    flex-wrap: wrap;
+}
+.ra-table-toolbar-left,
+.ra-table-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    flex-wrap: wrap;
+}
+.ra-table-toolbar-label {
+    color: var(--ra-muted);
+    font-size: .85rem;
+}
+
+.ra-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+}
+.ra-table thead th {
+    background: var(--ra-surface-3);
+    color: var(--ra-muted);
+    font-weight: 600;
+    font-size: .78rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: .85rem 1rem;
+    border-bottom: 1px solid var(--ra-border);
+}
+.ra-table tbody td {
+    padding: .85rem 1rem;
+    border-bottom: 1px solid var(--ra-border-soft);
+    vertical-align: middle;
+}
+.ra-table tbody tr:last-child td { border-bottom: 0; }
+.ra-table tbody tr:hover { background: var(--ra-hover-row); }
+
+.ra-section-label {
+    font-size: .7rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ra-muted-2);
+    font-weight: 600;
+}
+
+/* ---------- Badges ---------- */
+.ra-badge {
+    display: inline-block;
+    background: var(--ra-badge-bg);
+    color: var(--ra-badge-fg);
+    padding: .3rem .7rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+.ra-badge-success { background: var(--ra-success-bg); color: var(--ra-success-fg); }
+.ra-badge-warn    { background: var(--ra-warn-bg);    color: var(--ra-warn-fg); }
+.ra-badge-danger  { background: var(--ra-error-bg);   color: var(--ra-error-fg); }
+
+/* ---------- Alerts ---------- */
+.ra-alert {
+    padding: .85rem 1.1rem;
+    border-radius: var(--ra-radius);
+    margin-bottom: 1.25rem;
+    border: 1px solid transparent;
+}
+.ra-alert-success { background: var(--ra-success-bg); color: var(--ra-success-fg); border-color: var(--ra-success-bd); }
+.ra-alert-error   { background: var(--ra-error-bg);   color: var(--ra-error-fg);   border-color: var(--ra-error-bd); }
+.ra-alert-warn    { background: var(--ra-warn-bg);    color: var(--ra-warn-fg);    border-color: var(--ra-warn-bd); }
+
+
+/* ------------------------------------------------------------
+   9. FORMS AND BUTTONS
+   ------------------------------------------------------------ */
+
+.ra-label {
+    display: block;
+    color: var(--ra-muted);
+    font-size: .85rem;
+    margin-bottom: .35rem;
+}
+
+.ra-input,
+.form-control {
+    width: 100%;
+    background: var(--ra-input-bg);
+    border: 1px solid var(--ra-border);
+    color: var(--ra-text);
+    padding: .6rem .85rem;
+    border-radius: 8px;
+    font-size: .95rem;
+    font-family: inherit;
+    transition: border-color .12s ease, box-shadow .12s ease;
+}
+.ra-input:focus,
+.form-control:focus {
+    outline: 0;
+    border-color: var(--ra-primary);
+    box-shadow: 0 0 0 .2rem rgba(15,76,129,.25);
+}
+
+.ra-select {
+    background: var(--ra-input-bg);
+    border: 1px solid var(--ra-border);
+    color: var(--ra-text);
+    padding: .35rem .6rem;
+    border-radius: 6px;
+    font-size: .85rem;
+    font-family: inherit;
+}
+
+.ra-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .55rem 1rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .12s ease, border-color .12s ease;
+    font-family: inherit;
+}
+.ra-btn-primary {
+    background: var(--ra-primary);
+    border-color: var(--ra-primary);
+    color: #fff;
+}
+.ra-btn-primary:hover {
+    background: var(--ra-primary-hover);
+    border-color: var(--ra-primary-hover);
+    color: #fff;
+}
+.ra-btn-outline {
+    background: transparent;
+    border-color: var(--ra-border);
+    color: var(--ra-text);
+}
+.ra-btn-outline:hover { background: var(--ra-hover-nav); color: var(--ra-text); }
+.ra-btn-sm { padding: .35rem .7rem; font-size: .82rem; }
+
+
+/* ------------------------------------------------------------
+   10. INTERACTIVE COMPONENTS
+   ------------------------------------------------------------ */
+
+/* ---------- Dropdown menus ---------- */
+.ra-dropdown {
+    display: none;
+    position: fixed;
+    background: var(--ra-surface);
+    border: 1px solid var(--ra-border);
+    border-radius: var(--ra-radius);
+    padding: .4rem;
+    box-shadow: var(--ra-shadow-lg);
+    z-index: 100;
+}
+.ra-dropdown.is-open { display: block; }
+
+.ra-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .55rem .85rem;
+    border-radius: 8px;
+    color: var(--ra-text);
+    font-size: .9rem;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .12s ease;
+}
+.ra-dropdown-item:hover { background: var(--ra-hover-nav); color: var(--ra-text); }
+.ra-dropdown-item.is-active {
+    background: var(--ra-active-nav-bg);
+    color: var(--ra-text);
+    font-weight: 500;
+}
+
+.ra-dropdown-divider {
+    height: 1px;
+    background: var(--ra-border);
+    margin: .35rem 0;
+}
+
+.ra-dropdown-header {
+    padding: .6rem .85rem;
+    border-bottom: 1px solid var(--ra-border);
+    margin-bottom: .35rem;
+}
+
+/* ---------- Row action button ---------- */
+.ra-row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .3rem .6rem;
+    background: var(--ra-surface-3);
+    border: 1px solid var(--ra-border);
+    border-radius: 6px;
+    color: var(--ra-text);
+    font-size: .82rem;
+    cursor: pointer;
+    transition: background .12s ease;
+}
+.ra-row-actions:hover { background: var(--ra-hover-nav); }
+
+/* ---------- Toggle switch (iOS-style) ---------- */
+.ra-toggle {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 26px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+.ra-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+.ra-toggle-track {
+    position: absolute;
+    inset: 0;
+    background: #cbd5e1;
+    border-radius: 999px;
+    transition: background .2s ease;
+}
+.ra-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform .2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,.25);
+}
+.ra-toggle input:checked + .ra-toggle-track { background: var(--ra-primary); }
+.ra-toggle input:checked ~ .ra-toggle-thumb  { transform: translateX(20px); }
+
+/* ---------- Pill group (segmented filter) ---------- */
+.ra-pill-group {
+    display: inline-flex;
+    gap: 4px;
+    padding: 3px;
+    background: var(--ra-surface-3);
+    border: 1px solid var(--ra-border);
+    border-radius: 8px;
+}
+.ra-pill {
+    padding: .35rem .8rem;
+    border-radius: 6px;
+    font-size: .82rem;
+    color: var(--ra-muted);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+    transition: background .12s ease, color .12s ease;
+}
+.ra-pill:hover { color: var(--ra-text); }
+.ra-pill.is-active {
+    background: var(--ra-surface);
+    color: var(--ra-text-strong);
+    box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+
+
+/* ------------------------------------------------------------
+   11. RESPONSIVE (mobile)
+   ------------------------------------------------------------ */
+@media (max-width: 900px) {
+    /* Sidebar becomes an off-canvas drawer */
+    .ra-sidebar {
+        transform: translateX(-100%);
+        transition: transform .2s ease, background-color .15s ease;
+        width: 280px;
+        z-index: 50;
+    }
+    .ra-sidebar.is-open {
+        transform: translateX(0);
+        box-shadow: 20px 0 60px rgba(0,0,0,.35);
+    }
+
+    /* Topbar spans the full width */
+    .ra-topbar {
+        left: 0;
+    }
+
+    /* Content has no sidebar offset */
+    .ra-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 1.5rem 1rem 3rem;
+    }
+
+    /* Page band adjusts to smaller padding */
+    .ra-page-band {
+        margin: -1.5rem -1rem 1.5rem;
+        padding: 1.25rem 1rem;
+    }
+    .ra-page-band-title { font-size: 1.5rem; }
+
+    /* Hide desktop-only items */
+    .ra-search { display: none; }
+    .ra-hamburger { display: inline-flex; }
+}
+
+/* ============================================================
+   Flash message spacing fix (Chunk 7.0b-v)
+   When a flash alert is present, the page band must not use its
+   negative top margin (which would pull it up into the alert).
+   ============================================================ */
+
+.ra-content.has-flash .ra-page-band {
+    margin-top: 0;
+}
+
+.ra-content.has-flash > .ra-alert {
+    margin-bottom: 1.5rem;
+}
+
+/* ---------- Tabs ---------- */
+.ra-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: .6rem 1rem;
+    color: var(--ra-muted);
+    font-size: .9rem;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color .12s ease, border-color .12s ease;
+}
+
+.ra-tab:hover:not(.disabled) {
+    color: var(--ra-text);
+    border-bottom-color: var(--ra-border);
+}
+
+.ra-tab.is-active {
+    color: var(--ra-text-strong);
+    border-bottom-color: var(--ra-primary);
+    font-weight: 500;
+}
+
+.ra-tab.disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+   Danger button (used in deletion confirmation modal)
+   Two visual states:
+     - Disabled (phrase doesn't match): pale, unreachable
+     - Enabled (phrase matches): bright red, clearly clickable
+   ============================================================ */
+
+.ra-btn-danger {
+    background: #3b1414;
+    border-color: #7f1d1d;
+    color: #fecaca;
+    font-weight: 500;
+    transition: background .15s ease, border-color .15s ease,
+                color .15s ease, box-shadow .15s ease, transform .1s ease;
+}
+
+.ra-btn-danger:not(:disabled):hover {
+    background: #7f1d1d;
+    border-color: #991b1b;
+    color: #ffffff;
+}
+
+.ra-btn-danger:disabled {
+    background: #3b1414;
+    border-color: #7f1d1d;
+    color: #fecaca;
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+/* The "armed" state — bright red, standing out, ready to fire */
+.ra-btn-danger:not(:disabled) {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, .25),
+                0 4px 12px rgba(220, 38, 38, .35);
+    animation: ra-danger-pulse .6s ease;
+}
+
+.ra-btn-danger:not(:disabled):hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, .3),
+                0 6px 16px rgba(220, 38, 38, .4);
+}
+
+@keyframes ra-danger-pulse {
+    0%   { transform: scale(1);    box-shadow: 0 0 0 0    rgba(220, 38, 38, .5); }
+    50%  { transform: scale(1.03); box-shadow: 0 0 0 8px  rgba(220, 38, 38, 0); }
+    100% { transform: scale(1);    box-shadow: 0 0 0 3px  rgba(220, 38, 38, .25),
+                                                  0 4px 12px rgba(220, 38, 38, .35); }
+}

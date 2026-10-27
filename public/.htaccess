@@ -1,0 +1,69 @@
+# Recruit Aid — public web root
+
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Never serve dotfiles
+    RewriteRule ^\. - [F,L]
+
+    # Serve existing files and directories as-is
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Everything else goes through the front controller
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header unset X-Powered-By
+
+    # ============================================================
+    # Content Security Policy
+    # ============================================================
+    # Restricts which resources the page is allowed to load.
+    # Defends against XSS, content injection, clickjacking, and
+    # form hijacking.
+    #
+    # Why 'unsafe-inline' for scripts and styles:
+    #   Views embed small inline <style> and <script> blocks
+    #   (theme switcher, password toggle, login page layout).
+    #   Removing these requires moving the code to external files
+    #   served with nonces — a Tier 2+ cleanup. Until then,
+    #   'unsafe-inline' is required to keep the app working.
+    #
+    # Directive-by-directive:
+    #   default-src 'self'      — anything not listed below comes only from same origin
+    #   script-src  'self' 'unsafe-inline' cdn.jsdelivr.net
+    #                           — scripts: local + inline + Bootstrap CDN
+    #   style-src   'self' 'unsafe-inline' cdn.jsdelivr.net
+    #                           — styles: local + inline + Bootstrap CDN
+    #   font-src    'self' cdn.jsdelivr.net data:
+    #                           — fonts: local + Bootstrap Icons + data URIs
+    #   img-src     'self' data:
+    #                           — images: local + inline data URIs
+    #   connect-src 'self' cdn.jsdelivr.net
+    #                           — fetch/XHR destinations (jsdelivr for source maps)
+    #   frame-ancestors 'none'  — block framing (overlaps with X-Frame-Options)
+    #   base-uri    'self'      — prevent <base href> hijacking
+    #   form-action 'self'      — forms can only submit to same origin
+    #   object-src  'none'      — block Flash, Java, and other plugins
+    # ============================================================
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net data:; img-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none';"
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css                "access plus 30 days"
+    ExpiresByType application/javascript  "access plus 30 days"
+    ExpiresByType image/svg+xml           "access plus 30 days"
+    ExpiresByType image/png               "access plus 30 days"
+    ExpiresByType image/jpeg              "access plus 30 days"
+</IfModule>

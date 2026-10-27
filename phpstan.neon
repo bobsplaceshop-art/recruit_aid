@@ -1,0 +1,10 @@
+parameters:
+    level: 9
+    paths:
+        - app
+        - routes
+        - bin
+    excludePaths:
+        - app/Helpers/functions.php
+    ignoreErrors:
+        # Add specific ignores here if needed

@@ -1,0 +1,403 @@
+<?php
+declare(strict_types=1);
+
+namespace CorporateAid\Recruit\Controllers;
+
+use CorporateAid\Core\Auth;
+use CorporateAid\Core\Container;
+use CorporateAid\Core\Exceptions\HttpException;
+use CorporateAid\Core\Request;
+use CorporateAid\Core\Response;
+use CorporateAid\Core\Session;
+use CorporateAid\Core\View;
+use CorporateAid\Recruit\Repositories\OrganisationRepository;
+use CorporateAid\Recruit\Services\OrganisationService;
+
+final class OrganisationController
+{
+    public function __construct(private Container $container) {}
+
+    /**
+     * GET /organisations
+     */
+    public function index(Request $request, array $params = []): Response
+    {
+        /** @var OrganisationRepository $orgs */
+        $orgs = $this->container->get(OrganisationRepository::class);
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+
+        $search    = trim((string) $request->query('q', ''));
+        $status    = trim((string) $request->query('status', ''));
+        $page      = max(1, (int) $request->query('page', 1));
+        $perPage   = 20;
+
+        $filters = [];
+        if ($search !== '') $filters['search'] = $search;
+        if ($status !== '') $filters['status'] = $status;
+
+        $result = $orgs->paginate($filters, $page, $perPage);
+        $counts = $orgs->countsByStatus();
+
+        // Add the "all" count
+        $counts['all'] = array_sum($counts);
+
+        $html = $view->render('organisations/index', [
+            'title'        => 'Organisations',
+            'user'         => $auth->user(),
+            'organisations'=> $result['rows'],
+            'total'        => $result['total'],
+            'page'         => $result['page'],
+            'per_page'     => $result['per_page'],
+            'total_pages'  => $result['total_pages'],
+            'counts'       => $counts,
+            'search'       => $search,
+            'status'       => $status,
+        ], 'layouts/app');
+
+        return Response::html($html);
+    }
+
+    /**
+     * GET /organisations/create
+     */
+    public function showCreate(Request $request, array $params = []): Response
+    {
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+
+        $html = $view->render('organisations/form', [
+            'title'        => 'New Organisation',
+            'user'         => $auth->user(),
+            'organisation' => null,
+            'old'          => [],
+            'errors'       => [],
+        ], 'layouts/app');
+
+        return Response::html($html);
+    }
+
+    /**
+     * POST /organisations
+     */
+    public function store(Request $request, array $params = []): Response
+    {
+        /** @var OrganisationService $service */
+        $service = $this->container->get(OrganisationService::class);
+        /** @var Session $session */
+        $session = $this->container->get(Session::class);
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+
+        $input = $this->collectInput($request);
+        $files = $this->collectFiles();
+
+        $result = $service->create($input, $files);
+
+        if (!empty($result['errors'])) {
+            $html = $view->render('organisations/form', [
+                'title'        => 'New Organisation',
+                'user'         => $auth->user(),
+                'organisation' => null,
+                'old'          => $input,
+                'errors'       => $result['errors'],
+            ], 'layouts/app');
+            return Response::html($html)->withHeader('X-Form-Error', '1');
+        }
+
+        $session->flash('success', 'Organisation created: ' . $result['organisation']->name);
+        return Response::redirect('/organisations/' . $result['organisation']->code);
+    }
+
+    /**
+     * GET /organisations/{code}
+     */
+    public function show(Request $request, array $params = []): Response
+    {
+        $code = (string) ($params['code'] ?? '');
+
+        /** @var OrganisationRepository $orgs */
+        $orgs = $this->container->get(OrganisationRepository::class);
+        $org = $orgs->findByCode($code);
+
+        if (!$org) {
+            throw HttpException::notFound('That organisation does not exist, or has been archived.');
+        }
+
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+
+        $html = $view->render('organisations/show', [
+            'title'        => $org->name,
+            'user'         => $auth->user(),
+            'organisation' => $org,
+        ], 'layouts/app');
+
+        return Response::html($html);
+    }
+
+    /**
+     * GET /organisations/{code}/edit
+     */
+    public function showEdit(Request $request, array $params = []): Response
+    {
+        $code = (string) ($params['code'] ?? '');
+
+        /** @var OrganisationRepository $orgs */
+        $orgs = $this->container->get(OrganisationRepository::class);
+        $org = $orgs->findByCode($code);
+
+        if (!$org) {
+            throw HttpException::notFound('That organisation does not exist, or has been archived.');
+        }
+
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+
+        $html = $view->render('organisations/form', [
+            'title'        => 'Edit ' . $org->name,
+            'user'         => $auth->user(),
+            'organisation' => $org,
+            'old'          => [],
+            'errors'       => [],
+        ], 'layouts/app');
+
+        return Response::html($html);
+    }
+
+    /**
+     * POST /organisations/{code} (with _method=PUT for update)
+     */
+    public function update(Request $request, array $params = []): Response
+    {
+        $code = (string) ($params['code'] ?? '');
+
+        /** @var OrganisationRepository $orgs */
+        $orgs = $this->container->get(OrganisationRepository::class);
+        $org = $orgs->findByCode($code);
+
+        if (!$org) {
+            return Response::redirect('/organisations');
+        }
+
+        /** @var OrganisationService $service */
+        $service = $this->container->get(OrganisationService::class);
+        /** @var Session $session */
+        $session = $this->container->get(Session::class);
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+
+        $input = $this->collectInput($request);
+        $files = $this->collectFiles();
+
+        $result = $service->update($org->id, $input, $files);
+
+        if (!$result['success']) {
+            $html = $view->render('organisations/form', [
+                'title'        => 'Edit ' . $org->name,
+                'user'         => $auth->user(),
+                'organisation' => $org,
+                'old'          => $input,
+                'errors'       => $result['errors'],
+            ], 'layouts/app');
+            return Response::html($html)->withHeader('X-Form-Error', '1');
+        }
+
+        $session->flash('success', 'Organisation updated.');
+        return Response::redirect('/organisations/' . $org->code);
+    }
+
+    /**
+     * POST /organisations/{code}/archive
+     */
+    public function archive(Request $request, array $params = []): Response
+    {
+        return $this->lifecycleAction($request, $params, 'archive');
+    }
+
+    /**
+     * POST /organisations/{code}/restore
+     */
+    public function restore(Request $request, array $params = []): Response
+    {
+        return $this->lifecycleAction($request, $params, 'restore');
+    }
+
+    /**
+     * POST /organisations/{code}/delete
+     */
+    public function destroy(Request $request, array $params = []): Response
+    {
+        $code = (string) ($params['code'] ?? '');
+
+        /** @var OrganisationRepository $orgs */
+        $orgs = $this->container->get(OrganisationRepository::class);
+        $org = $orgs->findByCode($code, true);
+
+        if (!$org) {
+            return Response::redirect('/organisations');
+        }
+
+        /** @var OrganisationService $service */
+        $service = $this->container->get(OrganisationService::class);
+        /** @var Session $session */
+        $session = $this->container->get(Session::class);
+
+        $typedPhrase = (string) $request->input('confirm_phrase', '');
+        $reason      = (string) $request->input('reason', '');
+        $reason      = $reason !== '' ? $reason : null;
+
+        $result = $service->delete($org->id, $typedPhrase, $reason);
+
+        if ($result->isSuccess()) {
+            $session->flash('success', $result->message());
+            return Response::redirect('/organisations');
+        }
+
+        $session->flash('error', $result->message());
+        return Response::redirect('/organisations/' . $code);
+    }
+
+    /**
+     * GET /organisations/{code}/delete-info (JSON)
+     */
+    public function deleteInfo(Request $request, array $params = []): Response
+    {
+        $code = (string) ($params['code'] ?? '');
+
+        /** @var OrganisationRepository $orgs */
+        $orgs = $this->container->get(OrganisationRepository::class);
+        $org = $orgs->findByCode($code, true);
+
+        if (!$org) {
+            return Response::json(['error' => 'Not found'], 404);
+        }
+
+        /** @var OrganisationService $service */
+        $service = $this->container->get(OrganisationService::class);
+
+        $inspection = $service->inspectDelete($org->id);
+
+        return Response::json([
+            'dependents' => $inspection->dependents(),
+            'phrase'     => $inspection->confirmationPhrase(),
+        ]);
+    }
+
+    // ---------- helpers ----------
+
+    private function lifecycleAction(Request $request, array $params, string $action): Response
+    {
+        $code = (string) ($params['code'] ?? '');
+
+        /** @var OrganisationRepository $orgs */
+        $orgs = $this->container->get(OrganisationRepository::class);
+        $org = $orgs->findByCode($code, true);
+
+        if (!$org) {
+            return Response::redirect('/organisations');
+        }
+
+        /** @var OrganisationService $service */
+        $service = $this->container->get(OrganisationService::class);
+        /** @var Session $session */
+        $session = $this->container->get(Session::class);
+
+        $reason = (string) $request->input('reason', '');
+        $reason = $reason !== '' ? $reason : null;
+
+        $result = $action === 'archive'
+            ? $service->archive($org->id, $reason)
+            : $service->restore($org->id);
+
+        if ($result->isSuccess()) {
+            $session->flash('success', $result->message());
+        } else {
+            $session->flash('error', $result->message());
+        }
+
+        return Response::redirect('/organisations/' . $code);
+    }
+
+    private function collectInput(Request $request): array
+    {
+        $countries = $request->input('countries_operation', []);
+        if (is_string($countries)) {
+            $countries = array_map('trim', explode(',', $countries));
+        }
+        if (!is_array($countries)) $countries = [];
+
+        $cf = $request->input('cf', []);
+        if (!is_array($cf)) $cf = [];
+
+        return [
+            'name'                => trim((string) $request->input('name', '')),
+            'legal_name'          => trim((string) $request->input('legal_name', '')),
+            'industry'            => trim((string) $request->input('industry', '')),
+            'website'             => trim((string) $request->input('website', '')),
+            'country_code'        => trim((string) $request->input('country_code', '')),
+            'countries_operation' => $countries,
+            'address'             => trim((string) $request->input('address', '')),
+            'phone'               => trim((string) $request->input('phone', '')),
+            'email'               => trim((string) $request->input('email', '')),
+            'status'              => trim((string) $request->input('status', 'prospect')),
+            'notes'               => trim((string) $request->input('notes', '')),
+            'cf'                  => $cf,
+        ];
+    }
+
+    /**
+     * Extract uploaded files for custom fields.
+     *
+     * Looks for $_FILES entries named "cf_{fieldKey}_file" and returns
+     * them keyed by fieldKey. Skips empty uploads (UPLOAD_ERR_NO_FILE).
+     *
+     * The field name pattern matches FileType::render(), which emits:
+     *   <input type="file" name="cf_{fieldKey}_file">
+     *
+     * @return array<string, array>  fieldKey => $_FILES-shaped array
+     */
+    private function collectFiles(): array
+    {
+        $files = [];
+
+        if (empty($_FILES) || !is_array($_FILES)) {
+            return $files;
+        }
+
+        foreach ($_FILES as $inputName => $fileData) {
+            if (!is_string($inputName)) {
+                continue;
+            }
+            if (!preg_match('/^cf_(.+)_file$/', $inputName, $matches)) {
+                continue;
+            }
+
+            $fieldKey = $matches[1];
+            if (!is_array($fileData)) {
+                continue;
+            }
+
+            $error = (int) ($fileData['error'] ?? UPLOAD_ERR_NO_FILE);
+            if ($error === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+
+            $files[$fieldKey] = $fileData;
+        }
+
+        return $files;
+    }
+}

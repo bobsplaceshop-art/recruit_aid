@@ -1,0 +1,20 @@
+# ============================================================
+# Deny ALL direct access to uploaded files.
+# ============================================================
+# Files must be served through FileController, which enforces
+# permission checks based on the linked entity. Apache must
+# never serve these files directly.
+#
+# This is defense-in-depth: the public/ document root should
+# already prevent access to /storage, but if a misconfiguration
+# ever exposes it (symlink, wrong vhost, etc.), this file
+# blocks it.
+# ============================================================
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+</IfModule>

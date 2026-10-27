@@ -1,0 +1,44 @@
+# Composer
+/vendor/
+composer.phar
+
+# Environment & Secrets
+.env
+config/local.php
+config/cli.php
+
+# Storage (runtime files, never commit)
+storage/logs/*
+!storage/logs/.gitkeep
+storage/uploads/*
+!storage/uploads/.htaccess
+!storage/uploads/.gitkeep
+storage/cache/*
+!storage/cache/.gitkeep
+storage/tmp/*
+!storage/tmp/.gitkeep
+storage/backups/*
+!storage/backups/.gitkeep
+
+# Diagnostic / Debug files
+debug.php
+debug_logger.php
+phpstan_errors.txt
+public/.htaccess.tmp
+php_native_errors.log
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# PHPStan
+phpstan-baseline.neon
+
+# Accidentally-redirected shell output files (names end with commas, parens, etc.)
+[0-9]*,
+*()
+*.bak.*
