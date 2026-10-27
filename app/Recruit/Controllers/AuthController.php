@@ -54,9 +54,9 @@ final class AuthController
         /** @var Csrf $csrf */
         $csrf = $this->container->get(Csrf::class);
 
-        $email    = trim((string) $request->input('email', ''));
-        $password = (string) $request->input('password', '');
-        $intended = (string) $request->input('intended', '');
+        $email    = trim($request->inputString('email', ''));
+        $password = $request->inputString('password', '');
+        $intended = $request->inputString('intended', '');
 
         $redirectBack = '/login';
         if ($intended !== '' && str_starts_with($intended, '/')) {

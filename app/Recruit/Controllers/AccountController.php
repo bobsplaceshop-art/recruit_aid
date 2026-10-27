@@ -69,9 +69,9 @@ final class AccountController
         /** @var UserRepository $users */
         $users = $this->container->get(UserRepository::class);
 
-        $current = (string) $request->input('current_password', '');
-        $new     = (string) $request->input('new_password', '');
-        $confirm = (string) $request->input('confirm_password', '');
+        $current = $request->inputString('current_password', '');
+        $new     = $request->inputString('new_password', '');
+        $confirm = $request->inputString('confirm_password', '');
 
         $user = $auth->user();
         if ($user === null) {
@@ -127,7 +127,7 @@ final class AccountController
             return Response::json(['ok' => false, 'error' => 'not_authenticated'], 401);
         }
 
-        $theme = (string) $request->input('theme', 'dark');
+        $theme = $request->inputString('theme', 'dark');
         if (!in_array($theme, ['dark', 'light', 'system'], true)) {
             return Response::json(['ok' => false, 'error' => 'invalid_theme'], 422);
         }
@@ -192,8 +192,8 @@ final class AccountController
             return Response::redirect('/login');
         }
 
-        $password = (string) $request->input('password', '');
-        $next = (string) $request->input('next', '/dashboard');
+        $password = $request->inputString('password', '');
+        $next = $request->inputString('next', '/dashboard');
 
         // Only allow relative paths
         if (!str_starts_with($next, '/') || str_starts_with($next, '//')) {

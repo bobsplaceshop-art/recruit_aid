@@ -63,7 +63,7 @@ final class PasswordResetController
         /** @var View $view */
         $view = $this->container->get(View::class);
 
-        $email = strtolower(trim((string) $request->input('email', '')));
+        $email = strtolower(trim($request->inputString('email', '')));
 
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $session->flashOldInput(['email' => $email]);
@@ -168,9 +168,9 @@ final class PasswordResetController
         /** @var View $view */
         $view = $this->container->get(View::class);
 
-        $token    = trim((string) $request->input('token', ''));
-        $password = (string) $request->input('password', '');
-        $confirm  = (string) $request->input('password_confirm', '');
+        $token    = trim($request->inputString('token', ''));
+        $password = $request->inputString('password', '');
+        $confirm  = $request->inputString('password_confirm', '');
 
         $email = $token !== '' ? $resets->findEmailByToken($token) : null;
 
