@@ -2,7 +2,7 @@
 
 **Paste this into a new chat to resume work.**
 
-**Last updated:** 2026-09-25
+**Last updated:** 2026-10-27
 **Version:** 0.6.0-alpha
 **Status:** Tier 1 closed. Naming convention cycle complete. Ready for Tier 2.
 
@@ -319,6 +319,43 @@ failure attached. They are not suggestions.
 19. **Doctrine rules survive renaming.** Well-designed rules are tied
     to *behavior*, not to specific file paths or names. The rules
     above applied throughout the rename cycle unchanged.
+
+20. **If the error handler cannot write, it cannot help.** A logger
+    that silently fails when `is_writable()` returns `false` is worse
+    than no logger — it produces the illusion of observability while
+    hiding every failure. Either log loudly (fall back to `error_log()`
+    when the primary path is not writable) or refuse to boot. Verify
+    `is_writable(storage/logs/)` after any filesystem change.
+
+21. **Every working state gets a git commit. Every finished feature
+    gets a tag.** The September 25 rename cycle left `RecruitAid\`
+    namespaces in 12 view files because there was no commit-based
+    diff to catch them. From now on: commit at every working state,
+    tag at every completed feature. Tarballs are for wanton
+    destruction only. `git log -p` is the recovery tool.
+
+22. **The repository return shape is the contract. Controllers and
+    views are consumers.** A `paginate()` returning `['rows' => ...]`
+    while the controller reads `$result['items']` produces a runtime
+    500 with no compile-time signal. Fix: every repository method
+    that returns an array gets a PHPDoc `@return array{...}` shape.
+    PHPStan Level 9 will refuse to pass without it. Add the shape in
+    the same commit that adds the method.
+
+23. **Shell redirection characters (`>`, `<`, `|`) in pasted commands
+    create phantom files.** Files named `12,`, `5,`, `getMessage()`,
+    `path()` were sitting in the project root for weeks from a stray
+    `>` in an earlier session. `git status` surfaces them immediately.
+    Tar backups do not. If a `git status` shows an unexpected file
+    with a weird name, do not stage it — investigate. It's almost
+    always a shell accident.
+
+24. **`git ls-remote` before the first push.** Always confirm the
+    target GitHub repo is empty (or has known history) before
+    pushing. An unexpected initial commit from the GitHub UI (README,
+    LICENSE) turns a clean first push into an unrelated-history
+    merge. Ten seconds of `ls-remote` prevents thirty minutes of
+    merge conflict resolution.
 
 ---
 
