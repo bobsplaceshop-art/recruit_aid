@@ -9,6 +9,14 @@ namespace CorporateAid\Core;
  */
 final class Session
 {
+
+    // ---------- scalar coercion helper (PHPStan Level 9) ----------
+
+    private static function toInt(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
     private array $config;
     private bool $started = false;
 
@@ -160,12 +168,12 @@ final class Session
 
     private function enforceIdleTimeout(): void
     {
-        $lifetime = (int) $this->config['lifetime'];
+        $lifetime = self::toInt($this->config['lifetime'] ?? 0);
         if ($lifetime <= 0) {
             return;
         }
 
-        $last = (int) ($_SESSION['_last_activity'] ?? 0);
+        $last = self::toInt($_SESSION['_last_activity'] ?? 0);
         if ($last > 0 && (time() - $last) > $lifetime) {
             $this->destroy();
             $this->start();
@@ -176,7 +184,7 @@ final class Session
     private function rotateIfStale(): void
     {
         $interval = 300; // rotate session id every 5 minutes
-        $last = (int) ($_SESSION['_rotated_at'] ?? 0);
+        $last = self::toInt($_SESSION['_rotated_at'] ?? 0);
         if ($last > 0 && (time() - $last) > $interval) {
             $this->regenerate(true);
         }
@@ -198,7 +206,7 @@ final class Session
      */
     public function reauthAt(): int
     {
-        return (int) $this->get('_reauth_at', 0);
+        return self::toInt($this->get('_reauth_at', 0));
     }
 
     /**

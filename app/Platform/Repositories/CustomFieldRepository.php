@@ -8,6 +8,14 @@ use CorporateAid\Platform\Models\CustomField;
 
 final class CustomFieldRepository
 {
+
+    // ---------- scalar coercion helper (PHPStan Level 9) ----------
+
+    private static function toInt(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
     public function __construct(private Database $db) {}
 
     public function findById(int $id): ?CustomField
@@ -125,18 +133,18 @@ final class CustomFieldRepository
 
     public function valueCount(int $fieldId): int
     {
-        return (int) $this->db->scalar(
+        return self::toInt($this->db->scalar(
             "SELECT COUNT(*) FROM `core_custom_field_values` WHERE `custom_field_id` = ?",
             [$fieldId]
-        );
+        ));
     }
 
     public function nextSortOrder(string $entityType): int
     {
-        $max = (int) $this->db->scalar(
+        $max = self::toInt($this->db->scalar(
             "SELECT COALESCE(MAX(`sort_order`), 0) FROM `core_custom_fields` WHERE `entity_type` = ?",
             [$entityType]
-        );
+        ));
         return $max + 10;
     }
 

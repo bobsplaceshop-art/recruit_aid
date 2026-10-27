@@ -12,6 +12,14 @@ use CorporateAid\Core\Database;
  */
 final class DashboardService
 {
+
+    // ---------- scalar coercion helper (PHPStan Level 9) ----------
+
+    private static function toInt(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
     public function __construct(
         private Database $db,
         private ?Auth $auth = null
@@ -112,10 +120,10 @@ final class DashboardService
     public function summaryCounts(): array
     {
         return [
-            'organisations' => (int) $this->db->scalar("SELECT COUNT(*) FROM `recruit_client_organisations` WHERE `deleted_at` IS NULL"),
-            'contacts'      => (int) $this->db->scalar("SELECT COUNT(*) FROM `recruit_client_contacts` WHERE `deleted_at` IS NULL"),
-            'engagements'   => (int) $this->db->scalar("SELECT COUNT(*) FROM `recruit_engagements` WHERE `deleted_at` IS NULL"),
-            'vacancies'     => (int) $this->db->scalar("SELECT COUNT(*) FROM `recruit_vacancies` WHERE `deleted_at` IS NULL"),
+            'organisations' => self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_client_organisations` WHERE `deleted_at` IS NULL")),
+            'contacts'      => self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_client_contacts` WHERE `deleted_at` IS NULL")),
+            'engagements'   => self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_engagements` WHERE `deleted_at` IS NULL")),
+            'vacancies'     => self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_vacancies` WHERE `deleted_at` IS NULL")),
         ];
     }
 

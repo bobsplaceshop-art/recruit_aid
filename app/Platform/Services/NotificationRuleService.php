@@ -21,6 +21,14 @@ use CorporateAid\Recruit\Repositories\EngagementAssignmentRepository;
  */
 final class NotificationRuleService
 {
+
+    // ---------- scalar coercion helper (PHPStan Level 9) ----------
+
+    private static function toInt(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
     public function __construct(
         private Database $db,
         private EngagementAssignmentRepository $engagementAssignments,
@@ -167,7 +175,7 @@ final class NotificationRuleService
              WHERE `id` = ? AND `deleted_at` IS NULL AND `status` = 'active'",
             [$id]
         );
-        return $active ? [(int) $active] : [];
+        return $active ? [self::toInt($active)] : [];
     }
 
     /**
@@ -183,7 +191,7 @@ final class NotificationRuleService
             "SELECT `recruiter_id` FROM `recruit_vacancies` WHERE `id` = ?",
             [$vacancyId]
         );
-        return $recruiterId ? [(int) $recruiterId] : [];
+        return $recruiterId ? [self::toInt($recruiterId)] : [];
     }
 
     /**

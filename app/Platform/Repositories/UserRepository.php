@@ -13,6 +13,14 @@ use CorporateAid\Platform\Support\Hasher;
  */
 final class UserRepository
 {
+
+    // ---------- scalar coercion helper (PHPStan Level 9) ----------
+
+    private static function toInt(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
     private Database $db;
 
     public function __construct(Database $db)
@@ -84,7 +92,7 @@ final class UserRepository
             [$userId]
         );
 
-        $failed = (int) $this->db->scalar("SELECT `failed_logins` FROM `core_users` WHERE `id` = ?", [$userId]);
+        $failed = self::toInt($this->db->scalar("SELECT `failed_logins` FROM `core_users` WHERE `id` = ?", [$userId]));
         if ($failed >= $lockThreshold) {
             $this->db->execute(
                 "UPDATE `core_users` SET `locked_until` = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE `id` = ?",
@@ -148,7 +156,7 @@ final class UserRepository
      */
     public function count(): int
     {
-        return (int) $this->db->scalar("SELECT COUNT(*) FROM `core_users` WHERE `deleted_at` IS NULL");
+        return self::toInt($this->db->scalar("SELECT COUNT(*) FROM `core_users` WHERE `deleted_at` IS NULL"));
     }
 
     /**
