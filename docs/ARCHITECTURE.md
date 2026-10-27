@@ -492,6 +492,75 @@ None of this is built yet. The tables exist, empty.
 
 ---
 
+
+---
+
+## 18. Framework Contract (Strict Rules)
+
+This section documents the strict behavioral contracts of the custom
+framework classes. It exists because the September/October 2026
+development cycle proved that "guessing" how these classes behave
+causes silent data loss, unhandled 500s, and invisible errors.
+
+**Rule:** If the code and this contract disagree, the code is wrong.
+
+### 18.1 The Container (Explicit Bindings Only)
+
+- **Contract:** `Container::get(string $id): mixed`. The generic
+  PHPDoc (`@template R of object`) tells PHPStan the return type.
+- **Rule:** Every class resolved via `get()` MUST be explicitly bound
+  in `App::registerServices()`. There is no autowiring.
+- **Rule:** Controllers must be bound in the container. If a route
+  references a controller that isn't bound, the Router will crash at
+  dispatch time.
+
+### 18.2 The Request (Typed Casting)
+
+- **Contract:** `Request::input()` and `Request::query()` return
+  `mixed`. 
+- **Rule:** Controllers MUST cast values explicitly before using them
+  (e.g., `trim((string) $request->input('name'))`). 
+- **Rule:** Never access `$_POST` or `$_GET` directly in controllers.
+
+### 18.3 The Response (Factories Only)
+
+- **Contract:** `Response` provides `html()`, `json()`, `redirect()`,
+  `text()`, `noContent()`, and `file()`.
+- **Rule:** Never instantiate `new Response(...)` directly. Factories
+  set the correct headers.
+- **Rule:** `Response::file()` streams the file via `readfile()` to
+  avoid memory exhaustion. It sets `X-Content-Type-Options: nosniff`
+  and `Content-Security-Policy: sandbox`.
+
+### 18.4 The Database (No lastInsertId)
+
+- **Contract:** `Database::insert(string $sql, array $params): int`
+  returns the newly inserted ID.
+- **Rule:** Do not call `Database::execute()` for INSERTs if you need
+  the ID. `execute()` returns affected rows, and `Database` has no
+  `lastInsertId()` method.
+- **Contract:** `Database::scalar()` returns `mixed`. Repositories
+  must cast it before returning.
+
+### 18.5 The Logger (Loud Failure)
+
+- **Contract:** `Logger` writes to `storage/logs/app.log`.
+- **Rule:** A silent failure is a bug. If the directory is not
+  writable, the logger MUST fail loudly (fallback to `error_log()`).
+- **Rule:** Every 500 exception generates an `ERR-xxxxxx` reference
+  ID that is shown to the user and written to the log. Support can
+  `grep ERR-xxxxxx` to find the exact trace.
+
+### 18.6 File Uploads and Permissions
+
+- **Contract:** `FileController` derives download permission from the
+  entity the file is attached to via `core_entity_files`.
+- **Rule:** Zero entity links equals zero permissions equals a 404
+  response. Fail closed.
+- **Rule:** Physical files are stored outside the web root in
+  `storage/uploads/` and streamed exclusively through PHP.
+
+
 ## 17. References
 
 - `docs/NAMING-CONVENTION.md` — the naming rules
