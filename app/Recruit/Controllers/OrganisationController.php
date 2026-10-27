@@ -255,18 +255,18 @@ final class OrganisationController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $typedPhrase = (string) $request->input('confirm_phrase', '');
+        $typedPhrase = (string) $request->input('confirmation', '');
         $reason      = (string) $request->input('reason', '');
         $reason      = $reason !== '' ? $reason : null;
 
         $result = $service->delete($org->id, $typedPhrase, $reason);
 
-        if ($result->isSuccess()) {
-            $session->flash('success', $result->message());
+        if ($result->success) {
+            $session->flash('success', $result->message);
             return Response::redirect('/organisations');
         }
 
-        $session->flash('error', $result->message());
+        $session->flash('error', $result->message);
         return Response::redirect('/organisations/' . $code);
     }
 
@@ -282,17 +282,22 @@ final class OrganisationController
         $org = $orgs->findByCode($code, true);
 
         if (!$org) {
-            return Response::json(['error' => 'Not found'], 404);
+            return Response::json(['ok' => false, 'message' => 'Organisation not found.'], 404);
         }
 
         /** @var OrganisationService $service */
         $service = $this->container->get(OrganisationService::class);
+        $result = $service->inspectDelete($org->id);
 
-        $inspection = $service->inspectDelete($org->id);
+        if (!$result->success) {
+            return Response::json(['ok' => false, 'message' => $result->message], 403);
+        }
 
         return Response::json([
-            'dependents' => $inspection->dependents(),
-            'phrase'     => $inspection->confirmationPhrase(),
+            'ok'              => true,
+            'has_dependents'  => $result->hasDependents,
+            'dependents'      => $result->dependents,
+            'required_phrase' => $result->requiredPhrase,
         ]);
     }
 
@@ -322,10 +327,10 @@ final class OrganisationController
             ? $service->archive($org->id, $reason)
             : $service->restore($org->id);
 
-        if ($result->isSuccess()) {
-            $session->flash('success', $result->message());
+        if ($result->success) {
+            $session->flash('success', $result->message);
         } else {
-            $session->flash('error', $result->message());
+            $session->flash('error', $result->message);
         }
 
         return Response::redirect('/organisations/' . $code);
