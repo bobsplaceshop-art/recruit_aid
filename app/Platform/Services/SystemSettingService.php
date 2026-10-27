@@ -16,6 +16,33 @@ use CorporateAid\Platform\Support\Logger;
  */
 final class SystemSettingService
 {
+
+    // ---------- scalar coercion helpers ----------
+    // These are what PHPStan Level 9 wants: explicit proof that a mixed
+    // value is safe to cast. Each helper checks the type first. This
+    // replaces the previous "(int) $value" / "(string) $value" pattern,
+    // which triggered "Cannot cast mixed to int/string" errors.
+
+    private static function toStr(mixed $value): string
+    {
+        if (is_scalar($value)) {
+            return (string) $value;
+        }
+        return '';
+    }
+
+    private static function toInt(mixed $value): int
+    {
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+        return 0;
+    }
+
+    private static function toBool(mixed $value): bool
+    {
+        return (bool) self::toInt($value);
+    }
     /** @var array<string, mixed> per-request cache */
     private array $cache = [];
 
@@ -64,17 +91,17 @@ final class SystemSettingService
 
     public function getInt(string $key, int $default = 0): int
     {
-        return (int) $this->get($key, $default);
+        return self::toInt($this->get($key, $default));
     }
 
     public function getBool(string $key, bool $default = false): bool
     {
-        return (bool) $this->get($key, $default);
+        return self::toBool($this->get($key, $default));
     }
 
     public function getString(string $key, string $default = ''): string
     {
-        return (string) $this->get($key, $default);
+        return self::toStr($this->get($key, $default));
     }
 
     /**
@@ -197,21 +224,21 @@ final class SystemSettingService
     private function cast(mixed $value, string $type): mixed
     {
         return match ($type) {
-            'int'    => (int) $value,
-            'bool'   => (bool) ((int) $value),
-            'json'   => json_decode((string) $value, true) ?: [],
-            'secret' => (string) $value, // encryption handled at a higher layer, deferred
-            default  => (string) $value,
+            'int'    => self::toInt($value),
+            'bool'   => self::toBool($value),
+            'json'   => json_decode(self::toStr($value), true) ?: [],
+            'secret' => self::toStr($value), // encryption handled at a higher layer, deferred
+            default  => self::toStr($value),
         };
     }
 
     private function serialize(mixed $value, string $type): string
     {
         return match ($type) {
-            'int'   => (string) (int) $value,
+            'int'   => (string) self::toInt($value),
             'bool'  => !empty($value) ? '1' : '0',
             'json'  => json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '{}',
-            default => (string) $value,
+            default => self::toStr($value),
         };
     }
 
@@ -287,7 +314,7 @@ final class SystemSettingService
             'security.session.idle_timeout',
         ];
         if (in_array($key, $secondsKeys, true)) {
-            return self::humanDuration((int) $value);
+            return self::humanDuration(self::toInt($value));
         }
 
         // Minutes → duration
@@ -299,7 +326,7 @@ final class SystemSettingService
             'security.confirm_password.window_minutes',
         ];
         if (in_array($key, $minutesKeys, true)) {
-            return self::humanMinutes((int) $value);
+            return self::humanMinutes(self::toInt($value));
         }
 
         // Counts
@@ -311,18 +338,18 @@ final class SystemSettingService
             'security.confirm_password.max_attempts',
         ];
         if (in_array($key, $countKeys, true)) {
-            $n = (int) $value;
+            $n = self::toInt($value);
             return $n . ($n === 1 ? ' attempt' : ' attempts');
         }
 
         // Password length
         if (str_contains($key, 'min_length')) {
-            return (int) $value . ' characters';
+            return self::toInt($value) . ' characters';
         }
 
         // Default: raw value
-        if (is_array($value)) return json_encode($value);
-        return (string) $value;
+        if (is_array($value)) return json_encode($value) ?: '';
+        return self::toStr($value);
     }
 
     private static function humanDuration(int $seconds): string
