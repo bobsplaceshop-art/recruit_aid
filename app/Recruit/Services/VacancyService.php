@@ -35,9 +35,10 @@ final class VacancyService
 
     /**
      * @param array<string, mixed> $input
+     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
      * @return array{id:int, vacancy:?Vacancy, errors:string[], capacity_warning:?array<string, mixed>}
      */
-    public function create(int $organisationId, array $input): array
+    public function create(int $organisationId, array $input, array $files = []): array
     {
         $baseErrors = $this->validator->validate($input);
         $cfValues = is_array($input['cf'] ?? null) ? $input['cf'] : [];
@@ -85,8 +86,8 @@ final class VacancyService
         $requirements = $this->validator->extractRequirements($input);
         $this->vacancies->syncRequirements($id, $requirements);
 
-        if (!empty($cfValues)) {
-            $this->cfSaver->save('vacancy', $id, $cfValues);
+        if (!empty($cfValues) || !empty($files)) {
+            $this->cfSaver->save('vacancy', $id, $cfValues, $files);
         }
 
         $vacancy = $this->vacancies->findById($id);
@@ -112,9 +113,10 @@ final class VacancyService
 
     /**
      * @param array<string, mixed> $input
+     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
      * @return array{success:bool, errors:string[], changes:array<string, array{old:mixed,new:mixed}>}
      */
-    public function update(int $id, array $input): array
+    public function update(int $id, array $input, array $files = []): array
     {
         $existing = $this->vacancies->findById($id);
         if (!$existing) {

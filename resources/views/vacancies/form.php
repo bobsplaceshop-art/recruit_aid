@@ -140,7 +140,7 @@ $formAction = $isEdit ? '/vacancies/' . $vacancy->code : '/vacancies';
     </div>
 <?php endif; ?>
 
-<form id="vac-form" method="POST" action="<?= e($formAction) ?>" novalidate>
+<form id="vac-form" method="POST" action="<?= e($formAction) ?>" enctype="multipart/form-data" novalidate>
     <?= csrf_field() ?>
     <?php if ($isEdit): ?><?= method_field('PUT') ?><?php endif; ?>
 
