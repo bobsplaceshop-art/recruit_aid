@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Repositories;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
+use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Models\Vacancy;
 use CorporateAid\Recruit\Models\VacancyRequirement;
 
@@ -11,23 +13,11 @@ final class VacancyRepository
 {
     public function __construct(private Database $db) {}
 
-    // ---------- scalar coercion helpers (PHPStan Level 9) ----------
-
-    private static function toInt(mixed $value): int
-    {
-        return is_numeric($value) ? (int) $value : 0;
-    }
-
-    private static function toStr(mixed $value): string
-    {
-        return is_scalar($value) ? (string) $value : '';
-    }
-
     public function findById(int $id): ?Vacancy
     {
         $row = $this->db->selectOne(
             "SELECT * FROM `recruit_vacancies` WHERE `id` = ? LIMIT 1",
-            [$id]
+            PDOParams::positional([$id])
         );
         return $row ? Vacancy::fromRow($row) : null;
     }
@@ -38,11 +28,12 @@ final class VacancyRepository
         if (!$includeDeleted) $sql .= " AND `deleted_at` IS NULL";
         $sql .= " LIMIT 1";
 
-        $row = $this->db->selectOne($sql, [$code]);
+        $row = $this->db->selectOne($sql, PDOParams::positional([$code]));
         return $row ? Vacancy::fromRow($row) : null;
     }
 
     /**
+     * @param array{search?:string,status?:string,include_deleted?:bool,organisation_id?:int,engagement_id?:int,recruiter_id?:int} $filters
      * @return array{rows:Vacancy[], total:int, page:int, per_page:int, total_pages:int}
      */
     public function paginate(array $filters = [], int $page = 1, int $perPage = 25): array
@@ -83,8 +74,12 @@ final class VacancyRepository
         }
 
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+        $paramObj = PDOParams::positional($params);
 
-        $total = self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_vacancies` {$whereSql}", $params));
+        $total = $this->db->scalarInt(
+            "SELECT COUNT(*) FROM `recruit_vacancies` {$whereSql}",
+            $paramObj
+        );
 
         $page    = max(1, $page);
         $perPage = max(1, min(100, $perPage));
@@ -96,7 +91,7 @@ final class VacancyRepository
             "SELECT * FROM `recruit_vacancies` {$whereSql}
              ORDER BY `created_at` DESC
              LIMIT {$perPage} OFFSET {$offset}",
-            $params
+            $paramObj
         );
 
         return [
@@ -115,7 +110,7 @@ final class VacancyRepository
         if (!$includeDeleted) $sql .= " AND `deleted_at` IS NULL";
         $sql .= " ORDER BY `created_at` DESC";
 
-        $rows = $this->db->select($sql, [$organisationId]);
+        $rows = $this->db->select($sql, PDOParams::positional([$organisationId]));
         return array_map([Vacancy::class, 'fromRow'], $rows);
     }
 
@@ -126,27 +121,23 @@ final class VacancyRepository
             "SELECT * FROM `recruit_vacancies`
              WHERE `engagement_id` = ? AND `deleted_at` IS NULL
              ORDER BY `created_at` DESC",
-            [$engagementId]
+            PDOParams::positional([$engagementId])
         );
         return array_map([Vacancy::class, 'fromRow'], $rows);
     }
 
-    /**
-     * Count of active vacancies for an engagement.
-     * Active = not draft, not cancelled, not closed.
-     */
     public function activeCountForEngagement(int $engagementId): int
     {
-        return self::toInt($this->db->scalar(
+        return $this->db->scalarInt(
             "SELECT COUNT(*) FROM `recruit_vacancies`
              WHERE `engagement_id` = ?
                AND `status` NOT IN ('draft','cancelled','closed')
                AND `deleted_at` IS NULL",
-            [$engagementId]
-        ));
+            PDOParams::positional([$engagementId])
+        );
     }
 
-    /** @return array<string,int> */
+    /** @return array<string, int> */
     public function countsByStatus(): array
     {
         $rows = $this->db->select(
@@ -161,13 +152,15 @@ final class VacancyRepository
             'filled' => 0, 'on_hold' => 0, 'cancelled' => 0, 'closed' => 0,
         ];
         foreach ($rows as $row) {
-            $s = (string) $row['status'];
-            $counts[$s] = (int) $row['n'];
-            $counts['all'] += (int) $row['n'];
+            $s = Row::str($row, 'status');
+            $n = Row::int($row, 'n');
+            $counts[$s] = $n;
+            $counts['all'] += $n;
         }
         return $counts;
     }
 
+    /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
         $sql = "INSERT INTO `recruit_vacancies`
@@ -184,7 +177,7 @@ final class VacancyRepository
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        return $this->db->insert($sql, [
+        return $this->db->insert($sql, PDOParams::positional([
             $data['code'],
             $data['organisation_id'],
             $data['engagement_id'] ?? null,
@@ -215,10 +208,13 @@ final class VacancyRepository
             $data['status'] ?? 'draft',
             !empty($data['is_public']) ? 1 : 0,
             $data['created_by'] ?? null,
-        ]);
+        ]));
     }
 
-    /** @return array<string, array{old:mixed,new:mixed}> */
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, array{old:mixed,new:mixed}>
+     */
     public function update(int $id, array $data): array
     {
         $existing = $this->findById($id);
@@ -242,7 +238,6 @@ final class VacancyRepository
             if (!array_key_exists($col, $data)) continue;
 
             $newVal = $data[$col];
-
             $prop = match ($col) {
                 'engagement_id'             => 'engagementId',
                 'country_code'              => 'countryCode',
@@ -266,7 +261,7 @@ final class VacancyRepository
 
             $newForCompare = $newVal;
             if (in_array($col, ['skills', 'languages'], true)) {
-                $newForCompare = !empty($newVal) ? (is_array($newVal) ? $newVal : json_decode((string) $newVal, true)) : [];
+                $newForCompare = !empty($newVal) ? (is_array($newVal) ? $newVal : (is_string($newVal) ? json_decode($newVal, true) : [])) : [];
                 $oldVal = $col === 'skills' ? $existing->skills : $existing->languages;
             }
             if ($col === 'is_public') $newForCompare = (bool) $newVal;
@@ -286,19 +281,28 @@ final class VacancyRepository
         if (empty($sets)) return [];
 
         $params[] = $id;
-        $this->db->execute("UPDATE `recruit_vacancies` SET " . implode(', ', $sets) . " WHERE `id` = ?", $params);
+        $this->db->execute(
+            "UPDATE `recruit_vacancies` SET " . implode(', ', $sets) . " WHERE `id` = ?",
+            PDOParams::positional($params)
+        );
 
         return $changes;
     }
 
     public function softDelete(int $id): void
     {
-        $this->db->execute("UPDATE `recruit_vacancies` SET `deleted_at` = NOW() WHERE `id` = ?", [$id]);
+        $this->db->execute(
+            "UPDATE `recruit_vacancies` SET `deleted_at` = NOW() WHERE `id` = ?",
+            PDOParams::positional([$id])
+        );
     }
 
     public function restore(int $id): void
     {
-        $this->db->execute("UPDATE `recruit_vacancies` SET `deleted_at` = NULL WHERE `id` = ?", [$id]);
+        $this->db->execute(
+            "UPDATE `recruit_vacancies` SET `deleted_at` = NULL WHERE `id` = ?",
+            PDOParams::positional([$id])
+        );
     }
 
     public function nextCode(): string
@@ -306,13 +310,11 @@ final class VacancyRepository
         $this->db->execute(
             "UPDATE `core_sequence_counters` SET `last_value` = `last_value` + 1 WHERE `name` = 'rec_vacancy_code'"
         );
-        $num = self::toInt($this->db->scalar(
+        $num = $this->db->scalarInt(
             "SELECT `last_value` FROM `core_sequence_counters` WHERE `name` = 'rec_vacancy_code'"
-        ));
+        );
         return 'VAC-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
     }
-
-    // ---------- Requirements ----------
 
     /** @return VacancyRequirement[] */
     public function requirementsFor(int $vacancyId, ?string $type = null): array
@@ -325,31 +327,30 @@ final class VacancyRepository
         }
         $sql .= " ORDER BY `sort_order` ASC, `id` ASC";
 
-        $rows = $this->db->select($sql, $params);
+        $rows = $this->db->select($sql, PDOParams::positional($params));
         return array_map([VacancyRequirement::class, 'fromRow'], $rows);
     }
 
-    /**
-     * Sync requirements for a vacancy.
-     * $items = [type => [value1, value2, ...], ...]
-     */
+    /** @param array<string, mixed> $items */
     public function syncRequirements(int $vacancyId, array $items): void
     {
         $validTypes = ['responsibility','requirement','preferred','skill','language'];
 
-        // Delete existing
-        $this->db->execute("DELETE FROM `recruit_vacancy_requirements` WHERE `vacancy_id` = ?", [$vacancyId]);
+        $this->db->execute(
+            "DELETE FROM `recruit_vacancy_requirements` WHERE `vacancy_id` = ?",
+            PDOParams::positional([$vacancyId])
+        );
 
         $order = 0;
         foreach ($validTypes as $type) {
             if (empty($items[$type]) || !is_array($items[$type])) continue;
             foreach ($items[$type] as $value) {
-                $value = trim(self::toStr($value));
-                if ($value === '') continue;
+                $valueStr = is_scalar($value) ? trim((string) $value) : '';
+                if ($valueStr === '') continue;
                 $this->db->execute(
                     "INSERT INTO `recruit_vacancy_requirements` (`vacancy_id`, `type`, `value`, `sort_order`)
                      VALUES (?, ?, ?, ?)",
-                    [$vacancyId, $type, $value, $order]
+                    PDOParams::positional([$vacancyId, $type, $valueStr, $order])
                 );
                 $order++;
             }

@@ -61,9 +61,9 @@ final class EmailService
             } elseif (is_array($to)) {
                 foreach ($to as $key => $value) {
                     if (is_int($key)) {
-                        $mail->addAddress((string) $value);
+                        $mail->addAddress(is_scalar($value) ? (string) $value : '');
                     } else {
-                        $mail->addAddress((string) $key, (string) $value);
+                        $mail->addAddress((string) $key, is_scalar($value) ? (string) $value : '');
                     }
                 }
             }

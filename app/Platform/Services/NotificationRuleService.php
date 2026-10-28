@@ -5,30 +5,12 @@ namespace CorporateAid\Platform\Services;
 
 use CorporateAid\Core\Auth;
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
+use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Repositories\EngagementAssignmentRepository;
 
-/**
- * Resolves notification rules into concrete user IDs.
- *
- * Rules are stored in `core_notification_rules`. Each rule has a
- * recipient_type and optional recipient_value. For context-based
- * rules (assigned_recruiter, engagement_member, etc.), the caller
- * passes a context array with the relevant IDs.
- *
- * The service handles rule lookup, recipient resolution, and
- * actor exclusion (so the person who triggered an event is not
- * notified about their own action unless a rule explicitly allows it).
- */
 final class NotificationRuleService
 {
-
-    // ---------- scalar coercion helper (PHPStan Level 9) ----------
-
-    private static function toInt(mixed $value): int
-    {
-        return is_numeric($value) ? (int) $value : 0;
-    }
-
     public function __construct(
         private Database $db,
         private EngagementAssignmentRepository $engagementAssignments,
@@ -37,11 +19,7 @@ final class NotificationRuleService
     }
 
     /**
-     * Resolve the recipient user IDs for a given event.
-     *
-     * @param string $eventType  e.g. 'interview.scheduled'
-     * @param array  $context    Context data — see docs below
-     * @param bool   $excludeActor  If true, remove the current user from the list
+     * @param array<string, mixed> $context
      * @return int[]
      */
     public function resolveRecipients(string $eventType, array $context = [], bool $excludeActor = true): array
@@ -54,13 +32,12 @@ final class NotificationRuleService
         foreach ($rules as $rule) {
             $resolved = $this->resolveOne($rule, $context);
             foreach ($resolved as $id) {
-                $userIds[$id] = true; // dedupe via associative array
+                $userIds[$id] = true;
             }
         }
 
         $ids = array_keys($userIds);
 
-        // Exclude actor
         if ($excludeActor && $this->auth !== null) {
             $actorId = $this->auth->user()?->id;
             if ($actorId !== null) {
@@ -71,28 +48,20 @@ final class NotificationRuleService
         return array_values($ids);
     }
 
-    /**
-     * Resolve the channel config for a given event.
-     * Returns ['inapp' => bool, 'email' => bool].
-     * If any active rule enables the channel, the channel is enabled.
-     */
+    /** @return array{inapp: bool, email: bool} */
     public function channelsFor(string $eventType): array
     {
         $rules = $this->activeRulesFor($eventType);
         $inapp = false;
         $email = false;
         foreach ($rules as $r) {
-            if (!empty($r['channel_inapp'])) $inapp = true;
-            if (!empty($r['channel_email'])) $email = true;
+            if (Row::bool($r, 'channel_inapp')) $inapp = true;
+            if (Row::bool($r, 'channel_email')) $email = true;
         }
         return ['inapp' => $inapp, 'email' => $email];
     }
 
-    // ---------- Rule lookup ----------
-
-    /**
-     * @return array<int, array<string,mixed>>
-     */
+    /** @return array<int, array<string,mixed>> */
     private function activeRulesFor(string $eventType): array
     {
         return $this->db->select(
@@ -100,19 +69,19 @@ final class NotificationRuleService
              WHERE `event_type` = ?
                AND `is_active` = 1
                AND `deleted_at` IS NULL",
-            [$eventType]
+            PDOParams::positional([$eventType])
         );
     }
 
-    // ---------- Per-rule resolution ----------
-
     /**
+     * @param array<string, mixed> $rule
+     * @param array<string, mixed> $context
      * @return int[]
      */
     private function resolveOne(array $rule, array $context): array
     {
-        $type = (string) $rule['recipient_type'];
-        $value = $rule['recipient_value'] !== null ? (string) $rule['recipient_value'] : '';
+        $type = Row::str($rule, 'recipient_type');
+        $value = Row::nullableStr($rule, 'recipient_value') ?? '';
 
         return match ($type) {
             'role'                          => $this->usersWithRole($value),
@@ -124,12 +93,10 @@ final class NotificationRuleService
             'organisation_client_user'      => $this->organisationClientUsers($context, ['client_admin','client_user']),
             'hiring_manager'                => $this->hiringManager($context),
             'owner'                         => $this->owner($context),
-            'actor_except'                  => [], // no-op; actor exclusion is handled globally
+            'actor_except'                  => [],
             default                         => [],
         };
     }
-
-    // ---------- Recipient resolvers ----------
 
     /** @return int[] */
     private function usersWithRole(string $roleSlug): array
@@ -142,9 +109,9 @@ final class NotificationRuleService
              JOIN `core_roles` r ON r.`id` = ur.`role_id`
              WHERE u.`deleted_at` IS NULL AND u.`status` = 'active'
                AND r.`slug` = ?",
-            [$roleSlug]
+            PDOParams::positional([$roleSlug])
         );
-        return array_map(fn ($r) => (int) $r['id'], $rows);
+        return array_map(fn ($r) => Row::int($r, 'id'), $rows);
     }
 
     /** @return int[] */
@@ -159,9 +126,9 @@ final class NotificationRuleService
              JOIN `core_permissions` p ON p.`id` = rp.`permission_id`
              WHERE u.`deleted_at` IS NULL AND u.`status` = 'active'
                AND p.`slug` = ?",
-            [$permissionSlug]
+            PDOParams::positional([$permissionSlug])
         );
-        return array_map(fn ($r) => (int) $r['id'], $rows);
+        return array_map(fn ($r) => Row::int($r, 'id'), $rows);
     }
 
     /** @return int[] */
@@ -170,50 +137,46 @@ final class NotificationRuleService
         $id = (int) $userId;
         if ($id <= 0) return [];
 
-        $active = $this->db->scalar(
+        $active = $this->db->scalarInt(
             "SELECT `id` FROM `core_users`
              WHERE `id` = ? AND `deleted_at` IS NULL AND `status` = 'active'",
-            [$id]
+            PDOParams::positional([$id])
         );
-        return $active ? [self::toInt($active)] : [];
+        return $active > 0 ? [$active] : [];
     }
 
-    /**
-     * The recruiter assigned to the vacancy.
-     * @return int[]
-     */
+    /** @param array<string, mixed> $context
+     *  @return int[] */
     private function assignedRecruiter(array $context): array
     {
-        $vacancyId = (int) ($context['vacancy_id'] ?? 0);
+        $vacancyId = Row::int($context, 'vacancy_id');
         if ($vacancyId === 0) return [];
 
-        $recruiterId = $this->db->scalar(
+        $recruiterId = $this->db->scalarInt(
             "SELECT `recruiter_id` FROM `recruit_vacancies` WHERE `id` = ?",
-            [$vacancyId]
+            PDOParams::positional([$vacancyId])
         );
-        return $recruiterId ? [self::toInt($recruiterId)] : [];
+        return $recruiterId > 0 ? [$recruiterId] : [];
     }
 
-    /**
-     * Users assigned to the parent engagement — individually or via role/permission.
-     * @return int[]
-     */
+    /** @param array<string, mixed> $context
+     *  @return int[] */
     private function engagementMembers(array $context): array
     {
-        $engagementId = (int) ($context['engagement_id'] ?? 0);
+        $engagementId = Row::int($context, 'engagement_id');
         if ($engagementId === 0) return [];
 
         return $this->engagementAssignments->resolveUserIds($engagementId);
     }
 
     /**
-     * Active client users for the organisation of the triggering record.
+     * @param array<string, mixed> $context
      * @param string[] $roleSlugs
      * @return int[]
      */
     private function organisationClientUsers(array $context, array $roleSlugs): array
     {
-        $orgId = (int) ($context['organisation_id'] ?? 0);
+        $orgId = Row::int($context, 'organisation_id');
         if ($orgId === 0) return [];
 
         $placeholders = implode(',', array_fill(0, count($roleSlugs), '?'));
@@ -229,47 +192,41 @@ final class NotificationRuleService
                AND u.`deleted_at` IS NULL
                AND u.`status` = 'active'
                AND r.`slug` IN ({$placeholders})",
-            $params
+            PDOParams::positional($params)
         );
-        return array_map(fn ($r) => (int) $r['id'], $rows);
+        return array_map(fn ($r) => Row::int($r, 'id'), $rows);
     }
 
-    /**
-     * The hiring manager contact on the vacancy — resolved to a user if that
-     * contact has a linked user account. Most contacts don't, so this often
-     * returns an empty list. Later we may add "email the contact" as a
-     * separate channel (out of scope for in-app).
-     * @return int[]
-     */
+    /** @param array<string, mixed> $context
+     *  @return int[] */
     private function hiringManager(array $context): array
     {
-        $contactId = (int) ($context['hiring_manager_contact_id'] ?? 0);
+        $contactId = Row::int($context, 'hiring_manager_contact_id');
         if ($contactId === 0) return [];
 
         $contact = $this->db->selectOne(
             "SELECT `email` FROM `recruit_client_contacts` WHERE `id` = ?",
-            [$contactId]
+            PDOParams::positional([$contactId])
         );
-        if (!$contact) return [];
+        if ($contact === null) return [];
 
-        // Match contact email to a user account
-        $userId = $this->db->scalar(
+        $email = Row::str($contact, 'email');
+        if ($email === '') return [];
+
+        $userId = $this->db->scalarInt(
             "SELECT `id` FROM `core_users`
              WHERE `email` = ? AND `deleted_at` IS NULL AND `status` = 'active'",
-            [$contact['email']]
+            PDOParams::positional([$email])
         );
-        return $userId ? [(int) $userId] : [];
+        return $userId > 0 ? [$userId] : [];
     }
 
-    /**
-     * The owner of the triggering record (e.g., task assignee, application recruiter).
-     * @return int[]
-     */
+    /** @param array<string, mixed> $context
+     *  @return int[] */
     private function owner(array $context): array
     {
-        // Check known owner keys in the context
         foreach (['owner_id', 'assigned_to', 'assignee_id'] as $key) {
-            $id = (int) ($context[$key] ?? 0);
+            $id = Row::int($context, $key);
             if ($id > 0) {
                 return [$id];
             }

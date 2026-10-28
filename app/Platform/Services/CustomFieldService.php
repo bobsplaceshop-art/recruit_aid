@@ -269,8 +269,8 @@ final class CustomFieldService
 
         $clean = [];
         foreach ($raw as $o) {
-            $o = trim((string) $o);
-            if ($o !== '') $clean[] = $o;
+            $str = is_scalar($o) ? trim((string) $o) : '';
+            if ($str !== '') $clean[] = $str;
         }
         return array_values(array_unique($clean));
     }

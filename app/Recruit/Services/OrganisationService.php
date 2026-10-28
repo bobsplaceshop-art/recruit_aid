@@ -187,6 +187,6 @@ final class OrganisationService
     {
         if (is_array($v)) return implode(', ', $v);
         if ($v === null) return '(empty)';
-        return (string) $v;
+        return is_scalar($v) ? (string) $v : '';
     }
 }

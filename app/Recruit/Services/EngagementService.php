@@ -14,6 +14,7 @@ use CorporateAid\Platform\CustomFields\CustomFieldValueValidator;
 use CorporateAid\Platform\Deletion\DeletionResult;
 use CorporateAid\Recruit\Deletion\Entities\EngagementEntity;
 use CorporateAid\Recruit\Validation\EngagementValidator;
+use CorporateAid\Platform\Deletion\DeletionService;
 
 final class EngagementService
 {
@@ -232,6 +233,6 @@ final class EngagementService
     {
         if (is_array($v)) return implode(', ', $v);
         if ($v === null) return '(empty)';
-        return (string) $v;
+        return is_scalar($v) ? (string) $v : '';
     }
 }

@@ -83,10 +83,10 @@ final class VacancyController
         $preselectedOrg = null;
         $preselectedEngagement = null;
 
-        $orgCode = (string) $request->query('organisation', '');
+        $orgCode = $request->queryStringValue('organisation', '');
         if ($orgCode !== '') $preselectedOrg = $orgs->findByCode($orgCode);
 
-        $engCode = (string) $request->query('engagement', '');
+        $engCode = $request->queryStringValue('engagement', '');
         if ($engCode !== '') {
             $preselectedEngagement = $engagements->findByCode($engCode);
             if (!$preselectedOrg && $preselectedEngagement) {

@@ -169,8 +169,8 @@ final class VacancyValidator
         if (!is_array($value)) return [];
         $out = [];
         foreach ($value as $v) {
-            $v = trim((string) $v);
-            if ($v !== '') $out[] = $v;
+            $str = trim(is_scalar($v) ? (string) $v : '');
+            if ($str !== '') $out[] = $str;
         }
         return array_values(array_unique($out));
     }

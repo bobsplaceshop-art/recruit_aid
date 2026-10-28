@@ -15,6 +15,7 @@ use CorporateAid\Platform\CustomFields\CustomFieldValueValidator;
 use CorporateAid\Platform\Deletion\DeletionResult;
 use CorporateAid\Recruit\Deletion\Entities\VacancyEntity;
 use CorporateAid\Recruit\Validation\VacancyValidator;
+use CorporateAid\Platform\Deletion\DeletionService;
 
 final class VacancyService
 {
@@ -210,6 +211,6 @@ final class VacancyService
         if (is_array($v)) return implode(', ', $v);
         if (is_bool($v)) return $v ? 'yes' : 'no';
         if ($v === null) return '(empty)';
-        return (string) $v;
+        return is_scalar($v) ? (string) $v : '';
     }
 }

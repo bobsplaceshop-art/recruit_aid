@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace CorporateAid\Platform\Repositories;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
+use CorporateAid\Core\Row;
 
 /**
  * Manages password reset tokens.
@@ -27,7 +29,10 @@ final class PasswordResetRepository
         $email = strtolower(trim($email));
 
         // Clear old tokens for this email
-        $this->db->execute("DELETE FROM `core_password_resets` WHERE `email` = ?", [$email]);
+        $this->db->execute(
+            "DELETE FROM `core_password_resets` WHERE `email` = ?",
+            PDOParams::positional([$email])
+        );
 
         $plain = bin2hex(random_bytes(self::TOKEN_BYTES));
         $hash = hash('sha256', $plain);
@@ -35,7 +40,7 @@ final class PasswordResetRepository
         $this->db->execute(
             "INSERT INTO `core_password_resets` (`email`, `token_hash`, `expires_at`)
              VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? MINUTE))",
-            [$email, $hash, self::TTL_MINUTES]
+            PDOParams::positional([$email, $hash, self::TTL_MINUTES])
         );
 
         return $plain;
@@ -53,10 +58,10 @@ final class PasswordResetRepository
             "SELECT `email` FROM `core_password_resets`
              WHERE `token_hash` = ? AND `expires_at` > NOW()
              LIMIT 1",
-            [$hash]
+            PDOParams::positional([$hash])
         );
 
-        return $row ? (string) $row['email'] : null;
+        return $row !== null ? Row::str($row, 'email') : null;
     }
 
     /**
@@ -65,7 +70,10 @@ final class PasswordResetRepository
     public function consumeToken(string $plainToken): void
     {
         $hash = hash('sha256', $plainToken);
-        $this->db->execute("DELETE FROM `core_password_resets` WHERE `token_hash` = ?", [$hash]);
+        $this->db->execute(
+            "DELETE FROM `core_password_resets` WHERE `token_hash` = ?",
+            PDOParams::positional([$hash])
+        );
     }
 
     /**

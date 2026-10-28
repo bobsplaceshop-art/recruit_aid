@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CorporateAid\Platform\Validation;
 
+use CorporateAid\Core\Row;
 use CorporateAid\Platform\CustomFields\InputTypeRegistry;
 
 /**
@@ -19,7 +20,7 @@ final class CustomFieldValidator
         $errors = [];
 
         // ---- label ----
-        $label = trim((string) ($input['label'] ?? ''));
+        $label = trim(Row::str($input, 'label'));
         if ($label === '') {
             $errors[] = 'Label is required.';
         } elseif (mb_strlen($label) > 190) {
@@ -27,7 +28,7 @@ final class CustomFieldValidator
         }
 
         // ---- input type ----
-        $inputType = (string) ($input['input_type'] ?? '');
+        $inputType = Row::str($input, 'input_type');
         if (!InputTypeRegistry::has($inputType)) {
             $errors[] = 'Please choose a valid input type.';
         }
@@ -55,7 +56,7 @@ final class CustomFieldValidator
 
         if ($inputType === 'text' || $inputType === 'long_text') {
             if (isset($constraints['max_length']) && $constraints['max_length'] !== '') {
-                $ml = (int) $constraints['max_length'];
+                $ml = Row::int($constraints, 'max_length');
                 if ($ml < 1 || $ml > 10000) $errors[] = 'Maximum length must be between 1 and 10000.';
             }
         }
@@ -68,7 +69,7 @@ final class CustomFieldValidator
                 $errors[] = 'Maximum value must be a number.';
             }
             if (isset($constraints['decimals']) && $constraints['decimals'] !== '') {
-                $d = (int) $constraints['decimals'];
+                $d = Row::int($constraints, 'decimals');
                 if ($d < 0 || $d > 10) $errors[] = 'Decimal places must be between 0 and 10.';
             }
         }
@@ -76,8 +77,8 @@ final class CustomFieldValidator
         if ($inputType === 'date') {
             foreach (['earliest', 'latest'] as $k) {
                 if (!empty($constraints[$k])) {
-                    $dt = \DateTimeImmutable::createFromFormat('Y-m-d', (string) $constraints[$k]);
-                    if (!$dt || $dt->format('Y-m-d') !== (string) $constraints[$k]) {
+                    $dt = \DateTimeImmutable::createFromFormat('Y-m-d', Row::str($constraints, $k));
+                    if (!$dt || $dt->format('Y-m-d') !== Row::str($constraints, $k)) {
                         $errors[] = ucfirst($k) . ' must be a valid date (YYYY-MM-DD).';
                     }
                 }
@@ -85,7 +86,7 @@ final class CustomFieldValidator
         }
 
         // ---- help text ----
-        $help = trim((string) ($input['help_text'] ?? ''));
+        $help = trim(Row::str($input, 'help_text'));
         if (mb_strlen($help) > 500) {
             $errors[] = 'Help text must be 500 characters or fewer.';
         }

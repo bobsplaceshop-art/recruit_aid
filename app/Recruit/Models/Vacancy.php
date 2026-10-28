@@ -85,7 +85,7 @@ final class Vacancy
     private static function decodeJsonArray(mixed $raw): array
     {
         if (empty($raw)) return [];
-        $decoded = json_decode((string) $raw, true);
+        $decoded = json_decode(is_scalar($raw) ? (string) $raw : '', true);
         if (!is_array($decoded)) return [];
         return array_values(array_map('strval', $decoded));
     }

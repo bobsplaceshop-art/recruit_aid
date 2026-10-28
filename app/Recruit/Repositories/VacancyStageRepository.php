@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Repositories;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
+use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Models\VacancyStage;
 
 final class VacancyStageRepository
@@ -17,20 +19,20 @@ final class VacancyStageRepository
             "SELECT * FROM `recruit_vacancy_stages`
              WHERE `vacancy_id` = ?
              ORDER BY `sort_order` ASC, `id` ASC",
-            [$vacancyId]
+            PDOParams::positional([$vacancyId])
         );
         return array_map([VacancyStage::class, 'fromRow'], $rows);
     }
 
     public function findById(int $id): ?VacancyStage
     {
-        $row = $this->db->selectOne("SELECT * FROM `recruit_vacancy_stages` WHERE `id` = ? LIMIT 1", [$id]);
+        $row = $this->db->selectOne(
+            "SELECT * FROM `recruit_vacancy_stages` WHERE `id` = ? LIMIT 1",
+            PDOParams::positional([$id])
+        );
         return $row ? VacancyStage::fromRow($row) : null;
     }
 
-    /**
-     * Clone the default pipeline_stages into vacancy_stages for a new vacancy.
-     */
     public function cloneDefaultsFor(int $vacancyId): void
     {
         $defaults = $this->db->select(
@@ -45,58 +47,55 @@ final class VacancyStageRepository
                 "INSERT INTO `recruit_vacancy_stages`
                     (`vacancy_id`, `key_slug`, `label`, `sort_order`, `is_terminal`, `is_default`, `color`)
                  VALUES (?, ?, ?, ?, ?, ?, ?)",
-                [
+                PDOParams::positional([
                     $vacancyId,
-                    $d['key_slug'],
-                    $d['label'],
-                    (int) $d['sort_order'],
-                    (int) $d['is_terminal'],
-                    (int) $d['is_default'],
-                    $d['color'],
-                ]
+                    Row::str($d, 'key_slug'),
+                    Row::str($d, 'label'),
+                    Row::int($d, 'sort_order'),
+                    Row::int($d, 'is_terminal'),
+                    Row::int($d, 'is_default'),
+                    Row::nullableStr($d, 'color'),
+                ])
             );
         }
     }
 
-    /**
-     * Clone defaults for one organisation (using org-specific overrides if they exist).
-     */
     public function cloneForOrganisation(int $vacancyId, ?int $organisationId): void
     {
-        // Get org-specific overrides if any, else defaults
         $stages = $this->db->select(
             "SELECT `key_slug`, `label`, `sort_order`, `is_terminal`, `is_default`, `color`
              FROM `recruit_pipeline_stages`
              WHERE `deleted_at` IS NULL
                AND (`organisation_id` IS NULL OR `organisation_id` = ?)
              ORDER BY `sort_order` ASC",
-            [$organisationId]
+            PDOParams::positional([$organisationId])
         );
 
-        // Merge (org-specific wins)
         $byKey = [];
         foreach ($stages as $s) {
-            if (!isset($byKey[$s['key_slug']]) || $s['organisation_id'] !== null) {
-                $byKey[$s['key_slug']] = $s;
+            $key = Row::str($s, 'key_slug');
+            $orgId = Row::nullableInt($s, 'organisation_id');
+            if (!isset($byKey[$key]) || $orgId !== null) {
+                $byKey[$key] = $s;
             }
         }
 
-        usort($byKey, fn ($a, $b) => ($a['sort_order'] <=> $b['sort_order']));
+        usort($byKey, fn ($a, $b) => Row::int($a, 'sort_order') <=> Row::int($b, 'sort_order'));
 
         foreach ($byKey as $d) {
             $this->db->execute(
                 "INSERT INTO `recruit_vacancy_stages`
                     (`vacancy_id`, `key_slug`, `label`, `sort_order`, `is_terminal`, `is_default`, `color`)
                  VALUES (?, ?, ?, ?, ?, ?, ?)",
-                [
+                PDOParams::positional([
                     $vacancyId,
-                    $d['key_slug'],
-                    $d['label'],
-                    (int) $d['sort_order'],
-                    (int) $d['is_terminal'],
-                    (int) $d['is_default'],
-                    $d['color'] ?? null,
-                ]
+                    Row::str($d, 'key_slug'),
+                    Row::str($d, 'label'),
+                    Row::int($d, 'sort_order'),
+                    Row::int($d, 'is_terminal'),
+                    Row::int($d, 'is_default'),
+                    Row::nullableStr($d, 'color'),
+                ])
             );
         }
     }

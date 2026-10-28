@@ -13,6 +13,7 @@ use CorporateAid\Platform\CustomFields\CustomFieldValueValidator;
 use CorporateAid\Platform\Deletion\DeletionResult;
 use CorporateAid\Recruit\Deletion\Entities\ContactEntity;
 use CorporateAid\Recruit\Validation\ContactValidator;
+use CorporateAid\Platform\Deletion\DeletionService;
 
 final class ContactService
 {
@@ -175,6 +176,6 @@ final class ContactService
         if (is_bool($v)) return $v ? 'yes' : 'no';
         if (is_array($v)) return implode(', ', $v);
         if ($v === null) return '(empty)';
-        return (string) $v;
+        return is_scalar($v) ? (string) $v : '';
     }
 }

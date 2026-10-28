@@ -12,6 +12,7 @@ use CorporateAid\Core\Session;
 use CorporateAid\Core\View;
 use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Recruit\Services\OrganisationService;
+use CorporateAid\Core\Row;
 
 final class OrganisationController
 {
@@ -29,9 +30,9 @@ final class OrganisationController
         /** @var Auth $auth */
         $auth = $this->container->get(Auth::class);
 
-        $search    = trim((string) $request->query('q', ''));
-        $status    = trim((string) $request->query('status', ''));
-        $page      = max(1, (int) $request->query('page', 1));
+        $search    = trim($request->queryStringValue('q', ''));
+        $status    = trim($request->queryStringValue('status', ''));
+        $page      = max(1, $request->queryInt('page', 1));
         $perPage   = 20;
 
         $filters = [];
@@ -120,7 +121,7 @@ final class OrganisationController
      */
     public function show(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -149,7 +150,7 @@ final class OrganisationController
      */
     public function showEdit(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -180,7 +181,7 @@ final class OrganisationController
      */
     public function update(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -240,7 +241,7 @@ final class OrganisationController
      */
     public function destroy(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -255,8 +256,8 @@ final class OrganisationController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $typedPhrase = (string) $request->input('confirmation', '');
-        $reason      = (string) $request->input('reason', '');
+        $typedPhrase = $request->inputString('confirmation', '');
+        $reason      = $request->inputString('reason', '');
         $reason      = $reason !== '' ? $reason : null;
 
         $result = $service->delete($org->id, $typedPhrase, $reason);
@@ -275,7 +276,7 @@ final class OrganisationController
      */
     public function deleteInfo(Request $request, array $params = []): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -305,7 +306,7 @@ final class OrganisationController
 
     private function lifecycleAction(Request $request, array $params, string $action): Response
     {
-        $code = (string) ($params['code'] ?? '');
+        $code = ($params['code'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -320,7 +321,7 @@ final class OrganisationController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $reason = (string) $request->input('reason', '');
+        $reason = $request->inputString('reason', '');
         $reason = $reason !== '' ? $reason : null;
 
         $result = $action === 'archive'
@@ -348,17 +349,17 @@ final class OrganisationController
         if (!is_array($cf)) $cf = [];
 
         return [
-            'name'                => trim((string) $request->input('name', '')),
-            'legal_name'          => trim((string) $request->input('legal_name', '')),
-            'industry'            => trim((string) $request->input('industry', '')),
-            'website'             => trim((string) $request->input('website', '')),
-            'country_code'        => trim((string) $request->input('country_code', '')),
+            'name'                => trim($request->inputString('name', '')),
+            'legal_name'          => trim($request->inputString('legal_name', '')),
+            'industry'            => trim($request->inputString('industry', '')),
+            'website'             => trim($request->inputString('website', '')),
+            'country_code'        => trim($request->inputString('country_code', '')),
             'countries_operation' => $countries,
-            'address'             => trim((string) $request->input('address', '')),
-            'phone'               => trim((string) $request->input('phone', '')),
-            'email'               => trim((string) $request->input('email', '')),
-            'status'              => trim((string) $request->input('status', 'prospect')),
-            'notes'               => trim((string) $request->input('notes', '')),
+            'address'             => trim($request->inputString('address', '')),
+            'phone'               => trim($request->inputString('phone', '')),
+            'email'               => trim($request->inputString('email', '')),
+            'status'              => trim($request->inputString('status', 'prospect')),
+            'notes'               => trim($request->inputString('notes', '')),
             'cf'                  => $cf,
         ];
     }
@@ -395,7 +396,7 @@ final class OrganisationController
                 continue;
             }
 
-            $error = (int) ($fileData['error'] ?? UPLOAD_ERR_NO_FILE);
+            $error = Row::int($fileData, 'error', UPLOAD_ERR_NO_FILE);
             if ($error === UPLOAD_ERR_NO_FILE) {
                 continue;
             }

@@ -112,7 +112,7 @@ final class OrganisationValidator
 
         $out = [];
         foreach ($value as $code) {
-            $code = strtoupper(trim((string) $code));
+            $code = strtoupper(trim(is_scalar($code) ? (string) $code : ''));
             if ($code !== '' && preg_match('/^[A-Z]{2}$/', $code)) {
                 $out[] = $code;
             }

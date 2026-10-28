@@ -7,6 +7,7 @@ namespace CorporateAid\Platform\CustomFields;
 use CorporateAid\Core\Auth;
 use CorporateAid\Platform\Repositories\CustomFieldRepository;
 use CorporateAid\Platform\Repositories\CustomFieldValueRepository;
+use CorporateAid\Core\Row;
 use CorporateAid\Platform\Services\FileService;
 use CorporateAid\Platform\Support\Logger;
 
@@ -112,7 +113,7 @@ final class CustomFieldValueSaver
 
         // Read per-field constraints. Fall back to FileService defaults.
         $constraints = is_array($field->constraints ?? null) ? $field->constraints : [];
-        $maxMb = (int) ($constraints['max_size_mb'] ?? FileService::DEFAULT_MAX_MB);
+        $maxMb = Row::int($constraints, 'max_size_mb', FileService::DEFAULT_MAX_MB);
         if ($maxMb < 1) {
             $maxMb = FileService::DEFAULT_MAX_MB;
         }

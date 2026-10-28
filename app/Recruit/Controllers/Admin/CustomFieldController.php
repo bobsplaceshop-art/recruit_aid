@@ -7,6 +7,7 @@ use CorporateAid\Core\Auth;
 use CorporateAid\Core\Container;
 use CorporateAid\Core\Request;
 use CorporateAid\Core\Response;
+use CorporateAid\Core\Row;
 use CorporateAid\Core\Session;
 use CorporateAid\Core\View;
 use CorporateAid\Platform\Repositories\CustomFieldRepository;
@@ -56,7 +57,7 @@ final class CustomFieldController
 
     public function listFor(Request $request, array $params = []): Response
     {
-        $entityKey = (string) ($params['entity'] ?? '');
+        $entityKey = Row::str($params, 'entity');
         if (!isset(self::ENTITIES[$entityKey])) {
             return Response::redirect('/admin/custom-fields');
         }
@@ -82,7 +83,7 @@ final class CustomFieldController
 
     public function showCreate(Request $request, array $params = []): Response
     {
-        $entityKey = (string) ($params['entity'] ?? '');
+        $entityKey = Row::str($params, 'entity');
         if (!isset(self::ENTITIES[$entityKey])) {
             return Response::redirect('/admin/custom-fields');
         }
@@ -109,7 +110,7 @@ final class CustomFieldController
 
     public function store(Request $request, array $params = []): Response
     {
-        $entityKey = (string) ($params['entity'] ?? '');
+        $entityKey = Row::str($params, 'entity');
         if (!isset(self::ENTITIES[$entityKey])) {
             return Response::redirect('/admin/custom-fields');
         }
@@ -147,8 +148,8 @@ final class CustomFieldController
 
     public function showEdit(Request $request, array $params = []): Response
     {
-        $entityKey = (string) ($params['entity'] ?? '');
-        $fieldId   = (int) ($params['id'] ?? 0);
+        $entityKey = Row::str($params, 'entity');
+        $fieldId   = Row::int($params, 'id');
 
         if (!isset(self::ENTITIES[$entityKey])) {
             return Response::redirect('/admin/custom-fields');
@@ -184,8 +185,8 @@ final class CustomFieldController
 
     public function update(Request $request, array $params = []): Response
     {
-        $entityKey = (string) ($params['entity'] ?? '');
-        $fieldId   = (int) ($params['id'] ?? 0);
+        $entityKey = Row::str($params, 'entity');
+        $fieldId   = Row::int($params, 'id');
 
         /** @var CustomFieldService $service */
         $service = $this->container->get(CustomFieldService::class);
@@ -216,15 +217,15 @@ final class CustomFieldController
 
     public function destroy(Request $request, array $params = []): Response
     {
-        $fieldId   = (int) ($params['id'] ?? 0);
-        $entityKey = (string) ($params['entity'] ?? '');
+        $fieldId   = Row::int($params, 'id');
+        $entityKey = Row::str($params, 'entity');
 
         /** @var CustomFieldService $service */
         $service = $this->container->get(CustomFieldService::class);
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $phrase = (string) $request->input('confirmation', '');
+        $phrase = $request->inputString('confirmation', '');
 
         try {
             $service->delete($fieldId, $phrase);
@@ -238,9 +239,9 @@ final class CustomFieldController
 
     public function toggleRequired(Request $request, array $params = []): Response
     {
-        $fieldId   = (int) ($params['id'] ?? 0);
-        $entityKey = (string) ($params['entity'] ?? '');
-        $required  = (bool) $request->input('required', false);
+        $fieldId   = Row::int($params, 'id');
+        $entityKey = Row::str($params, 'entity');
+        $required  = $request->inputBool('required', false);
 
         /** @var CustomFieldService $service */
         $service = $this->container->get(CustomFieldService::class);
@@ -269,8 +270,8 @@ final class CustomFieldController
 
     private function moveAction(Request $request, array $params, string $method): Response
     {
-        $fieldId   = (int) ($params['id'] ?? 0);
-        $entityKey = (string) ($params['entity'] ?? '');
+        $fieldId   = Row::int($params, 'id');
+        $entityKey = Row::str($params, 'entity');
 
         /** @var CustomFieldService $service */
         $service = $this->container->get(CustomFieldService::class);
@@ -289,12 +290,10 @@ final class CustomFieldController
         return Response::redirect('/admin/custom-fields/' . $entityKey);
     }
 
-    // ---------- helpers ----------
-
     private function simpleAction(Request $request, array $params, string $method, string $successMsg): Response
     {
-        $fieldId   = (int) ($params['id'] ?? 0);
-        $entityKey = (string) ($params['entity'] ?? '');
+        $fieldId   = Row::int($params, 'id');
+        $entityKey = Row::str($params, 'entity');
 
         /** @var CustomFieldService $service */
         $service = $this->container->get(CustomFieldService::class);
@@ -311,34 +310,34 @@ final class CustomFieldController
         return Response::redirect('/admin/custom-fields/' . $entityKey);
     }
 
+    /** @return array<string, mixed> */
     private function collectInput(Request $request): array
     {
         $constraints = [];
-        $rawConstraints = $request->input('constraints', []);
-        if (is_array($rawConstraints)) {
-            foreach ($rawConstraints as $k => $v) {
-                $constraints[$k] = is_string($v) ? trim($v) : $v;
-            }
+        $rawConstraints = $request->inputArray('constraints');
+        foreach ($rawConstraints as $k => $v) {
+            $constraints[$k] = is_string($v) ? trim($v) : $v;
         }
 
         $options = [];
-        $rawOptions = $request->input('options', []);
-        if (is_array($rawOptions)) {
-            foreach ($rawOptions as $o) {
-                $o = trim((string) $o);
-                if ($o !== '') $options[] = $o;
-            }
+        $rawOptions = $request->inputArray('options');
+        foreach ($rawOptions as $o) {
+            $o = is_scalar($o) ? trim((string) $o) : '';
+            if ($o !== '') $options[] = $o;
         }
 
+        $sortOrderRaw = $request->input('sort_order', null);
+        $sortOrder = is_numeric($sortOrderRaw) ? (int) $sortOrderRaw : null;
+
         return [
-            'label'         => trim((string) $request->input('label', '')),
-            'input_type'    => trim((string) $request->input('input_type', '')),
-            'is_required'   => (bool) $request->input('is_required', false),
+            'label'         => trim($request->inputString('label', '')),
+            'input_type'    => trim($request->inputString('input_type', '')),
+            'is_required'   => $request->inputBool('is_required', false),
             'options'       => $options,
             'constraints'   => $constraints,
-            'default_value' => trim((string) $request->input('default_value', '')),
-            'help_text'     => trim((string) $request->input('help_text', '')),
-            'sort_order'    => $request->input('sort_order', null),
+            'default_value' => trim($request->inputString('default_value', '')),
+            'help_text'     => trim($request->inputString('help_text', '')),
+            'sort_order'    => $sortOrder,
         ];
     }
 }

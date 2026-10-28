@@ -4,24 +4,19 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Repositories;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
+use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Models\Engagement;
 
 final class EngagementRepository
 {
     public function __construct(private Database $db) {}
 
-    // ---------- scalar coercion helper (PHPStan Level 9) ----------
-
-    private static function toInt(mixed $value): int
-    {
-        return is_numeric($value) ? (int) $value : 0;
-    }
-
     public function findById(int $id): ?Engagement
     {
         $row = $this->db->selectOne(
             "SELECT * FROM `recruit_engagements` WHERE `id` = ? LIMIT 1",
-            [$id]
+            PDOParams::positional([$id])
         );
         return $row ? Engagement::fromRow($row) : null;
     }
@@ -34,13 +29,12 @@ final class EngagementRepository
         }
         $sql .= " LIMIT 1";
 
-        $row = $this->db->selectOne($sql, [$code]);
+        $row = $this->db->selectOne($sql, PDOParams::positional([$code]));
         return $row ? Engagement::fromRow($row) : null;
     }
 
     /**
-     * Paginated list with search + optional status / org filter.
-     *
+     * @param array{search?:string,status?:string,include_deleted?:bool,organisation_id?:int} $filters
      * @return array{rows:Engagement[], total:int, page:int, per_page:int, total_pages:int}
      */
     public function paginate(array $filters = [], int $page = 1, int $perPage = 25): array
@@ -73,8 +67,12 @@ final class EngagementRepository
         }
 
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+        $paramObj = PDOParams::positional($params);
 
-        $total = self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_engagements` {$whereSql}", $params));
+        $total = $this->db->scalarInt(
+            "SELECT COUNT(*) FROM `recruit_engagements` {$whereSql}",
+            $paramObj
+        );
 
         $page    = max(1, $page);
         $perPage = max(1, min(100, $perPage));
@@ -86,7 +84,7 @@ final class EngagementRepository
             "SELECT * FROM `recruit_engagements` {$whereSql}
              ORDER BY `created_at` DESC
              LIMIT {$perPage} OFFSET {$offset}",
-            $params
+            $paramObj
         );
 
         return [
@@ -105,15 +103,12 @@ final class EngagementRepository
             "SELECT * FROM `recruit_engagements`
              WHERE `organisation_id` = ? AND `deleted_at` IS NULL
              ORDER BY `created_at` DESC",
-            [$organisationId]
+            PDOParams::positional([$organisationId])
         );
         return array_map([Engagement::class, 'fromRow'], $rows);
     }
 
-    /**
-     * Count by status for filter pills.
-     * @return array<string,int>
-     */
+    /** @return array<string, int> */
     public function countsByStatus(): array
     {
         $rows = $this->db->select(
@@ -128,13 +123,15 @@ final class EngagementRepository
             'paused' => 0, 'completed' => 0, 'cancelled' => 0,
         ];
         foreach ($rows as $row) {
-            $s = (string) $row['status'];
-            $counts[$s] = (int) $row['n'];
-            $counts['all'] += (int) $row['n'];
+            $s = Row::str($row, 'status');
+            $n = Row::int($row, 'n');
+            $counts[$s] = $n;
+            $counts['all'] += $n;
         }
         return $counts;
     }
 
+    /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
         $sql = "INSERT INTO `recruit_engagements`
@@ -144,7 +141,7 @@ final class EngagementRepository
              `notes`, `created_by`)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        return $this->db->insert($sql, [
+        return $this->db->insert($sql, PDOParams::positional([
             $data['code'],
             $data['organisation_id'],
             $data['package_id'] ?? null,
@@ -160,10 +157,13 @@ final class EngagementRepository
             !empty($data['stages_included']) ? json_encode($data['stages_included']) : null,
             $data['notes'] ?? null,
             $data['created_by'] ?? null,
-        ]);
+        ]));
     }
 
-    /** @return array<string, array{old:mixed,new:mixed}> */
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, array{old:mixed,new:mixed}>
+     */
     public function update(int $id, array $data): array
     {
         $existing = $this->findById($id);
@@ -186,7 +186,6 @@ final class EngagementRepository
             if (!array_key_exists($col, $data)) continue;
 
             $newVal = $data[$col];
-
             $prop = match ($col) {
                 'package_id'                  => 'packageId',
                 'service_type'                => 'serviceType',
@@ -200,10 +199,9 @@ final class EngagementRepository
             };
             $oldVal = $existing->$prop ?? null;
 
-            // Normalize for comparison
             $newForCompare = $newVal;
             if (in_array($col, ['countries', 'stages_included'], true)) {
-                $newForCompare = !empty($newVal) ? (is_array($newVal) ? $newVal : json_decode((string) $newVal, true)) : [];
+                $newForCompare = !empty($newVal) ? (is_array($newVal) ? $newVal : (is_string($newVal) ? json_decode($newVal, true) : [])) : [];
                 $oldVal = $col === 'countries' ? $existing->countries : $existing->stagesIncluded;
             }
 
@@ -223,7 +221,7 @@ final class EngagementRepository
         $params[] = $id;
         $this->db->execute(
             "UPDATE `recruit_engagements` SET " . implode(', ', $sets) . " WHERE `id` = ?",
-            $params
+            PDOParams::positional($params)
         );
 
         return $changes;
@@ -233,7 +231,7 @@ final class EngagementRepository
     {
         $this->db->execute(
             "UPDATE `recruit_engagements` SET `deleted_at` = NOW() WHERE `id` = ?",
-            [$id]
+            PDOParams::positional([$id])
         );
     }
 
@@ -241,27 +239,21 @@ final class EngagementRepository
     {
         $this->db->execute(
             "UPDATE `recruit_engagements` SET `deleted_at` = NULL WHERE `id` = ?",
-            [$id]
+            PDOParams::positional([$id])
         );
     }
 
-    /**
-     * Generate the next engagement code using the sequence counter.
-     * Codes are never reused.
-     */
     public function nextCode(): string
     {
         $this->db->execute(
             "UPDATE `core_sequence_counters` SET `last_value` = `last_value` + 1 WHERE `name` = 'rec_engagement_code'"
         );
-        $num = self::toInt($this->db->scalar(
+        $num = $this->db->scalarInt(
             "SELECT `last_value` FROM `core_sequence_counters` WHERE `name` = 'rec_engagement_code'"
-        ));
+        );
 
         return 'ENG-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
     }
-
-    // ---------- Recruiter assignment ----------
 
     /** @return array<int, array{user_id:int, role:string, name:string, email:string}> */
     public function recruitersFor(int $engagementId): array
@@ -272,7 +264,7 @@ final class EngagementRepository
              JOIN `core_users` u ON u.`id` = er.`user_id`
              WHERE er.`engagement_id` = ?
              ORDER BY FIELD(er.`role`, 'lead', 'recruiter', 'researcher'), u.`name`",
-            [$engagementId]
+            PDOParams::positional([$engagementId])
         );
     }
 
@@ -285,7 +277,7 @@ final class EngagementRepository
             "INSERT INTO `recruit_engagement_recruiters` (`engagement_id`, `user_id`, `role`)
              VALUES (?, ?, ?)
              ON DUPLICATE KEY UPDATE `role` = VALUES(`role`)",
-            [$engagementId, $userId, $role]
+            PDOParams::positional([$engagementId, $userId, $role])
         );
     }
 
@@ -293,31 +285,24 @@ final class EngagementRepository
     {
         $this->db->execute(
             "DELETE FROM `recruit_engagement_recruiters` WHERE `engagement_id` = ? AND `user_id` = ?",
-            [$engagementId, $userId]
+            PDOParams::positional([$engagementId, $userId])
         );
     }
 
-    // ---------- Capacity check ----------
-
-    /**
-     * Return the current count of active vacancies for an engagement.
-     */
     public function activeVacancyCount(int $engagementId): int
     {
         try {
-            return self::toInt($this->db->scalar(
+            return $this->db->scalarInt(
                 "SELECT COUNT(*) FROM `recruit_vacancies`
                  WHERE `engagement_id` = ?
                    AND `status` NOT IN ('draft','closed','cancelled')
                    AND `deleted_at` IS NULL",
-                [$engagementId]
-            ));
+                PDOParams::positional([$engagementId])
+            );
         } catch (\Throwable) {
             return 0;
         }
     }
-
-    // ---------- Packages ----------
 
     /** @return array<int, array<string,mixed>> */
     public function packages(): array
@@ -327,13 +312,21 @@ final class EngagementRepository
         );
     }
 
+    /** @return array<string, mixed>|null */
     public function findPackage(int $id): ?array
     {
-        return $this->db->selectOne("SELECT * FROM `recruit_engagement_packages` WHERE `id` = ?", [$id]);
+        return $this->db->selectOne(
+            "SELECT * FROM `recruit_engagement_packages` WHERE `id` = ?",
+            PDOParams::positional([$id])
+        );
     }
 
+    /** @return array<string, mixed>|null */
     public function findPackageBySlug(string $slug): ?array
     {
-        return $this->db->selectOne("SELECT * FROM `recruit_engagement_packages` WHERE `slug` = ?", [$slug]);
+        return $this->db->selectOne(
+            "SELECT * FROM `recruit_engagement_packages` WHERE `slug` = ?",
+            PDOParams::positional([$slug])
+        );
     }
 }

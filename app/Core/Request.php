@@ -54,7 +54,10 @@ final class Request
         $query = $parts['query'] ?? '';
 
         if ($method === 'POST' && isset($_POST['_method'])) {
-            $method = strtoupper((string) $_POST['_method']);
+            $methodValue = $_POST['_method'];
+            if (is_scalar($methodValue)) {
+                $method = strtoupper((string) $methodValue);
+            }
         }
 
         if ($path !== '/' && str_ends_with($path, '/')) {
@@ -174,5 +177,45 @@ final class Request
     public function rawBody(): ?string
     {
         return $this->rawBody;
+    }
+
+    public function inputString(string $key, string $default = ''): string
+    {
+        $value = $this->input($key, $default);
+        return is_scalar($value) ? (string) $value : $default;
+    }
+
+    public function inputInt(string $key, int $default = 0): int
+    {
+        $value = $this->input($key, $default);
+        return is_numeric($value) ? (int) $value : $default;
+    }
+
+    public function inputBool(string $key, bool $default = false): bool
+    {
+        $value = $this->input($key);
+        if ($value === null) return $default;
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function inputArray(string $key): array
+    {
+        $value = $this->input($key, []);
+        return is_array($value) ? $value : [];
+    }
+
+    public function queryStringValue(string $key, string $default = ''): string
+    {
+        $value = $this->query($key, $default);
+        return is_scalar($value) ? (string) $value : $default;
+    }
+
+    public function queryInt(string $key, int $default = 0): int
+    {
+        $value = $this->query($key, $default);
+        return is_numeric($value) ? (int) $value : $default;
     }
 }
