@@ -60,7 +60,7 @@ final class VacancyService
         $isActive = !in_array($status, ['draft', 'cancelled', 'closed'], true);
 
         if ($isActive && !empty($normalized['engagement_id'])) {
-            $engIdRaw = $normalized['engagement_id'] ?? null;
+            $engIdRaw = $normalized['engagement_id'];
             $engId = is_numeric($engIdRaw) ? (int) $engIdRaw : 0;
             $eng = $this->engagements->findById($engId);
             if ($eng) {

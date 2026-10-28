@@ -1,4 +1,1 @@
 Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
-/mnt/c/projects/recruitaid/app/Platform/Support/Hasher.php:16:Method CorporateAid\Platform\Support\Hasher::algorithm() never returns int so it can be removed from the return type.
-/mnt/c/projects/recruitaid/app/Platform/Support/Hasher.php:27:Strict comparison using === between non-empty-string and false will always evaluate to false.
-/mnt/c/projects/recruitaid/app/Recruit/Services/VacancyService.php:63:Offset 'engagement_id' on non-empty-array<string, mixed> on left side of ?? always exists and is not nullable.

@@ -4,29 +4,35 @@ declare(strict_types=1);
 namespace CorporateAid\Platform\Support;
 
 use RuntimeException;
+use ValueError;
 
 /**
- * Password hashing helpers. Uses Argon2id when available, else bcrypt.
+ * Password hashing helpers. Uses Argon2id (PHP 7.4+ core).
  */
 final class Hasher
 {
     /**
      * Return the algorithm identifier to use with password_hash().
+     * In PHP 8.0+, both PASSWORD_ARGON2ID and PASSWORD_BCRYPT are string constants.
      */
-    public static function algorithm(): string|int
+    public static function algorithm(): string
     {
-        return defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_BCRYPT;
+        return PASSWORD_ARGON2ID;
     }
 
     /**
      * Hash a plaintext password.
+     *
+     * @throws RuntimeException if password hashing fails
      */
     public static function hash(string $plain): string
     {
-        $hash = password_hash($plain, self::algorithm());
-        if ($hash === false) {
-            throw new RuntimeException('Password hashing failed.');
+        try {
+            $hash = password_hash($plain, self::algorithm());
+        } catch (ValueError $e) {
+            throw new RuntimeException('Password hashing failed: ' . $e->getMessage(), 0, $e);
         }
+
         return $hash;
     }
 
