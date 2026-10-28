@@ -132,11 +132,13 @@ final class Kernel
 
         if ($name === 'ratelimit') {
             $bits = explode(',', (string) $arg);
+            $bits[1] = $bits[1] ?? '5';
+            $bits[2] = $bits[2] ?? '15';
             return new RateLimitMiddleware(
                 $this->container->get(\CorporateAid\Platform\Support\RateLimiter::class),
-                trim($bits[0] ?? ''),
-                (int) ($bits[1] ?? 5),
-                (int) ($bits[2] ?? 15)
+                trim((string) $bits[0]),
+                (int) $bits[1],
+                (int) $bits[2]
             );
         }
 

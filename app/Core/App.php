@@ -165,7 +165,16 @@ final class App
         });
         $c->singleton(View::class,     fn() => new View($this->basePath . '/resources/views', $c->get(Config::class)));
         $c->singleton(Router::class,   fn() => new Router($c));
-        $c->singleton(Session::class,  fn() => new Session((array) $c->get(Config::class)->get('app.session', [])));
+        $c->singleton(Session::class, function () use ($c) {
+            $raw = $c->get(Config::class)->get('app.session', []);
+            $sessionConfig = [];
+            if (is_array($raw)) {
+                foreach ($raw as $k => $v) {
+                    $sessionConfig[(string) $k] = $v;
+                }
+            }
+            return new Session($sessionConfig);
+        });
         $c->singleton(Csrf::class,     fn() => new Csrf($c->get(Session::class)));
 
         // ---------- Repositories ----------

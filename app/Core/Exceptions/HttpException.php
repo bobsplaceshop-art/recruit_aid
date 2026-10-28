@@ -13,8 +13,10 @@ use RuntimeException;
 class HttpException extends RuntimeException
 {
     private int $statusCode;
+    /** @var array<string, string> */
     private array $headers;
 
+    /** @param array<string, string> $headers */
     public function __construct(int $statusCode, string $message = '', array $headers = [], ?\Throwable $previous = null)
     {
         parent::__construct($message, 0, $previous);
@@ -27,6 +29,7 @@ class HttpException extends RuntimeException
         return $this->statusCode;
     }
 
+    /** @return array<string, string> */
     public function getHeaders(): array
     {
         return $this->headers;

@@ -21,8 +21,6 @@ final class Session
     private array $config;
     private bool $started = false;
 
-    /** @var array<string, mixed> one-shot flash data for the next request */
-    private array $flash = [];
 
     /** @param array<string, mixed> $config */
     public function __construct(array $config = [])
@@ -45,21 +43,21 @@ final class Session
             return;
         }
 
-        $secure = (bool) $this->config['cookie_secure'];
+        $secure = Row::bool($this->config, 'cookie_secure');
         // Auto-upgrade to secure on HTTPS
         if (!$secure && !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
             $secure = true;
         }
 
-        session_name((string) $this->config['name']);
-        $samesiteRaw = strtolower((string) $this->config['cookie_samesite']);
+        session_name(Row::str($this->config, 'name', 'recruitaid_session'));
+        $samesiteRaw = strtolower(Row::str($this->config, 'cookie_samesite', 'Lax'));
         $samesite = in_array($samesiteRaw, ['lax', 'strict', 'none'], true) ? $samesiteRaw : 'lax';
         session_set_cookie_params([
-            'lifetime' => (int) $this->config['lifetime'],
-            'path'     => (string) $this->config['cookie_path'],
-            'domain'   => (string) $this->config['cookie_domain'],
+            'lifetime' => Row::int($this->config, 'lifetime', 7200),
+            'path'     => Row::str($this->config, 'cookie_path', '/'),
+            'domain'   => Row::str($this->config, 'cookie_domain', ''),
             'secure'   => $secure,
-            'httponly' => (bool) $this->config['cookie_httponly'],
+            'httponly' => Row::bool($this->config, 'cookie_httponly', true),
             'samesite' => $samesite,
         ]);
 
@@ -184,8 +182,7 @@ final class Session
             return;
         }
 
-        $session = is_array($_SESSION) ? $_SESSION : [];
-        $last = self::toInt($session['_last_activity'] ?? 0);
+        $last = self::toInt($_SESSION['_last_activity'] ?? 0);
         if ($last > 0 && (time() - $last) > $lifetime) {
             $this->destroy();
             $this->start();
@@ -196,8 +193,7 @@ final class Session
     private function rotateIfStale(): void
     {
         $interval = 300; // rotate session id every 5 minutes
-        $session = is_array($_SESSION) ? $_SESSION : [];
-        $last = self::toInt($session['_rotated_at'] ?? 0);
+        $last = self::toInt($_SESSION['_rotated_at'] ?? 0);
         if ($last > 0 && (time() - $last) > $interval) {
             $this->regenerate(true);
         }

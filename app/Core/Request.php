@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CorporateAid\Core;
 
+use CorporateAid\Core\Row;
+
 /**
  * Represents an incoming HTTP request. Wraps PHP superglobals
  * so the rest of the app never touches $_GET/$_POST/$_SERVER directly.
@@ -32,6 +34,14 @@ final class Request
      * @param array<string, mixed> $cookies
      * @param array<string, mixed> $headers
      */
+    /**
+     * @param array<string, mixed> $queryParams
+     * @param array<string, mixed> $body
+     * @param array<string, mixed> $files
+     * @param array<string, mixed> $server
+     * @param array<string, mixed> $cookies
+     * @param array<string, mixed> $headers
+     */
     public function __construct(
         string $method,
         string $path,
@@ -44,6 +54,7 @@ final class Request
         array $headers,
         ?string $rawBody = null
     ) {
+        unset($cookies); // acknowledge intentional unused param
         $this->method = strtoupper($method);
         $this->path = $path;
         $this->queryString = $queryString;
@@ -182,23 +193,23 @@ final class Request
 
     public function ip(): string
     {
-        return (string) ($this->server['REMOTE_ADDR'] ?? '0.0.0.0');
+        return Row::str($this->server, 'REMOTE_ADDR', '0.0.0.0');
     }
 
     public function userAgent(): string
     {
-        return (string) ($this->server['HTTP_USER_AGENT'] ?? '');
+        return Row::str($this->server, 'HTTP_USER_AGENT');
     }
 
     public function isJson(): bool
     {
-        $ct = (string) ($this->headers['Content-Type'] ?? '');
+        $ct = Row::str($this->headers, 'Content-Type');
         return str_contains(strtolower($ct), 'application/json');
     }
 
     public function wantsJson(): bool
     {
-        $accept = (string) ($this->headers['Accept'] ?? '');
+        $accept = Row::str($this->headers, 'Accept');
         return str_contains($accept, 'application/json') || str_starts_with($this->path, '/api');
     }
 
