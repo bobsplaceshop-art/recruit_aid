@@ -10,6 +10,7 @@ final class ValidationException extends RuntimeException
     /** @var array<string, string[]> */
     private array $errors;
 
+    /** @param array<string, string[]> $errors */
     public function __construct(array $errors, string $message = 'Validation failed')
     {
         parent::__construct($message);

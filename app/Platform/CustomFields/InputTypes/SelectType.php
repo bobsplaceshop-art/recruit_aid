@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CorporateAid\Platform\CustomFields\InputTypes;
 
+use CorporateAid\Core\Row;
 use CorporateAid\Platform\CustomFields\InputType;
 
 final class SelectType implements InputType
@@ -12,6 +13,8 @@ final class SelectType implements InputType
     public function supportsOptions(): bool { return true; }
     public function configFields(): array { return []; }
 
+    /** @param array<string, mixed> $constraints
+     *  @return string[] */
     public function validate(mixed $value, array $constraints, bool $isRequired): array
     {
         $v = is_string($value) ? trim($value) : '';
@@ -19,10 +22,14 @@ final class SelectType implements InputType
         if ($isRequired && $v === '') { $errors[] = 'This field is required.'; return $errors; }
         if ($v === '') return $errors;
 
-        // Options come from $constraints['options'] when validating — the validator
-        // passes the field's options via constraints so we don't need a 4th parameter.
-        $options = $constraints['_options'] ?? [];
-        if (!is_array($options) || !in_array($v, array_map('strval', $options), true)) {
+        $rawOptions = $constraints['_options'] ?? [];
+        $options = [];
+        if (is_array($rawOptions)) {
+            foreach ($rawOptions as $o) {
+                if (is_scalar($o)) $options[] = (string) $o;
+            }
+        }
+        if (!in_array($v, $options, true)) {
             $errors[] = 'Must be one of the allowed options.';
         }
         return $errors;
@@ -36,11 +43,13 @@ final class SelectType implements InputType
 
     public function humanize(?string $value): string { return $value ?? ''; }
 
-    public function render(string $fieldKey, string $fieldLabel, ?string $currentValue, array $constraints, array $options, ?string $helpText
-, bool $isRequired, array $errors = []): string
+    /** @param array<string, mixed> $constraints
+     *  @param string[] $options
+     *  @param string[] $errors */
+    public function render(string $fieldKey, string $fieldLabel, ?string $currentValue, array $constraints, array $options, ?string $helpText, bool $isRequired, array $errors = []): string
     {
-        $exts = $constraints['extensions'] ?? 'pdf,doc,docx,png,jpg';
-        $maxMb = (int) ($constraints['max_size_mb'] ?? 8);
+        $exts = Row::str($constraints, 'extensions', 'pdf,doc,docx,png,jpg');
+        $maxMb = Row::int($constraints, 'max_size_mb', 8);
         $html  = '<div class="ra-field">';
         $html .= '<label class="ra-label" for="cf_' . e($fieldKey) . '">' . e($fieldLabel);
         if ($isRequired) $html .= ' <span style="color:var(--ra-error-fg)">*</span>';

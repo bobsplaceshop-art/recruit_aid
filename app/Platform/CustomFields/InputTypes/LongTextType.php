@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CorporateAid\Platform\CustomFields\InputTypes;
 
+use CorporateAid\Core\Row;
 use CorporateAid\Platform\CustomFields\InputType;
 
 final class LongTextType implements InputType
@@ -16,6 +17,8 @@ final class LongTextType implements InputType
         return [['key' => 'max_length', 'label' => 'Maximum length', 'type' => 'number', 'help' => 'Default 5000']];
     }
 
+    /** @param array<string, mixed> $constraints
+     *  @return string[] */
     public function validate(mixed $value, array $constraints, bool $isRequired): array
     {
         $v = is_string($value) ? trim($value) : '';
@@ -26,7 +29,7 @@ final class LongTextType implements InputType
         }
         if ($v === '') return $errors;
 
-        $max = (int) ($constraints['max_length'] ?? 5000);
+        $max = Row::int($constraints, 'max_length', 5000);
         if (mb_strlen($v) > $max) $errors[] = "Must be {$max} characters or fewer.";
         if (preg_match('/<[^>]*>/', $v)) $errors[] = 'HTML tags are not allowed.';
         return $errors;
@@ -43,9 +46,12 @@ final class LongTextType implements InputType
         return $value ?? '';
     }
 
+    /** @param array<string, mixed> $constraints
+     *  @param string[] $options
+     *  @param string[] $errors */
     public function render(string $fieldKey, string $fieldLabel, ?string $currentValue, array $constraints, array $options, ?string $helpText, bool $isRequired, array $errors = []): string
     {
-        $max = (int) ($constraints['max_length'] ?? 5000);
+        $max = Row::int($constraints, 'max_length', 5000);
         $required = $isRequired ? ' required' : '';
         $html  = '<div class="ra-field">';
         $html .= '<label class="ra-label" for="cf_' . e($fieldKey) . '">' . e($fieldLabel);

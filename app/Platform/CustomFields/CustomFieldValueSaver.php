@@ -12,9 +12,6 @@ use CorporateAid\Core\Row;
 use CorporateAid\Platform\Services\FileService;
 use CorporateAid\Platform\Support\Logger;
 
-/**
- * Persists custom field values for an entity.
- */
 final class CustomFieldValueSaver
 {
     public function __construct(
@@ -25,8 +22,8 @@ final class CustomFieldValueSaver
     ) {}
 
     /**
-     * @param array<string, mixed> $submitted  Custom field values from the form (cf[x] inputs)
-     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files  Uploaded files, keyed by field key
+     * @param array<string, mixed> $submitted
+     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
      */
     public function save(string $entityType, int $entityId, array $submitted, array $files = []): void
     {
@@ -63,9 +60,7 @@ final class CustomFieldValueSaver
         }
     }
 
-    /**
-     * @param array{name:string,type:string,tmp_name:string,error:int,size:int} $fileData
-     */
+    /** @param array{name:string,type:string,tmp_name:string,error:int,size:int} $fileData */
     private function saveFileValue(
         CustomField $field,
         string $entityType,

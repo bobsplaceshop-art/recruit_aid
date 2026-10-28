@@ -1,13 +1,5 @@
 Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
 /mnt/c/projects/recruitaid/app/Core/App.php:168:Parameter #1 $config of class CorporateAid\Core\Session constructor expects array<string, mixed>, array<mixed, mixed> given.
-/mnt/c/projects/recruitaid/app/Core/App.php:252:Class CorporateAid\Recruit\Services\EngagementService constructor invoked with 9 parameters, 7-8 required.
-/mnt/c/projects/recruitaid/app/Core/App.php:254:Parameter #2 $validator of class CorporateAid\Recruit\Services\EngagementService constructor expects CorporateAid\Recruit\Validation\EngagementValidator, CorporateAid\Recruit\Repositories\OrganisationRepository given.
-/mnt/c/projects/recruitaid/app/Core/App.php:255:Parameter #3 $cfValidator of class CorporateAid\Recruit\Services\EngagementService constructor expects CorporateAid\Platform\CustomFields\CustomFieldValueValidator, CorporateAid\Recruit\Validation\EngagementValidator given.
-/mnt/c/projects/recruitaid/app/Core/App.php:256:Parameter #4 $cfSaver of class CorporateAid\Recruit\Services\EngagementService constructor expects CorporateAid\Platform\CustomFields\CustomFieldValueSaver, CorporateAid\Platform\CustomFields\CustomFieldValueValidator given.
-/mnt/c/projects/recruitaid/app/Core/App.php:257:Parameter #5 $deletion of class CorporateAid\Recruit\Services\EngagementService constructor expects CorporateAid\Platform\Deletion\DeletionService, CorporateAid\Platform\CustomFields\CustomFieldValueSaver given.
-/mnt/c/projects/recruitaid/app/Core/App.php:258:Parameter #6 $activity of class CorporateAid\Recruit\Services\EngagementService constructor expects CorporateAid\Platform\Support\ActivityLogger, CorporateAid\Platform\Deletion\DeletionService given.
-/mnt/c/projects/recruitaid/app/Core/App.php:259:Parameter #7 $db of class CorporateAid\Recruit\Services\EngagementService constructor expects CorporateAid\Core\Database, CorporateAid\Platform\Support\ActivityLogger given.
-/mnt/c/projects/recruitaid/app/Core/App.php:260:Parameter #8 $auth of class CorporateAid\Recruit\Services\EngagementService constructor expects CorporateAid\Core\Auth|null, CorporateAid\Core\Database given.
 /mnt/c/projects/recruitaid/app/Core/Exceptions/HttpException.php:16:Property CorporateAid\Core\Exceptions\HttpException::$headers type has no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Exceptions/HttpException.php:18:Method CorporateAid\Core\Exceptions\HttpException::__construct() has parameter $headers with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Exceptions/HttpException.php:30:Method CorporateAid\Core\Exceptions\HttpException::getHeaders() return type has no value type specified in iterable type array.
@@ -26,33 +18,6 @@ Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
 /mnt/c/projects/recruitaid/app/Core/Session.php:187:Call to function is_array() with array<mixed> will always evaluate to true.
 /mnt/c/projects/recruitaid/app/Core/Session.php:199:Call to function is_array() with array<mixed> will always evaluate to true.
 /mnt/c/projects/recruitaid/app/Core/View.php:19:Constructor of class CorporateAid\Core\View has an unused parameter $config.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/CustomFieldRenderer.php:31:Method CorporateAid\Platform\CustomFields\CustomFieldRenderer::renderForm() has parameter $errors with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/CustomFieldRenderer.php:31:Method CorporateAid\Platform\CustomFields\CustomFieldRenderer::renderForm() has parameter $submitted with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/CustomFieldValueValidator.php:15:Method CorporateAid\Platform\CustomFields\CustomFieldValueValidator::validate() has parameter $submitted with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/CheckboxType.php:22:Method CorporateAid\Platform\CustomFields\InputTypes\CheckboxType::cast() never returns null so it can be removed from the return type.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/DateType.php:42:Binary operation "." between 'Must be on or after ' and mixed results in an error.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/DateType.php:45:Binary operation "." between 'Must be on or…' and mixed results in an error.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/DateType.php:89:Parameter #1 $value of function e expects string|null, mixed given.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/DateType.php:90:Parameter #1 $value of function e expects string|null, mixed given.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/FileType.php:87:Cannot cast mixed to int.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/FileType.php:96:Parameter #1 $value of function e expects string|null, mixed given.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/LongTextType.php:29:Cannot cast mixed to int.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/LongTextType.php:48:Cannot cast mixed to int.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:39:Cannot cast mixed to float.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:40:Binary operation "." between 'Must be at least ' and mixed results in an error.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:42:Cannot cast mixed to float.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:43:Binary operation "." between 'Must be at most ' and mixed results in an error.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:46:Cannot cast mixed to int.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:69:Cannot cast mixed to int.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:70:Cannot cast mixed to int.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:79:Cannot cast mixed to float.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:80:Cannot cast mixed to float.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/SelectType.php:25:Parameter #1 $callback of function array_map expects (callable(mixed): mixed)|null, 'strval' given.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/SelectType.php:43:Cannot cast mixed to int.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/SelectType.php:49:Parameter #1 $value of function e expects string|null, mixed given.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/TextType.php:31:Cannot cast mixed to int.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/TextType.php:62:Cannot cast mixed to int.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/ValidationException.php:13:Method CorporateAid\Platform\CustomFields\ValidationException::__construct() has parameter $errors with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Deletion/DeletionResult.php:32:Method CorporateAid\Platform\Deletion\DeletionResult::inspection() has parameter $dependents with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Deletion/DeletionService.php:137:Method CorporateAid\Platform\Deletion\DeletionService::deleteBulk() has parameter $entities with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Deletion/DeletionService.php:206:Method CorporateAid\Platform\Deletion\DeletionService::logDeletion() has parameter $dependents with no value type specified in iterable type array.

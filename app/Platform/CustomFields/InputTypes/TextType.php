@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CorporateAid\Platform\CustomFields\InputTypes;
 
+use CorporateAid\Core\Row;
 use CorporateAid\Platform\CustomFields\InputType;
 
 final class TextType implements InputType
@@ -18,6 +19,8 @@ final class TextType implements InputType
         ];
     }
 
+    /** @param array<string, mixed> $constraints
+     *  @return string[] */
     public function validate(mixed $value, array $constraints, bool $isRequired): array
     {
         $v = is_string($value) ? trim($value) : '';
@@ -28,7 +31,7 @@ final class TextType implements InputType
         }
         if ($v === '') return $errors;
 
-        $max = (int) ($constraints['max_length'] ?? 255);
+        $max = Row::int($constraints, 'max_length', 255);
         if (mb_strlen($v) > $max) {
             $errors[] = "Must be {$max} characters or fewer.";
         }
@@ -49,6 +52,9 @@ final class TextType implements InputType
         return $value ?? '';
     }
 
+    /** @param array<string, mixed> $constraints
+     *  @param string[] $options
+     *  @param string[] $errors */
     public function render(
         string $fieldKey,
         string $fieldLabel,
@@ -59,7 +65,7 @@ final class TextType implements InputType
         bool $isRequired,
         array $errors = []
     ): string {
-        $max = (int) ($constraints['max_length'] ?? 255);
+        $max = Row::int($constraints, 'max_length', 255);
         $required = $isRequired ? ' required' : '';
         $errorClass = $errors ? ' is-invalid' : '';
         $html  = '<div class="ra-field' . $errorClass . '">';

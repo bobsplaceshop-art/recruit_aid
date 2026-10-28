@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CorporateAid\Platform\CustomFields\InputTypes;
 
+use CorporateAid\Core\Row;
 use CorporateAid\Platform\CustomFields\InputType;
 
 final class DateType implements InputType
@@ -21,6 +22,8 @@ final class DateType implements InputType
         ];
     }
 
+    /** @param array<string, mixed> $constraints
+     *  @return string[] */
     public function validate(mixed $value, array $constraints, bool $isRequired): array
     {
         $v = is_string($value) ? trim($value) : '';
@@ -37,29 +40,25 @@ final class DateType implements InputType
             return $errors;
         }
 
-        // Absolute date range
-        if (!empty($constraints['earliest']) && $v < $constraints['earliest']) {
-            $errors[] = 'Must be on or after ' . $constraints['earliest'] . '.';
+        $earliest = Row::str($constraints, 'earliest');
+        if ($earliest !== '' && $v < $earliest) {
+            $errors[] = 'Must be on or after ' . $earliest . '.';
         }
-        if (!empty($constraints['latest']) && $v > $constraints['latest']) {
-            $errors[] = 'Must be on or before ' . $constraints['latest'] . '.';
+        $latest = Row::str($constraints, 'latest');
+        if ($latest !== '' && $v > $latest) {
+            $errors[] = 'Must be on or before ' . $latest . '.';
         }
 
-        // Age range (relative to today)
         $today = new \DateTimeImmutable('today');
         $age = $today->diff($dt)->y;
 
-        if (!empty($constraints['min_age']) && is_numeric($constraints['min_age'])) {
-            $minAge = (int) $constraints['min_age'];
-            if ($age < $minAge) {
-                $errors[] = "Must be at least {$minAge} years old (currently {$age}).";
-            }
+        $minAge = Row::nullableInt($constraints, 'min_age');
+        if ($minAge !== null && $age < $minAge) {
+            $errors[] = "Must be at least {$minAge} years old (currently {$age}).";
         }
-        if (!empty($constraints['max_age']) && is_numeric($constraints['max_age'])) {
-            $maxAge = (int) $constraints['max_age'];
-            if ($age > $maxAge) {
-                $errors[] = "Must be at most {$maxAge} years old (currently {$age}).";
-            }
+        $maxAge = Row::nullableInt($constraints, 'max_age');
+        if ($maxAge !== null && $age > $maxAge) {
+            $errors[] = "Must be at most {$maxAge} years old (currently {$age}).";
         }
 
         return $errors;
@@ -78,16 +77,21 @@ final class DateType implements InputType
         return $dt ? $dt->format('d M Y') : $value;
     }
 
+    /** @param array<string, mixed> $constraints
+     *  @param string[] $options
+     *  @param string[] $errors */
     public function render(string $fieldKey, string $fieldLabel, ?string $currentValue, array $constraints, array $options, ?string $helpText, bool $isRequired, array $errors = []): string
     {
+        $earliest = Row::str($constraints, 'earliest');
+        $latest = Row::str($constraints, 'latest');
         $html  = '<div class="ra-field">';
         $html .= '<label class="ra-label" for="cf_' . e($fieldKey) . '">' . e($fieldLabel);
         if ($isRequired) $html .= ' <span style="color:var(--ra-error-fg)">*</span>';
         $html .= '</label>';
         $html .= '<input type="date" id="cf_' . e($fieldKey) . '" name="cf[' . e($fieldKey) . ']"'
                . ' value="' . e((string) $currentValue) . '"'
-               . (!empty($constraints['earliest']) ? ' min="' . e($constraints['earliest']) . '"' : '')
-               . (!empty($constraints['latest']) ? ' max="' . e($constraints['latest']) . '"' : '')
+               . ($earliest !== '' ? ' min="' . e($earliest) . '"' : '')
+               . ($latest !== '' ? ' max="' . e($latest) . '"' : '')
                . ' class="ra-input"' . ($isRequired ? ' required' : '') . '>';
         if ($helpText) $html .= '<div class="muted small mt-1">' . e($helpText) . '</div>';
         foreach ($errors as $err) $html .= '<div class="small" style="color:var(--ra-error-fg);margin-top:.25rem;">' . e($err) . '</div>';
