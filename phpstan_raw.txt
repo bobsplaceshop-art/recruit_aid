@@ -1,7 +1,4 @@
 Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
-/mnt/c/projects/recruitaid/app/Core/Config.php:12:Property CorporateAid\Core\Config::$items type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Config.php:14:Method CorporateAid\Core\Config::__construct() has parameter $items with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Config.php:69:Method CorporateAid\Core\Config::all() return type has no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Exceptions/HttpException.php:16:Property CorporateAid\Core\Exceptions\HttpException::$headers type has no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Exceptions/HttpException.php:18:Method CorporateAid\Core\Exceptions\HttpException::__construct() has parameter $headers with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Exceptions/HttpException.php:30:Method CorporateAid\Core\Exceptions\HttpException::getHeaders() return type has no value type specified in iterable type array.
@@ -25,10 +22,6 @@ Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
 /mnt/c/projects/recruitaid/app/Core/Request.php:134:Method CorporateAid\Core\Request::only() has parameter $keys with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Request.php:134:Method CorporateAid\Core\Request::only() return type has no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Request.php:145:Method CorporateAid\Core\Request::file() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Response.php:14:Property CorporateAid\Core\Response::$headers type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Response.php:24:Method CorporateAid\Core\Response::__construct() has parameter $headers with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Response.php:95:Method CorporateAid\Core\Response::withHeaders() has parameter $headers with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Response.php:105:Method CorporateAid\Core\Response::headers() return type has no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Router.php:21:Property CorporateAid\Core\Router::$routes type has no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Router.php:32:Method CorporateAid\Core\Router::get() has parameter $middleware with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Router.php:33:Method CorporateAid\Core\Router::post() has parameter $middleware with no value type specified in iterable type array.
@@ -42,11 +35,7 @@ Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
 /mnt/c/projects/recruitaid/app/Core/Session.php:24:Property CorporateAid\Core\Session::$flash is never read, only written.
 /mnt/c/projects/recruitaid/app/Core/Session.php:26:Method CorporateAid\Core\Session::__construct() has parameter $config with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Session.php:158:Method CorporateAid\Core\Session::flashOldInput() has parameter $input with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/View.php:15:Property CorporateAid\Core\View::$config is never read, only written.
-/mnt/c/projects/recruitaid/app/Core/View.php:16:Property CorporateAid\Core\View::$shared type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/View.php:29:Method CorporateAid\Core\View::shareMany() has parameter $values with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/View.php:40:Method CorporateAid\Core\View::render() has parameter $data with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/View.php:51:Method CorporateAid\Core\View::renderFile() has parameter $data with no value type specified in iterable type array.
+/mnt/c/projects/recruitaid/app/Core/View.php:19:Constructor of class CorporateAid\Core\View has an unused parameter $config.
 /mnt/c/projects/recruitaid/app/Platform/CustomFields/CustomFieldRenderer.php:31:Method CorporateAid\Platform\CustomFields\CustomFieldRenderer::renderForm() has parameter $errors with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/CustomFields/CustomFieldRenderer.php:31:Method CorporateAid\Platform\CustomFields\CustomFieldRenderer::renderForm() has parameter $submitted with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/CustomFields/CustomFieldValueValidator.php:15:Method CorporateAid\Platform\CustomFields\CustomFieldValueValidator::validate() has parameter $submitted with no value type specified in iterable type array.
@@ -99,7 +88,7 @@ Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
 /mnt/c/projects/recruitaid/app/Platform/Support/EmailService.php:31:Method CorporateAid\Platform\Support\EmailService::send() has parameter $to with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Support/EmailService.php:94:Method CorporateAid\Platform\Support\EmailService::sendTemplate() has parameter $to with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Support/EmailService.php:94:Method CorporateAid\Platform\Support\EmailService::sendTemplate() has parameter $variables with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Support/Hasher.php:18:Method CorporateAid\Platform\Support\Hasher::algorithm() should return int but returns string.
+/mnt/c/projects/recruitaid/app/Platform/Support/Hasher.php:16:Method CorporateAid\Platform\Support\Hasher::algorithm() never returns int so it can be removed from the return type.
 /mnt/c/projects/recruitaid/app/Platform/Support/Hasher.php:27:Strict comparison using === between non-empty-string and false will always evaluate to false.
 /mnt/c/projects/recruitaid/app/Platform/Support/Logger.php:27:Method CorporateAid\Platform\Support\Logger::log() has parameter $context with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Support/Logger.php:47:Method CorporateAid\Platform\Support\Logger::info() has parameter $context with no value type specified in iterable type array.

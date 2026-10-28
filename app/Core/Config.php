@@ -9,8 +9,10 @@ namespace CorporateAid\Core;
  */
 final class Config
 {
+    /** @var array<string, mixed> */
     private array $items;
 
+    /** @param array<string, mixed> $items */
     public function __construct(array $items = [])
     {
         $this->items = $items;
@@ -65,6 +67,8 @@ final class Config
 
     /**
      * Get the whole config tree.
+     *
+     * @return array<string, mixed>
      */
     public function all(): array
     {

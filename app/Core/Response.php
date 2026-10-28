@@ -11,6 +11,7 @@ use CorporateAid\Platform\Models\File;
 final class Response
 {
     private int $statusCode;
+    /** @var array<string, string> */
     private array $headers;
     private string $body;
 
@@ -21,6 +22,7 @@ final class Response
      */
     private ?string $bodyStream = null;
 
+    /** @param array<string, string> $headers */
     public function __construct(string $body = '', int $statusCode = 200, array $headers = [])
     {
         $this->body = $body;
@@ -92,6 +94,7 @@ final class Response
         return $this;
     }
 
+    /** @param array<string, string> $headers */
     public function withHeaders(array $headers): self
     {
         foreach ($headers as $k => $v) {
@@ -102,6 +105,7 @@ final class Response
 
     public function statusCode(): int { return $this->statusCode; }
     public function body(): string    { return $this->body; }
+    /** @return array<string, string> */
     public function headers(): array  { return $this->headers; }
 
     public function send(): void

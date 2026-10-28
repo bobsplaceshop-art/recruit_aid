@@ -12,13 +12,13 @@ use RuntimeException;
 final class View
 {
     private string $viewPath;
-    private Config $config;
+
+    /** @var array<string, mixed> */
     private array $shared = [];
 
     public function __construct(string $viewPath, Config $config)
     {
         $this->viewPath = rtrim($viewPath, '/\\');
-        $this->config = $config;
     }
 
     public function share(string $key, mixed $value): void
@@ -26,6 +26,7 @@ final class View
         $this->shared[$key] = $value;
     }
 
+    /** @param array<string, mixed> $values */
     public function shareMany(array $values): void
     {
         foreach ($values as $k => $v) {
@@ -36,6 +37,8 @@ final class View
     /**
      * Render a view. If $layout is given, the view's output is passed
      * into the layout as $content.
+     *
+     * @param array<string, mixed> $data
      */
     public function render(string $view, array $data = [], ?string $layout = null): string
     {
@@ -48,6 +51,7 @@ final class View
         return $content;
     }
 
+    /** @param array<string, mixed> $data */
     private function renderFile(string $name, array $data): string
     {
         $file = $this->resolvePath($name);
@@ -67,14 +71,11 @@ final class View
 
     /**
      * Turn 'auth/login' into 'resources/views/auth/login.php'.
-     * Accepts either 'auth/login' or 'auth/login.php'.
      */
     private function resolvePath(string $name): string
     {
-        // Convert dot notation to slashes: 'dashboard.index' → 'dashboard/index'
         $name = str_replace('.', '/', $name);
 
-        // Strip a trailing '.php' properly (if present).
         if (str_ends_with($name, '.php')) {
             $name = substr($name, 0, -4);
         }
