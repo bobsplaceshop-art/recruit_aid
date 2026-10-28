@@ -2,6 +2,8 @@
 $displayMessage = isset($errorMessage) && $errorMessage !== ''
     ? $errorMessage
     : "You don't have permission to view this page. If you believe you should have access, contact your administrator.";
+
+$showLoginLink = isset($loginLink) && $loginLink === true;
 ?>
 <!doctype html>
 <html lang="en" data-theme="system">
@@ -29,19 +31,30 @@ $displayMessage = isset($errorMessage) && $errorMessage !== ''
             <i class="bi bi-shield-lock"></i>
         </div>
         <h1 class="h3 mt-3 mb-2" style="color:var(--ra-text-strong);">
-            Access denied
+            <?= $showLoginLink ? 'Session expired' : 'Access denied' ?>
         </h1>
         <p class="muted mb-4"><?= htmlspecialchars($displayMessage, ENT_QUOTES, 'UTF-8') ?></p>
 
         <div class="d-flex gap-2 justify-content-center flex-wrap">
-            <a href="/dashboard" class="ra-btn ra-btn-primary">
-                <i class="bi bi-house-door"></i>
-                <span>Back to dashboard</span>
-            </a>
-            <a href="javascript:history.back()" class="ra-btn ra-btn-outline">
-                <i class="bi bi-arrow-left"></i>
-                <span>Go back</span>
-            </a>
+            <?php if ($showLoginLink): ?>
+                <a href="/login" class="ra-btn ra-btn-primary">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Sign in again</span>
+                </a>
+                <a href="javascript:history.back()" class="ra-btn ra-btn-outline">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Go back</span>
+                </a>
+            <?php else: ?>
+                <a href="/dashboard" class="ra-btn ra-btn-primary">
+                    <i class="bi bi-house-door"></i>
+                    <span>Back to dashboard</span>
+                </a>
+                <a href="javascript:history.back()" class="ra-btn ra-btn-outline">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Go back</span>
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 </body>
