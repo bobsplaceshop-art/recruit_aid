@@ -145,14 +145,20 @@ final class VacancyController
         $result = $service->create($org->id, $input);
 
         if (!empty($result['errors'])) {
+            $orgsList = $orgs->paginate([], 1, 500)['rows'];
+            $engagementsByOrg = $this->buildEngagementsByOrg($engagements);
+            $contactsByOrg = $this->buildContactsByOrg($orgs);
+
             $html = $view->render('vacancies/form', [
                 'title'          => 'New Vacancy',
                 'user'           => $auth->user(),
                 'vacancy'        => null,
-                'organisations'  => $orgs->paginate([], 1, 500)['rows'],
+                'organisations'  => $orgsList,
                 'preselectedOrg' => $org,
                 'preselectedEngagement' => null,
                 'staffUsers'     => $users->listForAssignment(),
+                'engagementsByOrg' => $engagementsByOrg,
+                'contactsByOrg'    => $contactsByOrg,
                 'requirements'   => [],
                 'old'            => $input,
                 'errors'         => $result['errors'],

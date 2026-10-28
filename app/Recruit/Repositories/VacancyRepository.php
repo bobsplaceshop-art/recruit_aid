@@ -11,6 +11,18 @@ final class VacancyRepository
 {
     public function __construct(private Database $db) {}
 
+    // ---------- scalar coercion helpers (PHPStan Level 9) ----------
+
+    private static function toInt(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
+    private static function toStr(mixed $value): string
+    {
+        return is_scalar($value) ? (string) $value : '';
+    }
+
     public function findById(int $id): ?Vacancy
     {
         $row = $this->db->selectOne(
@@ -72,7 +84,7 @@ final class VacancyRepository
 
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
 
-        $total = (int) $this->db->scalar("SELECT COUNT(*) FROM `recruit_vacancies` {$whereSql}", $params);
+        $total = self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_vacancies` {$whereSql}", $params));
 
         $page    = max(1, $page);
         $perPage = max(1, min(100, $perPage));
@@ -125,13 +137,13 @@ final class VacancyRepository
      */
     public function activeCountForEngagement(int $engagementId): int
     {
-        return (int) $this->db->scalar(
+        return self::toInt($this->db->scalar(
             "SELECT COUNT(*) FROM `recruit_vacancies`
              WHERE `engagement_id` = ?
                AND `status` NOT IN ('draft','cancelled','closed')
                AND `deleted_at` IS NULL",
             [$engagementId]
-        );
+        ));
     }
 
     /** @return array<string,int> */
@@ -294,9 +306,9 @@ final class VacancyRepository
         $this->db->execute(
             "UPDATE `core_sequence_counters` SET `last_value` = `last_value` + 1 WHERE `name` = 'rec_vacancy_code'"
         );
-        $num = (int) $this->db->scalar(
+        $num = self::toInt($this->db->scalar(
             "SELECT `last_value` FROM `core_sequence_counters` WHERE `name` = 'rec_vacancy_code'"
-        );
+        ));
         return 'VAC-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
     }
 
@@ -332,7 +344,7 @@ final class VacancyRepository
         foreach ($validTypes as $type) {
             if (empty($items[$type]) || !is_array($items[$type])) continue;
             foreach ($items[$type] as $value) {
-                $value = trim((string) $value);
+                $value = trim(self::toStr($value));
                 if ($value === '') continue;
                 $this->db->execute(
                     "INSERT INTO `recruit_vacancy_requirements` (`vacancy_id`, `type`, `value`, `sort_order`)
