@@ -21,10 +21,10 @@
     },
     "autoload": {
         "psr-4": {
-            "CorporateAid\\Core\\":       "app/Core/",
-            "CorporateAid\\Platform\\":   "app/Platform/",
-            "CorporateAid\\Recruit\\":    "app/Recruit/",
-            "CorporateAid\\Helpers\\":    "app/Helpers/"
+            "CorporateAid\\Core\\": "app/Core/",
+            "CorporateAid\\Platform\\": "app/Platform/",
+            "CorporateAid\\Recruit\\": "app/Recruit/",
+            "CorporateAid\\Helpers\\": "app/Helpers/"
         },
         "files": [
             "app/Helpers/functions.php"
@@ -35,12 +35,15 @@
         "classmap-authoritative": true,
         "sort-packages": true,
         "platform": {
-            "php": "8.2.0"
+            "php": "8.3.36"
         }
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require-dev": {
         "phpstan/phpstan": "^2.3"
+    },
+    "scripts": {
+        "analyse": "phpstan analyse --memory-limit=2G --no-progress --error-format=raw"
     }
 }
