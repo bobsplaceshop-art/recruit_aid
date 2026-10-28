@@ -44,7 +44,7 @@ final class PasswordPolicy
 
         // 4. Contains email local-part
         if ($email !== null && $email !== '') {
-            $local = strtolower(explode('@', $email)[0] ?? '');
+            $local = strtolower(explode('@', $email)[0]);
             if ($local !== '' && strlen($local) >= 3 && stripos($password, $local) !== false) {
                 $errors[] = 'Password must not contain your email address.';
             }
@@ -112,6 +112,7 @@ final class PasswordPolicy
 
     // ---------- helpers ----------
 
+    /** @return string[] */
     private static function classesPresent(string $password): array
     {
         $classes = [];
@@ -132,9 +133,7 @@ final class PasswordPolicy
                 $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
                 if (is_array($lines)) {
                     foreach ($lines as $line) {
-                        if (is_string($line)) {
-                            $list[] = strtolower(trim($line));
-                        }
+                        $list[] = strtolower(trim($line));
                     }
                 }
             }

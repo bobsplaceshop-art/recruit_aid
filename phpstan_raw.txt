@@ -1,4 +1,5 @@
 Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
+/mnt/c/projects/recruitaid/app/Core/App.php:205:Parameter #1 $config of class CorporateAid\Platform\Support\EmailService constructor expects array<string, mixed>, array<mixed, mixed> given.
 /mnt/c/projects/recruitaid/app/Core/View.php:19:Constructor of class CorporateAid\Core\View has an unused parameter $config.
 /mnt/c/projects/recruitaid/app/Platform/Deletion/DeletionResult.php:32:Method CorporateAid\Platform\Deletion\DeletionResult::inspection() has parameter $dependents with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Deletion/DeletionService.php:137:Method CorporateAid\Platform\Deletion\DeletionService::deleteBulk() has parameter $entities with no value type specified in iterable type array.
@@ -14,20 +15,8 @@ Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
 /mnt/c/projects/recruitaid/app/Platform/Services/CustomFieldService.php:278:Method CorporateAid\Platform\Services\CustomFieldService::extractConstraints() has parameter $input with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Services/CustomFieldService.php:278:Method CorporateAid\Platform\Services\CustomFieldService::extractConstraints() return type has no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Services/NotificationService.php:48:Method CorporateAid\Platform\Services\NotificationService::dispatch() has parameter $context with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Support/EmailService.php:16:Method CorporateAid\Platform\Support\EmailService::__construct() has parameter $config with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Support/EmailService.php:31:Method CorporateAid\Platform\Support\EmailService::send() has parameter $to with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Support/EmailService.php:94:Method CorporateAid\Platform\Support\EmailService::sendTemplate() has parameter $to with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Support/EmailService.php:94:Method CorporateAid\Platform\Support\EmailService::sendTemplate() has parameter $variables with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Support/Hasher.php:16:Method CorporateAid\Platform\Support\Hasher::algorithm() never returns int so it can be removed from the return type.
 /mnt/c/projects/recruitaid/app/Platform/Support/Hasher.php:27:Strict comparison using === between non-empty-string and false will always evaluate to false.
-/mnt/c/projects/recruitaid/app/Platform/Support/Logger.php:27:Method CorporateAid\Platform\Support\Logger::log() has parameter $context with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Support/Logger.php:47:Method CorporateAid\Platform\Support\Logger::info() has parameter $context with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Support/Logger.php:52:Method CorporateAid\Platform\Support\Logger::warning() has parameter $context with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Support/Logger.php:57:Method CorporateAid\Platform\Support\Logger::error() has parameter $context with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Support/PasswordPolicy.php:47:Offset 0 on non-empty-list<string> on left side of ?? always exists and is not nullable.
-/mnt/c/projects/recruitaid/app/Platform/Support/PasswordPolicy.php:115:Method CorporateAid\Platform\Support\PasswordPolicy::classesPresent() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Support/PasswordPolicy.php:135:Call to function is_string() with string will always evaluate to true.
-/mnt/c/projects/recruitaid/app/Platform/Support/RateLimiter.php:76:Method CorporateAid\Platform\Support\RateLimiter::check() return type has no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Validation/CustomFieldValidator.php:18:Method CorporateAid\Platform\Validation\CustomFieldValidator::validate() has parameter $input with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Recruit/Controllers/Admin/AdminNotificationRuleController.php:117:Expression on left side of ?? is not nullable.
 /mnt/c/projects/recruitaid/app/Recruit/Controllers/Admin/AdminNotificationRuleController.php:212:Call to function is_string() with string will always evaluate to true.

@@ -24,6 +24,7 @@ final class Logger
         self::$basePath = rtrim($path, '/\\');
     }
 
+    /** @param array<string, mixed> $context */
     public static function log(string $level, string $message, array $context = []): void
     {
         $dir = self::logDir();
@@ -44,16 +45,19 @@ final class Logger
         @file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
     }
 
+    /** @param array<string, mixed> $context */
     public static function info(string $message, array $context = []): void
     {
         self::log('info', $message, $context);
     }
 
+    /** @param array<string, mixed> $context */
     public static function warning(string $message, array $context = []): void
     {
         self::log('warning', $message, $context);
     }
 
+    /** @param array<string, mixed> $context */
     public static function error(string $message, array $context = []): void
     {
         self::log('error', $message, $context);
