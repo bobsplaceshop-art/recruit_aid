@@ -42,3 +42,4 @@ phpstan-baseline.neon
 [0-9]*,
 *()
 *.bak.*
+phpstan_raw.txt
