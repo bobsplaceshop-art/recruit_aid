@@ -17,6 +17,7 @@ final class AdminNotificationRuleController
 {
     public function __construct(private Container $container) {}
 
+    /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -65,6 +66,7 @@ final class AdminNotificationRuleController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function store(Request $request, array $params = []): Response
     {
         /** @var Database $db */
@@ -123,6 +125,7 @@ final class AdminNotificationRuleController
         return Response::redirect('/admin/settings/notifications');
     }
 
+    /** @param array<string, string> $params */
     public function toggle(Request $request, array $params = []): Response
     {
         /** @var Database $db */
@@ -160,6 +163,7 @@ final class AdminNotificationRuleController
         return Response::redirect('/admin/settings/notifications');
     }
 
+    /** @param array<string, string> $params */
     public function destroy(Request $request, array $params = []): Response
     {
         /** @var Database $db */

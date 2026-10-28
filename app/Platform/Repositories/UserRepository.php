@@ -38,6 +38,7 @@ final class UserRepository
     /**
      * @param array{name:string,email:string,password:string,status?:string,is_client_user?:bool,organisation_id?:?int,phone?:?string,timezone?:string} $data
      */
+    /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
         $sql = "INSERT INTO `core_users`

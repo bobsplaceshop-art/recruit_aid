@@ -22,6 +22,7 @@ final class RoleController
     /**
      * /admin/roles-perm — landing page with shortcut tiles.
      */
+    /** @param array<string, string> $params */
     public function home(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -52,6 +53,7 @@ final class RoleController
     /**
      * /admin/roles-perm/roles — list of roles.
      */
+    /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -76,6 +78,7 @@ final class RoleController
      * /admin/roles-perm/permissions — permission matrix.
      * Placeholder for now; real matrix in a later chunk.
      */
+    /** @param array<string, string> $params */
     public function permissions(Request $request, array $params = []): Response
     {
         /** @var View $view */

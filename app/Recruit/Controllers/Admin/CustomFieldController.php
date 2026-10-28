@@ -27,6 +27,7 @@ final class CustomFieldController
 
     public function __construct(private Container $container) {}
 
+    /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -55,6 +56,7 @@ final class CustomFieldController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function listFor(Request $request, array $params = []): Response
     {
         $entityKey = Row::str($params, 'entity');
@@ -81,6 +83,7 @@ final class CustomFieldController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function showCreate(Request $request, array $params = []): Response
     {
         $entityKey = Row::str($params, 'entity');
@@ -108,6 +111,7 @@ final class CustomFieldController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function store(Request $request, array $params = []): Response
     {
         $entityKey = Row::str($params, 'entity');
@@ -146,6 +150,7 @@ final class CustomFieldController
         }
     }
 
+    /** @param array<string, string> $params */
     public function showEdit(Request $request, array $params = []): Response
     {
         $entityKey = Row::str($params, 'entity');
@@ -183,6 +188,7 @@ final class CustomFieldController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function update(Request $request, array $params = []): Response
     {
         $entityKey = Row::str($params, 'entity');
@@ -205,16 +211,19 @@ final class CustomFieldController
         return Response::redirect('/admin/custom-fields/' . $entityKey);
     }
 
+    /** @param array<string, string> $params */
     public function archive(Request $request, array $params = []): Response
     {
         return $this->simpleAction($request, $params, 'archive', 'Custom field archived.');
     }
 
+    /** @param array<string, string> $params */
     public function restore(Request $request, array $params = []): Response
     {
         return $this->simpleAction($request, $params, 'restore', 'Custom field restored.');
     }
 
+    /** @param array<string, string> $params */
     public function destroy(Request $request, array $params = []): Response
     {
         $fieldId   = Row::int($params, 'id');
@@ -237,6 +246,7 @@ final class CustomFieldController
         return Response::redirect('/admin/custom-fields/' . $entityKey);
     }
 
+    /** @param array<string, string> $params */
     public function toggleRequired(Request $request, array $params = []): Response
     {
         $fieldId   = Row::int($params, 'id');
@@ -258,16 +268,19 @@ final class CustomFieldController
         return Response::redirect('/admin/custom-fields/' . $entityKey);
     }
 
+    /** @param array<string, string> $params */
     public function moveUp(Request $request, array $params = []): Response
     {
         return $this->moveAction($request, $params, 'moveUp');
     }
 
+    /** @param array<string, string> $params */
     public function moveDown(Request $request, array $params = []): Response
     {
         return $this->moveAction($request, $params, 'moveDown');
     }
 
+    /** @param array<string, string> $params */
     private function moveAction(Request $request, array $params, string $method): Response
     {
         $fieldId   = Row::int($params, 'id');
@@ -290,6 +303,7 @@ final class CustomFieldController
         return Response::redirect('/admin/custom-fields/' . $entityKey);
     }
 
+    /** @param array<string, string> $params */
     private function simpleAction(Request $request, array $params, string $method, string $successMsg): Response
     {
         $fieldId   = Row::int($params, 'id');

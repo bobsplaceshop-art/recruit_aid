@@ -74,6 +74,7 @@ final class CustomFieldRepository
      *   created_by?: ?int
      * } $data
      */
+    /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
         return $this->db->insert(
@@ -103,6 +104,7 @@ final class CustomFieldRepository
     /**
      * @param array<string, mixed> $data
      */
+    /** @param array<string, mixed> $data */
     public function update(int $id, array $data): void
     {
         $allowed = ['label', 'is_required', 'options', 'constraints', 'default_value',

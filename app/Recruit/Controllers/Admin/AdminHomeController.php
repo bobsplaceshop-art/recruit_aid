@@ -19,6 +19,7 @@ final class AdminHomeController
         $this->container = $container;
     }
 
+    /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
         /** @var View $view */

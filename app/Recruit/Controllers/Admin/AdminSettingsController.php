@@ -18,6 +18,7 @@ final class AdminSettingsController
     /**
      * GET /admin/settings — hub with tiles
      */
+    /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -40,6 +41,7 @@ final class AdminSettingsController
      * required. Without this, a user who saves, gets asked to re-auth,
      * and lands back here would see the old values and no confirmation.
      */
+    /** @param array<string, string> $params */
     public function showSecurity(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -92,6 +94,7 @@ final class AdminSettingsController
      * POST /admin/settings/security — save
      * Requires super_admin role and re-authentication within the configured window.
      */
+    /** @param array<string, string> $params */
     public function saveSecurity(Request $request, array $params = []): Response
     {
         /** @var Auth $auth */
@@ -142,6 +145,7 @@ final class AdminSettingsController
      * data. Kept for API/automation cases; the browser flow no longer uses
      * it because the pending-save mechanism on the GET page is cleaner.
      */
+    /** @param array<string, string> $params */
     public function applySecurity(Request $request, array $params = []): Response
     {
         /** @var Auth $auth */
@@ -181,6 +185,8 @@ final class AdminSettingsController
      * @param  array<string, mixed>  $input
      * @return array{0: array<string,int>, 1: array<int,string>}
      */
+    /** @param array<string, mixed> $input
+     *  @return array{0: array<string, mixed>, 1: string[]} */
     private function validateAndCollectChanges(array $input): array
     {
         $changes = [];
