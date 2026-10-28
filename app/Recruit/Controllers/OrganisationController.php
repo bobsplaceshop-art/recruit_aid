@@ -12,6 +12,7 @@ use CorporateAid\Core\Session;
 use CorporateAid\Core\View;
 use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Recruit\Services\OrganisationService;
+use CorporateAid\Platform\CustomFields\FileCollector;
 use CorporateAid\Core\Row;
 
 final class OrganisationController
@@ -100,7 +101,7 @@ final class OrganisationController
         $auth = $this->container->get(Auth::class);
 
         $input = $this->collectInput($request);
-        $files = $this->collectFiles();
+        $files = FileCollector::collect();
 
         $result = $service->create($input, $files);
 
@@ -213,7 +214,7 @@ final class OrganisationController
         $auth = $this->container->get(Auth::class);
 
         $input = $this->collectInput($request);
-        $files = $this->collectFiles();
+        $files = FileCollector::collect();
 
         $result = $service->update($org->id, $input, $files);
 
@@ -382,48 +383,4 @@ final class OrganisationController
         ];
     }
 
-    /**
-     * Extract uploaded files for custom fields.
-     *
-     * Looks for $_FILES entries named "cf_{fieldKey}_file" and returns
-     * them keyed by fieldKey. Skips empty uploads (UPLOAD_ERR_NO_FILE).
-     *
-     * The field name pattern matches FileType::render(), which emits:
-     *   <input type="file" name="cf_{fieldKey}_file">
-     *
-     * @return array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}>
-     */
-    private function collectFiles(): array
-    {
-        $files = [];
-
-        if (empty($_FILES)) {
-            return $files;
-        }
-
-        foreach ($_FILES as $inputName => $fileData) {
-            if (!is_string($inputName)) {
-                continue;
-            }
-            if (!preg_match('/^cf_(.+)_file$/', $inputName, $matches)) {
-                continue;
-            }
-
-            $fieldKey = $matches[1];
-            if (!is_array($fileData)) {
-                continue;
-            }
-
-            /** @var array{error: int} $fileData */
-            $error = $fileData['error'];
-            if ($error === UPLOAD_ERR_NO_FILE) {
-                continue;
-            }
-
-            /** @var array{name:string,type:string,tmp_name:string,error:int,size:int} $fileData */
-            $files[$fieldKey] = $fileData;
-        }
-
-        return $files;
-    }
 }
