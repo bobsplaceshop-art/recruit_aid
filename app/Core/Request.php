@@ -46,8 +46,12 @@ final class Request
 
     public static function capture(): self
     {
-        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-        $uri    = $_SERVER['REQUEST_URI'] ?? '/';
+        $methodRaw = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        $method = is_scalar($methodRaw) ? (string) $methodRaw : 'GET';
+
+        $uriRaw = $_SERVER['REQUEST_URI'] ?? '/';
+        $uri = is_scalar($uriRaw) ? (string) $uriRaw : '/';
+
         $parts  = parse_url($uri);
 
         $path  = $parts['path']  ?? '/';

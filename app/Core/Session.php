@@ -127,22 +127,27 @@ final class Session
 
     public function flash(string $key, mixed $value): void
     {
-        $_SESSION['_flash'][$key] = $value;
+        $flash = isset($_SESSION['_flash']) && is_array($_SESSION['_flash']) ? $_SESSION['_flash'] : [];
+        $flash[$key] = $value;
+        $_SESSION['_flash'] = $flash;
     }
 
     public function getFlash(string $key, mixed $default = null): mixed
     {
-        if (!isset($_SESSION['_flash'][$key])) {
+        $flash = isset($_SESSION['_flash']) && is_array($_SESSION['_flash']) ? $_SESSION['_flash'] : [];
+        if (!array_key_exists($key, $flash)) {
             return $default;
         }
-        $value = $_SESSION['_flash'][$key];
-        unset($_SESSION['_flash'][$key]);
+        $value = $flash[$key];
+        unset($flash[$key]);
+        $_SESSION['_flash'] = $flash;
         return $value;
     }
 
     public function hasFlash(string $key): bool
     {
-        return isset($_SESSION['_flash'][$key]);
+        $flash = isset($_SESSION['_flash']) && is_array($_SESSION['_flash']) ? $_SESSION['_flash'] : [];
+        return array_key_exists($key, $flash);
     }
 
     // ---------- Old input (after validation failure) ----------
@@ -155,8 +160,8 @@ final class Session
 
     public function old(string $key, mixed $default = ''): mixed
     {
-        $value = $_SESSION['_old'][$key] ?? $default;
-        return $value;
+        $old = isset($_SESSION['_old']) && is_array($_SESSION['_old']) ? $_SESSION['_old'] : [];
+        return array_key_exists($key, $old) ? $old[$key] : $default;
     }
 
     public function clearOldInput(): void

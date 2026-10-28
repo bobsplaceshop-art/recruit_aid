@@ -54,9 +54,10 @@ final class CustomFieldRenderer
             if (array_key_exists($field->fieldKey, $submitted)) {
                 $currentValue = $submitted[$field->fieldKey];
                 if (is_array($currentValue)) {
-                    $currentValue = json_encode($currentValue);
+                    $encoded = json_encode($currentValue);
+                    $currentValue = $encoded !== false ? $encoded : null;
                 } else {
-                    $currentValue = (string) $currentValue;
+                    $currentValue = is_scalar($currentValue) ? (string) $currentValue : null;
                 }
             } elseif (isset($existingValues[$field->id])) {
                 $currentValue = $existingValues[$field->id];

@@ -143,7 +143,8 @@ final class App
 
     private function registerTimezone(): void
     {
-        $tz = $this->container->get(Config::class)->get('app.timezone', 'Africa/Nairobi');
+        $tzRaw = $this->container->get(Config::class)->get('app.timezone', 'Africa/Nairobi');
+        $tz = is_string($tzRaw) && $tzRaw !== '' ? $tzRaw : 'Africa/Nairobi';
         date_default_timezone_set($tz);
     }
 
@@ -152,7 +153,16 @@ final class App
         $c = $this->container;
 
         // ---------- Core services ----------
-        $c->singleton(Database::class, fn() => new Database(DatabaseConfig::fromArray((array) $c->get(Config::class)->get('database', []))));
+        $c->singleton(Database::class, function () use ($c) {
+            $raw = $c->get(Config::class)->get('database', []);
+            $dbConfig = [];
+            if (is_array($raw)) {
+                foreach ($raw as $k => $v) {
+                    $dbConfig[(string) $k] = $v;
+                }
+            }
+            return new Database(DatabaseConfig::fromArray($dbConfig));
+        });
         $c->singleton(View::class,     fn() => new View($this->basePath . '/resources/views', $c->get(Config::class)));
         $c->singleton(Router::class,   fn() => new Router($c));
         $c->singleton(Session::class,  fn() => new Session((array) $c->get(Config::class)->get('app.session', [])));

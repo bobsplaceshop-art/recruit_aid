@@ -12,6 +12,8 @@ final class MultiSelectType implements InputType
     public function supportsOptions(): bool { return true; }
     public function configFields(): array { return []; }
 
+    /** @param array<string, mixed> $constraints
+     *  @return string[] */
     public function validate(mixed $value, array $constraints, bool $isRequired): array
     {
         $values = $this->normalizeValues($value);
@@ -19,8 +21,13 @@ final class MultiSelectType implements InputType
         if ($isRequired && empty($values)) { $errors[] = 'This field is required.'; return $errors; }
         if (empty($values)) return $errors;
 
-        $options = $constraints['_options'] ?? [];
-        $optionsStr = array_map('strval', is_array($options) ? $options : []);
+        $rawOptions = $constraints['_options'] ?? [];
+        $optionsStr = [];
+        if (is_array($rawOptions)) {
+            foreach ($rawOptions as $o) {
+                if (is_scalar($o)) $optionsStr[] = (string) $o;
+            }
+        }
         foreach ($values as $v) {
             if (!in_array($v, $optionsStr, true)) {
                 $errors[] = 'Contains an invalid option.';
@@ -33,7 +40,9 @@ final class MultiSelectType implements InputType
     public function cast(mixed $value): ?string
     {
         $values = $this->normalizeValues($value);
-        return empty($values) ? null : json_encode(array_values($values));
+        if (empty($values)) return null;
+        $encoded = json_encode(array_values($values));
+        return $encoded !== false ? $encoded : null;
     }
 
     public function humanize(?string $value): string
@@ -41,20 +50,40 @@ final class MultiSelectType implements InputType
         if ($value === null || $value === '') return '';
         $decoded = json_decode($value, true);
         if (!is_array($decoded)) return $value;
-        return implode(', ', array_map('strval', $decoded));
+        $parts = [];
+        foreach ($decoded as $v) {
+            if (is_scalar($v)) $parts[] = (string) $v;
+        }
+        return implode(', ', $parts);
     }
 
+    /** @return string[] */
     private function normalizeValues(mixed $value): array
     {
-        if (is_array($value)) return array_map('strval', $value);
+        if (is_array($value)) {
+            $out = [];
+            foreach ($value as $v) {
+                if (is_scalar($v)) $out[] = (string) $v;
+            }
+            return $out;
+        }
         if (is_string($value) && $value !== '') {
             $decoded = json_decode($value, true);
-            if (is_array($decoded)) return array_map('strval', $decoded);
+            if (is_array($decoded)) {
+                $out = [];
+                foreach ($decoded as $v) {
+                    if (is_scalar($v)) $out[] = (string) $v;
+                }
+                return $out;
+            }
             return [$value];
         }
         return [];
     }
 
+    /** @param array<string, mixed> $constraints
+     *  @param string[] $options
+     *  @param string[] $errors */
     public function render(string $fieldKey, string $fieldLabel, ?string $currentValue, array $constraints, array $options, ?string $helpText, bool $isRequired, array $errors = []): string
     {
         $current = $this->normalizeValues($currentValue);
@@ -64,10 +93,11 @@ final class MultiSelectType implements InputType
         $html .= '</div>';
         $html .= '<div style="display:flex;flex-wrap:wrap;gap:.75rem;padding:.5rem 0;">';
         foreach ($options as $opt) {
-            $checked = in_array((string) $opt, $current, true) ? ' checked' : '';
+            $optStr = is_scalar($opt) ? (string) $opt : '';
+            $checked = in_array($optStr, $current, true) ? ' checked' : '';
             $html .= '<label style="display:flex;align-items:center;gap:.4rem;font-size:.9rem;">'
-                   . '<input type="checkbox" name="cf[' . e($fieldKey) . '][]" value="' . e((string) $opt) . '"' . $checked . '>'
-                   . '<span>' . e((string) $opt) . '</span></label>';
+                   . '<input type="checkbox" name="cf[' . e($fieldKey) . '][]" value="' . e($optStr) . '"' . $checked . '>'
+                   . '<span>' . e($optStr) . '</span></label>';
         }
         $html .= '</div>';
         if ($helpText) $html .= '<div class="muted small mt-1">' . e($helpText) . '</div>';
