@@ -32,6 +32,7 @@ final class ContactService
     /**
      * Create a new contact for an organisation.
      *
+     * @param array<string, mixed> $input
      * @return array{id:int, contact:?Contact, errors:string[]}
      */
     public function create(int $organisationId, array $input): array
@@ -74,7 +75,8 @@ final class ContactService
     }
 
     /**
-     * @return array{success:bool, errors:string[], changes:array}
+     * @param array<string, mixed> $input
+     * @return array{success:bool, errors:string[], changes:array<string, array{old:mixed,new:mixed}>}
      */
     public function update(int $id, array $input): array
     {
@@ -152,6 +154,11 @@ final class ContactService
 
     // ---------- helpers ----------
 
+    /**
+     * @param array<string, string[]> $baseErrors
+     * @param array<string, string[]> $cfErrors
+     * @return string[]
+     */
     private function flattenErrors(array $baseErrors, array $cfErrors): array
     {
         $out = [];
@@ -164,6 +171,7 @@ final class ContactService
         return $out;
     }
 
+    /** @param array<string, array{old:mixed,new:mixed}> $changes */
     private function summarizeChanges(array $changes): string
     {
         $parts = [];
