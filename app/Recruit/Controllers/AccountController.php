@@ -134,7 +134,7 @@ final class AccountController
 
         $db->execute(
             "UPDATE `core_users` SET `theme_preference` = ? WHERE `id` = ?",
-            [$theme, $user->id]
+            \CorporateAid\Core\PDOParams::positional([$theme, $user->id])
         );
 
         // If the request came from JS, return JSON.

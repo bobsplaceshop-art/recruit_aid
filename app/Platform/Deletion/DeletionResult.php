@@ -41,7 +41,7 @@ final class DeletionResult
     {
         $total = 0;
         foreach ($this->dependents as $d) {
-            $total += (int) ($d['count'] ?? 0);
+            $total += $d['count'];
         }
         return $total;
     }

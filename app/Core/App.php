@@ -298,7 +298,6 @@ final class App
 
         $c->singleton(NotificationService::class, fn() => new NotificationService(
             $c->get(NotificationRepository::class),
-            $c->get(UserRepository::class),
             $c->get(NotificationRuleService::class),
             $c->get(Auth::class)
         ));

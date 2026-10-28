@@ -93,7 +93,7 @@ final class MultiSelectType implements InputType
         $html .= '</div>';
         $html .= '<div style="display:flex;flex-wrap:wrap;gap:.75rem;padding:.5rem 0;">';
         foreach ($options as $opt) {
-            $optStr = is_scalar($opt) ? (string) $opt : '';
+            $optStr = (string) $opt;
             $checked = in_array($optStr, $current, true) ? ' checked' : '';
             $html .= '<label style="display:flex;align-items:center;gap:.4rem;font-size:.9rem;">'
                    . '<input type="checkbox" name="cf[' . e($fieldKey) . '][]" value="' . e($optStr) . '"' . $checked . '>'

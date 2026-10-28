@@ -103,6 +103,9 @@ final class Kernel
      */
     private function invokeMiddleware(object $instance, Request $request, callable $next): Response
     {
+        if (!method_exists($instance, 'handle')) {
+            throw new RuntimeException('Middleware instance is missing a handle() method: ' . get_class($instance));
+        }
         /** @var Response $response */
         $response = $instance->handle($request, $next);
         return $response;

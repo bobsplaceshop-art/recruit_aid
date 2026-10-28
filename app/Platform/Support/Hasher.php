@@ -13,7 +13,7 @@ final class Hasher
     /**
      * Return the algorithm identifier to use with password_hash().
      */
-    public static function algorithm(): string|int
+    public static function algorithm(): int
     {
         return defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_BCRYPT;
     }
@@ -54,6 +54,6 @@ final class Hasher
      */
     public static function randomToken(int $bytes = 32): string
     {
-        return bin2hex(random_bytes($bytes));
+        return bin2hex(random_bytes(max(1, $bytes)));
     }
 }

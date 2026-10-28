@@ -41,7 +41,7 @@ final class NotificationRuleService
         if ($excludeActor && $this->auth !== null) {
             $actorId = $this->auth->user()?->id;
             if ($actorId !== null) {
-                $ids = array_values(array_filter($ids, fn ($id) => $id !== $actorId));
+                $ids = array_filter($ids, fn ($id) => $id !== $actorId);
             }
         }
 

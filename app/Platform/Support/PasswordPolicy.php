@@ -127,9 +127,17 @@ final class PasswordPolicy
         static $list = null;
         if ($list === null) {
             $path = base_path('storage/config/common-passwords.txt');
-            $list = is_file($path)
-                ? array_map('strtolower', array_map('trim', file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)))
-                : [];
+            $list = [];
+            if (is_file($path)) {
+                $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                if (is_array($lines)) {
+                    foreach ($lines as $line) {
+                        if (is_string($line)) {
+                            $list[] = strtolower(trim($line));
+                        }
+                    }
+                }
+            }
         }
         if (empty($list)) return false;
 

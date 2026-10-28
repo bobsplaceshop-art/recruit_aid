@@ -42,7 +42,7 @@ final class UserController
         );
 
         foreach ($users as &$u) {
-            $u['roles'] = !empty($u['role_slugs']) ? explode(',', $u['role_slugs']) : [];
+            $u['roles'] = !empty($u['role_slugs']) && is_string($u['role_slugs']) ? explode(',', $u['role_slugs']) : [];
         }
         unset($u);
 

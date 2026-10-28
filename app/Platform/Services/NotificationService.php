@@ -23,7 +23,6 @@ final class NotificationService
 {
     public function __construct(
         private NotificationRepository $repo,
-        private UserRepository $users,
         private NotificationRuleService $rules,
         private ?Auth $auth = null
     ) {
@@ -109,7 +108,7 @@ final class NotificationService
     public function settingsChanged(string $key, mixed $oldValue, mixed $newValue): void
     {
         $actor = $this->auth?->user();
-        $actorName = $actor?->name ?? 'Unknown';
+        $actorName = $actor !== null ? $actor->name : 'Unknown';
 
         $label = SystemSettingService::getHumanLabel($key);
         $oldDisplay = SystemSettingService::formatValue($key, $oldValue);

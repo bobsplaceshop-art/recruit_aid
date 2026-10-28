@@ -39,7 +39,11 @@ final class CustomFieldValidator
             if ($type->supportsOptions()) {
                 $options = $input['options'] ?? [];
                 if (!is_array($options)) $options = [];
-                $clean = array_values(array_filter(array_map('trim', $options), fn($o) => $o !== ''));
+                $clean = [];
+                foreach ($options as $o) {
+                    $str = is_scalar($o) ? trim((string) $o) : '';
+                    if ($str !== '') $clean[] = $str;
+                }
                 if (count($clean) < 1) {
                     $errors[] = 'Please provide at least one option.';
                 } elseif (count($clean) !== count(array_unique($clean))) {

@@ -57,7 +57,11 @@ final class AdminSettingsController
             $session->forget('_pending_security_save');
 
             if (is_array($pending) && !empty($pending)) {
-                [$changes, $errors] = $this->validateAndCollectChanges($pending);
+                $normalized = [];
+                foreach ($pending as $k => $v) {
+                    $normalized[(string) $k] = $v;
+                }
+                [$changes, $errors] = $this->validateAndCollectChanges($normalized);
 
                 if (!empty($errors)) {
                     $session->flash('error', implode(' ', $errors));

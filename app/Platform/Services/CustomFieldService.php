@@ -228,7 +228,7 @@ final class CustomFieldService
         }
         if ($index === null) return false;
 
-        $swapIndex = $index + $direction;
+        $swapIndex = (int) $index + $direction;
         if ($swapIndex < 0 || $swapIndex >= count($all)) {
             return false; // already at the boundary
         }

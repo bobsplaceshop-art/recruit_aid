@@ -20,11 +20,6 @@ use CorporateAid\Platform\Support\Logger;
 final class PasswordResetController
 {
 
-    private static function toStr(mixed $value): string
-    {
-        return is_scalar($value) ? (string) $value : '';
-    }
-
     public function __construct(private Container $container) {}
 
     /**
@@ -93,7 +88,7 @@ final class PasswordResetController
 
                 $sent = $mailer->sendTemplate(
                     $email,
-                    'Reset your ' . config('branding.product_name', 'Recruit Aid') . ' password',
+                    'Reset your ' . (is_scalar(config('branding.product_name', 'Recruit Aid')) ? (string) config('branding.product_name', 'Recruit Aid') : 'Recruit Aid') . ' password',
                     'password-reset',
                     [
                         'user_name'  => $user->firstName() ?: $user->name,

@@ -46,6 +46,7 @@ final class ContactService
         }
 
         $normalized = $this->validator->normalize($input);
+        /** @var array{organisation_id: int, code: string, first_name: string, last_name: string, position?: string|null, department?: string|null, email?: string|null, phone?: string|null, alt_phone?: string|null, country_code?: string|null, preferred_communication?: string, is_primary?: bool, is_hiring_manager?: bool, is_finance?: bool, is_hr?: bool, is_decision_maker?: bool, notes?: string|null, created_by?: int|null} $normalized */
         $normalized['organisation_id'] = $organisationId;
         $normalized['code'] = $this->contacts->nextCode();
         $normalized['created_by'] = $this->auth?->user()?->id;
@@ -177,7 +178,13 @@ final class ContactService
     private function formatValue(mixed $v): string
     {
         if (is_bool($v)) return $v ? 'yes' : 'no';
-        if (is_array($v)) return implode(', ', $v);
+        if (is_array($v)) {
+            $parts = [];
+            foreach ($v as $part) {
+                if (is_scalar($part)) $parts[] = (string) $part;
+            }
+            return implode(', ', $parts);
+        }
         if ($v === null) return '(empty)';
         return is_scalar($v) ? (string) $v : '';
     }

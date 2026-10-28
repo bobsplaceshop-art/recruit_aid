@@ -50,13 +50,15 @@ final class Session
         }
 
         session_name((string) $this->config['name']);
+        $samesiteRaw = strtolower((string) $this->config['cookie_samesite']);
+        $samesite = in_array($samesiteRaw, ['lax', 'strict', 'none'], true) ? $samesiteRaw : 'lax';
         session_set_cookie_params([
             'lifetime' => (int) $this->config['lifetime'],
             'path'     => (string) $this->config['cookie_path'],
             'domain'   => (string) $this->config['cookie_domain'],
             'secure'   => $secure,
             'httponly' => (bool) $this->config['cookie_httponly'],
-            'samesite' => (string) $this->config['cookie_samesite'],
+            'samesite' => $samesite,
         ]);
 
         ini_set('session.use_strict_mode', '1');
@@ -108,8 +110,9 @@ final class Session
             $_SESSION = [];
             if (ini_get('session.use_cookies')) {
                 $params = session_get_cookie_params();
+                $name = session_name();
                 setcookie(
-                    session_name(),
+                    is_string($name) ? $name : 'recruitaid_session',
                     '',
                     time() - 42000,
                     $params['path'],
