@@ -255,9 +255,12 @@ final class EngagementRepository
         return 'ENG-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
     }
 
-    /** @return array<int, array{user_id:int, role:string, name:string, email:string}> */
+    /**
+     * @return array<int, array{user_id: int, role: string, name: string, email: string}>
+     */
     public function recruitersFor(int $engagementId): array
     {
+        /** @var array<int, array{user_id: int, role: string, name: string, email: string}> */
         return $this->db->select(
             "SELECT er.`user_id`, er.`role`, u.`name`, u.`email`
              FROM `recruit_engagement_recruiters` er

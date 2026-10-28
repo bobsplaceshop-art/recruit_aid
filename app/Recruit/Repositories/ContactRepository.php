@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Repositories;
+use CorporateAid\Core\Row;
 
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
@@ -128,7 +129,10 @@ final class ContactRepository
         ]));
     }
 
-    /** @return array<string, array{old:mixed,new:mixed}> */
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, array{old:mixed,new:mixed}>
+     */
     public function update(int $id, array $data): array
     {
         $existing = $this->findById($id);

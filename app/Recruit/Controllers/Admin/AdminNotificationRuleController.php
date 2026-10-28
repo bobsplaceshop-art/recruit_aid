@@ -114,7 +114,7 @@ final class AdminNotificationRuleController
                  VALUES (?, ?, ?, ?, ?, 0, 1, ?)",
                 PDOParams::positional([
                     $event, $type, $value !== '' ? $value : null,
-                    $inapp ? 1 : 0, $email ? 1 : 0, $auth->user()?->id ?? 0,
+                    $inapp ? 1 : 0, $email ? 1 : 0, $auth->user()->id,
                 ])
             );
             $session->flash('success', 'Notification rule added.');
@@ -209,7 +209,7 @@ final class AdminNotificationRuleController
     private function humanizeSlug(string $slug): string
     {
         $parts = preg_split('/[._\-]+/', $slug) ?: [$slug];
-        $parts = array_filter($parts, static fn ($v) => is_string($v) && $v !== '');
+        $parts = array_filter($parts, static fn ($v) => $v !== '');
         if (empty($parts)) return $slug;
         return implode(' ', array_map('ucfirst', $parts));
     }

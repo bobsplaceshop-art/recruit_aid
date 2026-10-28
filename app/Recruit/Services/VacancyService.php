@@ -55,11 +55,14 @@ final class VacancyService
 
         // Capacity check — if this vacancy is active and linked to an engagement
         $capacityWarning = null;
-        $status = $normalized['status'];
+        $statusRaw = $normalized['status'] ?? 'draft';
+        $status = is_scalar($statusRaw) ? (string) $statusRaw : 'draft';
         $isActive = !in_array($status, ['draft', 'cancelled', 'closed'], true);
 
         if ($isActive && !empty($normalized['engagement_id'])) {
-            $eng = $this->engagements->findById((int) $normalized['engagement_id']);
+            $engIdRaw = $normalized['engagement_id'] ?? null;
+            $engId = is_numeric($engIdRaw) ? (int) $engIdRaw : 0;
+            $eng = $this->engagements->findById($engId);
             if ($eng) {
                 $currentActive = $this->vacancies->activeCountForEngagement($eng->id);
                 if ($currentActive >= $eng->agreedActiveRoleCapacity) {

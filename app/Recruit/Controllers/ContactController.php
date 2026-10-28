@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Controllers;
+use CorporateAid\Core\Row;
 
 use CorporateAid\Core\Auth;
 use CorporateAid\Core\Container;
@@ -325,6 +326,7 @@ final class ContactController
 
     // ---------- helpers ----------
 
+    /** @param array<string, string> $params */
     private function lifecycleAction(Request $request, array $params, string $method): Response
     {
         [$org, $contact] = $this->resolveOrgAndContact($params, true);
@@ -349,7 +351,10 @@ final class ContactController
         return Response::redirect('/organisations/' . $org->code . '/contacts/' . $contact->code);
     }
 
-    /** @return array{0:\CorporateAid\Recruit\Models\Organisation,1:\CorporateAid\Recruit\Models\Contact} */
+    /**
+     * @param array<string, string> $params
+     * @return array{0:\CorporateAid\Recruit\Models\Organisation,1:\CorporateAid\Recruit\Models\Contact}
+     */
     private function resolveOrgAndContact(array $params, bool $includeDeleted = false): array
     {
         $orgCode = ($params['code'] ?? '');
@@ -374,6 +379,7 @@ final class ContactController
         return [$org, $contact];
     }
 
+    /** @return array<string, mixed> */
     private function collectInput(Request $request): array
     {
         $cf = $request->input('cf', []);

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Controllers;
+use CorporateAid\Core\Row;
 
 use CorporateAid\Core\Auth;
 use CorporateAid\Core\Container;
@@ -231,11 +232,13 @@ final class PasswordResetController
      */
     private function absoluteUrl(string $path): string
     {
-        $base = rtrim(is_scalar(config('app.url', '')) ? (string) config('app.url', '') : '', '/');
+        $rawUrl = config('app.url', '');
+        $base = rtrim(is_scalar($rawUrl) ? (string) $rawUrl : '', '/');
         if ($base === '') {
             // Fall back to current request host
             $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-            $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            $hostRaw = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            $host = is_scalar($hostRaw) ? (string) $hostRaw : 'localhost';
             $base = $scheme . '://' . $host;
         }
         return $base . '/' . ltrim($path, '/');

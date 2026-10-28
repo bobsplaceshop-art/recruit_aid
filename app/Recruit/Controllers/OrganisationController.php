@@ -320,6 +320,7 @@ final class OrganisationController
 
     // ---------- helpers ----------
 
+    /** @param array<string, string> $params */
     private function lifecycleAction(Request $request, array $params, string $action): Response
     {
         $code = ($params['code'] ?? '');
@@ -353,6 +354,7 @@ final class OrganisationController
         return Response::redirect('/organisations/' . $code);
     }
 
+    /** @return array<string, mixed> */
     private function collectInput(Request $request): array
     {
         $countries = $request->input('countries_operation', []);
@@ -389,14 +391,13 @@ final class OrganisationController
      * The field name pattern matches FileType::render(), which emits:
      *   <input type="file" name="cf_{fieldKey}_file">
      *
-     * @return array<string, array>  fieldKey => $_FILES-shaped array
+     * @return array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}>
      */
-    /** @return array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> */
     private function collectFiles(): array
     {
         $files = [];
 
-        if (empty($_FILES) || !is_array($_FILES)) {
+        if (empty($_FILES)) {
             return $files;
         }
 
@@ -413,11 +414,13 @@ final class OrganisationController
                 continue;
             }
 
-            $error = Row::int($fileData, 'error', UPLOAD_ERR_NO_FILE);
+            /** @var array{error: int} $fileData */
+            $error = $fileData['error'];
             if ($error === UPLOAD_ERR_NO_FILE) {
                 continue;
             }
 
+            /** @var array{name:string,type:string,tmp_name:string,error:int,size:int} $fileData */
             $files[$fieldKey] = $fileData;
         }
 

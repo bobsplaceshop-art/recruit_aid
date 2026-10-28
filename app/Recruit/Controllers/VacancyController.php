@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Controllers;
+use CorporateAid\Core\Row;
 
 use CorporateAid\Core\Auth;
 use CorporateAid\Core\Container;
@@ -171,6 +172,7 @@ final class VacancyController
 
         // Show capacity warning as a flash if present
         if ($result['capacity_warning']) {
+            /** @var array{engagement_name: string, current_active: int, capacity: int} $w */
             $w = $result['capacity_warning'];
             $session->flash('error',
                 'Note: ' . $w['engagement_name'] . ' is at capacity (' . $w['current_active'] . '/' . $w['capacity'] . '). ' .
@@ -402,6 +404,7 @@ final class VacancyController
         ]);
     }
 
+    /** @param array<string, string> $params */
     private function lifecycleAction(Request $request, array $params, string $method): Response
     {
         $code = ($params['code'] ?? '');
@@ -433,6 +436,7 @@ final class VacancyController
         return Response::redirect('/vacancies/' . $vacancy->code);
     }
 
+    /** @return array<string, mixed> */
     private function collectInput(Request $request): array
     {
         $skills = $request->input('skills', []);
@@ -486,6 +490,7 @@ final class VacancyController
         ];
     }
 
+    /** @return string[] */
     private function linesToList(mixed $value): array
     {
         if (!is_string($value)) return [];

@@ -1,25 +1,4 @@
 Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
 /mnt/c/projects/recruitaid/app/Platform/Support/Hasher.php:16:Method CorporateAid\Platform\Support\Hasher::algorithm() never returns int so it can be removed from the return type.
 /mnt/c/projects/recruitaid/app/Platform/Support/Hasher.php:27:Strict comparison using === between non-empty-string and false will always evaluate to false.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/Admin/AdminNotificationRuleController.php:117:Expression on left side of ?? is not nullable.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/Admin/AdminNotificationRuleController.php:212:Call to function is_string() with string will always evaluate to true.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/ContactController.php:328:Method CorporateAid\Recruit\Controllers\ContactController::lifecycleAction() has parameter $params with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/ContactController.php:353:Method CorporateAid\Recruit\Controllers\ContactController::resolveOrgAndContact() has parameter $params with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/ContactController.php:377:Method CorporateAid\Recruit\Controllers\ContactController::collectInput() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/EngagementController.php:402:Method CorporateAid\Recruit\Controllers\EngagementController::lifecycleAction() has parameter $params with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/EngagementController.php:433:Method CorporateAid\Recruit\Controllers\EngagementController::collectInput() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/OrganisationController.php:323:Method CorporateAid\Recruit\Controllers\OrganisationController::lifecycleAction() has parameter $params with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/OrganisationController.php:356:Method CorporateAid\Recruit\Controllers\OrganisationController::collectInput() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/OrganisationController.php:399:Call to function is_array() with non-empty-array<mixed> will always evaluate to true.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/OrganisationController.php:416:Parameter #1 $row of static method CorporateAid\Core\Row::int() expects array<string, mixed>, array<mixed, mixed> given.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/OrganisationController.php:424:Method CorporateAid\Recruit\Controllers\OrganisationController::collectFiles() should return array<string, array{name: string, type: string, tmp_name: string, error: int, size: int}> but returns array<non-empty-string, array<mixed, mixed>>.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/PasswordResetController.php:239:Binary operation "." between 'http://'|'https://' and mixed results in an error.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/VacancyController.php:176:Binary operation "." between 'Note: ' and mixed results in an error.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/VacancyController.php:176:Binary operation "." between non-falsy-string and mixed results in an error.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/VacancyController.php:176:Binary operation "." between non-falsy-string and mixed results in an error.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/VacancyController.php:405:Method CorporateAid\Recruit\Controllers\VacancyController::lifecycleAction() has parameter $params with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/VacancyController.php:436:Method CorporateAid\Recruit\Controllers\VacancyController::collectInput() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Controllers/VacancyController.php:489:Method CorporateAid\Recruit\Controllers\VacancyController::linesToList() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Repositories/ContactRepository.php:132:Method CorporateAid\Recruit\Repositories\ContactRepository::update() has parameter $data with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Repositories/EngagementRepository.php:261:Method CorporateAid\Recruit\Repositories\EngagementRepository::recruitersFor() should return array<int, array{user_id: int, role: string, name: string, email: string}> but returns array<int, array<string, mixed>>.
-/mnt/c/projects/recruitaid/app/Recruit/Services/VacancyService.php:62:Cannot cast mixed to int.
+/mnt/c/projects/recruitaid/app/Recruit/Services/VacancyService.php:63:Offset 'engagement_id' on non-empty-array<string, mixed> on left side of ?? always exists and is not nullable.
