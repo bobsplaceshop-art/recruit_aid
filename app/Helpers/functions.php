@@ -16,7 +16,7 @@ if (!function_exists('e')) {
 if (!function_exists('config')) {
     function config(string $key, mixed $default = null): mixed
     {
-        return \CorporateAid\Core\App::instance()->container()->get('config')->get($key, $default);
+        return \CorporateAid\Core\App::instance()->container()->get(\CorporateAid\Core\Config::class)->get($key, $default);
     }
 }
 

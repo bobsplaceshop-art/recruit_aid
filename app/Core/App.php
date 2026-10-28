@@ -163,7 +163,7 @@ final class App
             }
             return new Database(DatabaseConfig::fromArray($dbConfig));
         });
-        $c->singleton(View::class,     fn() => new View($this->basePath . '/resources/views', $c->get(Config::class)));
+        $c->singleton(View::class,     fn() => new View($this->basePath . '/resources/views'));
         $c->singleton(Router::class,   fn() => new Router($c));
         $c->singleton(Session::class, function () use ($c) {
             $raw = $c->get(Config::class)->get('app.session', []);
@@ -201,10 +201,16 @@ final class App
         // ---------- Support ----------
         $c->singleton(CodeGenerator::class,  fn() => new CodeGenerator($c->get(Database::class)));
         $c->singleton(RateLimiter::class,     fn() => new RateLimiter($c->get(RateLimitRepository::class), $c->get(SystemSettingService::class)));
-        $c->singleton(EmailService::class,    fn() => new EmailService(
-            (array) $c->get(Config::class)->get('mail', []),
-            new Logger()
-        ));
+        $c->singleton(EmailService::class, function () use ($c) {
+            $raw = $c->get(Config::class)->get('mail', []);
+            $mailConfig = [];
+            if (is_array($raw)) {
+                foreach ($raw as $k => $v) {
+                    $mailConfig[(string) $k] = $v;
+                }
+            }
+            return new EmailService($mailConfig, new Logger());
+        });
         $c->singleton(ActivityLogger::class, fn() => new ActivityLogger($c->get(Database::class), $c->get(Auth::class)));
 
         // ---------- Validation ----------
@@ -220,7 +226,6 @@ final class App
         // ---------- Services ----------
         $c->singleton(CustomFieldService::class, fn() => new CustomFieldService(
             $c->get(CustomFieldRepository::class),
-            $c->get(CustomFieldValueRepository::class),
             $c->get(CustomFieldValidator::class),
             $c->get(ActivityLogger::class),
             $c->get(Auth::class)

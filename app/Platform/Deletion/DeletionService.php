@@ -23,10 +23,6 @@ final class DeletionService
     ) {
     }
 
-    /**
-     * Inspect what would happen if we tried to delete this entity.
-     * Returns dependents list and the confirmation phrase the user must type.
-     */
     public function inspect(DeletableEntity $entity): DeletionResult
     {
         if (!$this->canDelete($entity)) {
@@ -42,9 +38,6 @@ final class DeletionService
         return DeletionResult::inspection($hasDependents, $dependents, $phrase);
     }
 
-    /**
-     * Permanently delete a single entity. Cascade-deletes dependents inside a transaction.
-     */
     public function delete(
         DeletableEntity $entity,
         string $typedPhrase,
@@ -72,7 +65,7 @@ final class DeletionService
             if ($hasDependents) {
                 $deleted = $entity->cascadeDelete();
             } else {
-                $deleted = $entity->cascadeDelete(); // still calls the entity to delete itself
+                $deleted = $entity->cascadeDelete();
             }
             $this->db->commit();
         } catch (\Throwable $e) {
@@ -88,9 +81,6 @@ final class DeletionService
         );
     }
 
-    /**
-     * Archive (soft delete) instead of removing.
-     */
     public function archive(DeletableEntity $entity, ?string $reason = null): DeletionResult
     {
         if (!$this->canDelete($entity)) {
@@ -131,8 +121,9 @@ final class DeletionService
     }
 
     /**
-     * Bulk delete. First inspects ALL records. If any has dependents that the user
-     * hasn't opted into ("WITH CHILDREN" phrase), the whole operation is aborted.
+     * Bulk delete. First inspects ALL records.
+     *
+     * @param array<int, DeletableEntity> $entities
      */
     public function deleteBulk(array $entities, string $typedPhrase, ?string $reason = null): DeletionResult
     {
@@ -140,7 +131,6 @@ final class DeletionService
             return DeletionResult::failure('No records selected.');
         }
 
-        // Permission check on all
         foreach ($entities as $entity) {
             if (!$this->canDelete($entity)) {
                 return DeletionResult::failure(
@@ -149,7 +139,6 @@ final class DeletionService
             }
         }
 
-        // Determine if any have dependents
         $anyDependents = false;
         foreach ($entities as $entity) {
             if (!empty($entity->getDependents())) {
@@ -193,8 +182,6 @@ final class DeletionService
         );
     }
 
-    // ---------- helpers ----------
-
     private function canDelete(DeletableEntity $entity): bool
     {
         if ($this->auth === null) return false;
@@ -203,6 +190,9 @@ final class DeletionService
         return $user->can($entity->entityType() . '.delete');
     }
 
+    /**
+     * @param array<int, array{label:string, count:int, route:string}> $dependents
+     */
     private function logDeletion(
         DeletableEntity $entity,
         string $phrase,

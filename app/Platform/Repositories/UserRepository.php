@@ -45,10 +45,13 @@ final class UserRepository
                 (`name`, `email`, `password_hash`, `phone`, `timezone`, `status`, `is_client_user`, `organisation_id`)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
+        $email = Row::str($data, 'email');
+        $plain = Row::str($data, 'password');
+
         return $this->db->insert($sql, PDOParams::positional([
-            $data['name'],
-            strtolower(trim($data['email'])),
-            Hasher::hash($data['password']),
+            Row::str($data, 'name'),
+            strtolower(trim($email)),
+            Hasher::hash($plain),
             $data['phone'] ?? null,
             $data['timezone'] ?? 'Africa/Nairobi',
             $data['status'] ?? 'active',
@@ -156,6 +159,7 @@ final class UserRepository
      */
     public function listForAssignment(): array
     {
+        /** @var array<int, array{id:int, name:string, email:string, role_slugs:string}> */
         return $this->db->select(
             "SELECT u.`id`, u.`name`, u.`email`,
                     GROUP_CONCAT(r.`slug` ORDER BY r.`slug` SEPARATOR ',') AS role_slugs

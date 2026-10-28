@@ -45,6 +45,7 @@ final class NotificationService
      * @param string $body       Optional secondary line
      * @param string $link       Optional click-through URL
      */
+    /** @param array<string, mixed> $context */
     public function dispatch(
         string $eventType,
         array $context = [],

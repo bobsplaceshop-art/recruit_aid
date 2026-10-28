@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Platform\Services;
 
 use CorporateAid\Core\Auth;
+use CorporateAid\Core\Row;
 use CorporateAid\Platform\Models\CustomField;
 use CorporateAid\Platform\Repositories\CustomFieldRepository;
 use CorporateAid\Platform\Repositories\CustomFieldValueRepository;
@@ -19,7 +20,6 @@ final class CustomFieldService
 {
     public function __construct(
         private CustomFieldRepository $fields,
-        private CustomFieldValueRepository $values,
         private CustomFieldValidator $validator,
         private ActivityLogger $activity,
         private ?Auth $auth = null
@@ -30,6 +30,7 @@ final class CustomFieldService
      * Create a new custom field for an entity.
      * Returns the new field's ID, or throws with validation errors.
      *
+     * @param array<string, mixed> $input
      * @throws \RuntimeException with errors attached
      */
     public function create(string $entityType, array $input): int
@@ -39,26 +40,31 @@ final class CustomFieldService
             throw new \RuntimeException(implode(' ', $errors));
         }
 
+        $label = Row::str($input, 'label');
         $existingKeys = array_map(
             fn (CustomField $f) => $f->fieldKey,
             $this->fields->allFor($entityType)
         );
-        $fieldKey = $this->validator->generateFieldKey((string) $input['label'], $existingKeys);
+        $fieldKey = $this->validator->generateFieldKey($label, $existingKeys);
 
         $userId = $this->auth?->user()?->id;
+
+        $defaultValue = trim(Row::str($input, 'default_value'));
+        $helpText = trim(Row::str($input, 'help_text'));
+        $sortOrder = $input['sort_order'] ?? null;
 
         $fieldId = $this->fields->create([
             'entity_type'   => $entityType,
             'field_key'     => $fieldKey,
-            'label'         => trim((string) $input['label']),
-            'input_type'    => (string) $input['input_type'],
+            'label'         => trim($label),
+            'input_type'    => Row::str($input, 'input_type'),
             'is_required'   => !empty($input['is_required']),
             'options'       => $this->extractOptions($input),
             'constraints'   => $this->extractConstraints($input),
-            'default_value' => trim((string) ($input['default_value'] ?? '')) ?: null,
-            'help_text'     => trim((string) ($input['help_text'] ?? '')) ?: null,
-            'sort_order'    => is_numeric($input['sort_order'] ?? null)
-                                 ? (int) $input['sort_order']
+            'default_value' => $defaultValue !== '' ? $defaultValue : null,
+            'help_text'     => $helpText !== '' ? $helpText : null,
+            'sort_order'    => is_numeric($sortOrder)
+                                 ? (int) $sortOrder
                                  : $this->fields->nextSortOrder($entityType),
             'is_active'     => true,
             'created_by'    => $userId,
@@ -67,7 +73,7 @@ final class CustomFieldService
         $this->activity->log(
             'custom_field.created',
             'settings',
-            "Custom field created: {$input['label']} on {$entityType} (key: {$fieldKey})",
+            "Custom field created: {$label} on {$entityType} (key: {$fieldKey})",
             'custom_field',
             $fieldId
         );
@@ -75,6 +81,7 @@ final class CustomFieldService
         return $fieldId;
     }
 
+    /** @param array<string, mixed> $input */
     public function update(int $fieldId, array $input): void
     {
         $field = $this->fields->findById($fieldId);
@@ -87,24 +94,25 @@ final class CustomFieldService
             throw new \RuntimeException(implode(' ', $errors));
         }
 
-        // The input type and field key cannot be changed after creation.
-        // Changing input type could invalidate existing stored values.
-        // Changing field key would break references in exports/reports.
+        $label = Row::str($input, 'label');
+        $defaultValue = trim(Row::str($input, 'default_value'));
+        $helpText = trim(Row::str($input, 'help_text'));
+        $sortOrder = $input['sort_order'] ?? null;
 
         $this->fields->update($fieldId, [
-            'label'         => trim((string) $input['label']),
+            'label'         => trim($label),
             'is_required'   => !empty($input['is_required']),
             'options'       => $this->extractOptions($input),
             'constraints'   => $this->extractConstraints($input),
-            'default_value' => trim((string) ($input['default_value'] ?? '')) ?: null,
-            'help_text'     => trim((string) ($input['help_text'] ?? '')) ?: null,
-            'sort_order'    => is_numeric($input['sort_order'] ?? null) ? (int) $input['sort_order'] : $field->sortOrder,
+            'default_value' => $defaultValue !== '' ? $defaultValue : null,
+            'help_text'     => $helpText !== '' ? $helpText : null,
+            'sort_order'    => is_numeric($sortOrder) ? (int) $sortOrder : $field->sortOrder,
         ]);
 
         $this->activity->log(
             'custom_field.updated',
             'settings',
-            "Custom field updated: {$input['label']} (key: {$field->fieldKey})",
+            "Custom field updated: {$label} (key: {$field->fieldKey})",
             'custom_field',
             $fieldId
         );
@@ -164,7 +172,6 @@ final class CustomFieldService
             );
         }
 
-        // Safe to hard delete — no data depends on it
         $this->fields->hardDelete($fieldId);
 
         $this->activity->log(
@@ -176,9 +183,6 @@ final class CustomFieldService
         );
     }
 
-    /**
-     * Toggle the required flag on a field.
-     */
     public function toggleRequired(int $fieldId, bool $required): void
     {
         $field = $this->fields->findById($fieldId);
@@ -195,26 +199,16 @@ final class CustomFieldService
         );
     }
 
-    /**
-     * Move a field one position up (lower sort_order).
-     * Returns true on success, false if already at the top.
-     */
     public function moveUp(int $fieldId): bool
     {
         return $this->move($fieldId, -1);
     }
 
-    /**
-     * Move a field one position down (higher sort_order).
-     */
     public function moveDown(int $fieldId): bool
     {
         return $this->move($fieldId, 1);
     }
 
-    /**
-     * Internal: swap sort_order with the adjacent field.
-     */
     private function move(int $fieldId, int $direction): bool
     {
         $field = $this->fields->findById($fieldId);
@@ -230,21 +224,18 @@ final class CustomFieldService
 
         $swapIndex = (int) $index + $direction;
         if ($swapIndex < 0 || $swapIndex >= count($all)) {
-            return false; // already at the boundary
+            return false;
         }
 
         $other = $all[$swapIndex];
 
-        // Swap their sort_order values. If they're equal (both 0), reassign sequentially.
         $a = $field->sortOrder;
         $b = $other->sortOrder;
 
         if ($a === $b) {
-            // Renumber the whole list with gaps of 10, preserving order
             foreach ($all as $i => $f) {
                 $this->fields->setSortOrder($f->id, ($i + 1) * 10);
             }
-            // Re-fetch the two fields after renumbering
             $all = $this->fields->orderedFor($field->entityType);
             $a = $all[$index]->sortOrder;
             $b = $all[$swapIndex]->sortOrder;
@@ -256,11 +247,13 @@ final class CustomFieldService
         return true;
     }
 
-    // ---------- helpers ----------
-
+    /**
+     * @param array<string, mixed> $input
+     * @return string[]
+     */
     private function extractOptions(array $input): array
     {
-        $type = (string) ($input['input_type'] ?? '');
+        $type = Row::str($input, 'input_type');
         if (!InputTypeRegistry::has($type)) return [];
         if (!InputTypeRegistry::get($type)->supportsOptions()) return [];
 
@@ -275,12 +268,15 @@ final class CustomFieldService
         return array_values(array_unique($clean));
     }
 
+    /**
+     * @param array<string, mixed> $input
+     * @return array<string, mixed>
+     */
     private function extractConstraints(array $input): array
     {
         $constraints = $input['constraints'] ?? [];
         if (!is_array($constraints)) return [];
 
-        // Strip empty values so we only persist meaningful constraints
         $out = [];
         foreach ($constraints as $key => $val) {
             if ($val === '' || $val === null) continue;

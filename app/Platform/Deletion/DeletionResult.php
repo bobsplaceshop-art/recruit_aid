@@ -29,6 +29,7 @@ final class DeletionResult
         return new self(true, $message, false, [], '', $deletedCount);
     }
 
+    /** @param array<int, array{label:string, count:int, route:string}> $dependents */
     public static function inspection(
         bool $hasDependents,
         array $dependents,

@@ -16,7 +16,7 @@ final class View
     /** @var array<string, mixed> */
     private array $shared = [];
 
-    public function __construct(string $viewPath, Config $config)
+    public function __construct(string $viewPath)
     {
         $this->viewPath = rtrim($viewPath, '/\\');
     }
