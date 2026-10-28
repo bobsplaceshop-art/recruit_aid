@@ -13,7 +13,7 @@ final class Hasher
     /**
      * Return the algorithm identifier to use with password_hash().
      */
-    public static function algorithm(): int
+    public static function algorithm(): string|int
     {
         return defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_BCRYPT;
     }
