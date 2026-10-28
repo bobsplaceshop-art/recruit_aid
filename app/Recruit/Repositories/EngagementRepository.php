@@ -10,6 +10,13 @@ final class EngagementRepository
 {
     public function __construct(private Database $db) {}
 
+    // ---------- scalar coercion helper (PHPStan Level 9) ----------
+
+    private static function toInt(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
     public function findById(int $id): ?Engagement
     {
         $row = $this->db->selectOne(
@@ -67,7 +74,7 @@ final class EngagementRepository
 
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
 
-        $total = (int) $this->db->scalar("SELECT COUNT(*) FROM `recruit_engagements` {$whereSql}", $params);
+        $total = self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_engagements` {$whereSql}", $params));
 
         $page    = max(1, $page);
         $perPage = max(1, min(100, $perPage));
@@ -247,9 +254,9 @@ final class EngagementRepository
         $this->db->execute(
             "UPDATE `core_sequence_counters` SET `last_value` = `last_value` + 1 WHERE `name` = 'rec_engagement_code'"
         );
-        $num = (int) $this->db->scalar(
+        $num = self::toInt($this->db->scalar(
             "SELECT `last_value` FROM `core_sequence_counters` WHERE `name` = 'rec_engagement_code'"
-        );
+        ));
 
         return 'ENG-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
     }
@@ -294,19 +301,17 @@ final class EngagementRepository
 
     /**
      * Return the current count of active vacancies for an engagement.
-     * Returns 0 for now (vacancies table doesn't exist yet).
-     * Will be replaced when the Vacancies module is built.
      */
     public function activeVacancyCount(int $engagementId): int
     {
         try {
-            return (int) $this->db->scalar(
+            return self::toInt($this->db->scalar(
                 "SELECT COUNT(*) FROM `recruit_vacancies`
                  WHERE `engagement_id` = ?
                    AND `status` NOT IN ('draft','closed','cancelled')
                    AND `deleted_at` IS NULL",
                 [$engagementId]
-            );
+            ));
         } catch (\Throwable) {
             return 0;
         }
