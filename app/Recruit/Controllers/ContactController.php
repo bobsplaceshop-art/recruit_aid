@@ -14,6 +14,7 @@ use CorporateAid\Core\View;
 use CorporateAid\Recruit\Repositories\ContactRepository;
 use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Recruit\Services\ContactService;
+use CorporateAid\Platform\CustomFields\FileCollector;
 
 final class ContactController
 {
@@ -111,7 +112,8 @@ final class ContactController
         $auth = $this->container->get(Auth::class);
 
         $input = $this->collectInput($request);
-        $result = $service->create($org->id, $input);
+        $files = FileCollector::collect();
+        $result = $service->create($org->id, $input, $files);
 
         if (!empty($result['errors'])) {
             $html = $view->render('contacts/form', [
@@ -249,7 +251,8 @@ final class ContactController
         $auth = $this->container->get(Auth::class);
 
         $input = $this->collectInput($request);
-        $result = $service->update($contact->id, $input);
+        $files = FileCollector::collect();
+        $result = $service->update($contact->id, $input, $files);
 
         if (!$result['success']) {
             $html = $view->render('contacts/form', [

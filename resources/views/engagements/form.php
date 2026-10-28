@@ -86,7 +86,7 @@ $packagesJson = json_encode(array_map(fn ($p) => [
     </div>
 <?php endif; ?>
 
-<form id="eng-form" method="POST" action="<?= e($formAction) ?>" novalidate>
+<form id="eng-form" method="POST" action="<?= e($formAction) ?>" enctype="multipart/form-data" novalidate>
     <?= csrf_field() ?>
     <?php if ($isEdit): ?><?= method_field('PUT') ?><?php endif; ?>
 

@@ -14,6 +14,7 @@ use CorporateAid\Core\View;
 use CorporateAid\Recruit\Repositories\EngagementRepository;
 use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Recruit\Services\EngagementService;
+use CorporateAid\Platform\CustomFields\FileCollector;
 
 final class EngagementController
 {
@@ -122,7 +123,8 @@ final class EngagementController
         }
 
         $input = $this->collectInput($request);
-        $result = $service->create($org->id, $input);
+        $files = FileCollector::collect();
+        $result = $service->create($org->id, $input, $files);
 
         if (!empty($result['errors'])) {
             $html = $view->render('engagements/form', [
@@ -252,7 +254,8 @@ final class EngagementController
         $auth = $this->container->get(Auth::class);
 
         $input = $this->collectInput($request);
-        $result = $service->update($engagement->id, $input);
+        $files = FileCollector::collect();
+        $result = $service->update($engagement->id, $input, $files);
 
         if (!$result['success']) {
             $html = $view->render('engagements/form', [
