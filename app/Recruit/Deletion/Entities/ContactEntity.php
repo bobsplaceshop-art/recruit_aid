@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Deletion\Entities;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 use CorporateAid\Recruit\Models\Contact;
 use CorporateAid\Platform\Deletion\DeletableEntity;
 
@@ -30,11 +31,11 @@ final class ContactEntity implements DeletableEntity
         return $this->contact->fullName() . ' (' . $this->contact->code . ')';
     }
 
+    /** @return array<int, array{label:string, count:int, route:string}> */
     public function getDependents(): array
     {
         $dependents = [];
 
-        // Custom field values for this contact
         $customValueCount = $this->safeCountEntity('custom_field_values', 'contact');
         if ($customValueCount > 0) {
             $dependents[] = [
@@ -51,16 +52,14 @@ final class ContactEntity implements DeletableEntity
     {
         $deleted = 0;
 
-        // Delete custom field values
         $deleted += $this->db->execute(
             "DELETE FROM `core_custom_field_values` WHERE `entity_type` = ? AND `entity_id` = ?",
-            ['contact', $this->contact->id]
+            PDOParams::positional(['contact', $this->contact->id])
         );
 
-        // Delete the contact
         $deleted += $this->db->execute(
             "DELETE FROM `recruit_client_contacts` WHERE `id` = ?",
-            [$this->contact->id]
+            PDOParams::positional([$this->contact->id])
         );
 
         return $deleted;
@@ -70,7 +69,7 @@ final class ContactEntity implements DeletableEntity
     {
         $this->db->execute(
             "UPDATE `recruit_client_contacts` SET `deleted_at` = NOW() WHERE `id` = ?",
-            [$this->contact->id]
+            PDOParams::positional([$this->contact->id])
         );
     }
 
@@ -78,18 +77,17 @@ final class ContactEntity implements DeletableEntity
     {
         $this->db->execute(
             "UPDATE `recruit_client_contacts` SET `deleted_at` = NULL WHERE `id` = ?",
-            [$this->contact->id]
+            PDOParams::positional([$this->contact->id])
         );
     }
 
     private function safeCountEntity(string $table, string $entityType): int
     {
         try {
-            $count = $this->db->scalar(
+            return $this->db->scalarInt(
                 "SELECT COUNT(*) FROM `{$table}` WHERE `entity_type` = ? AND `entity_id` = ?",
-                [$entityType, $this->contact->id]
+                PDOParams::positional([$entityType, $this->contact->id])
             );
-            return (int) ($count ?? 0);
         } catch (\Throwable) {
             return 0;
         }

@@ -158,7 +158,7 @@ final class AccountController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $next = (string) $request->query('next', '/dashboard');
+        $next = $request->queryStringValue('next', '/dashboard');
         // Only allow relative paths (prevent open redirect)
         if (!str_starts_with($next, '/') || str_starts_with($next, '//')) {
             $next = '/dashboard';

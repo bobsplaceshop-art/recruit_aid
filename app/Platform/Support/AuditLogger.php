@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Platform\Support;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 
 /**
  * Writes an immutable audit_logs row for a state-changing request.
@@ -46,7 +47,7 @@ final class AuditLogger
                     (`user_id`, `method`, `path`, `ip_address`, `user_agent`,
                      `request_hash`, `response_status`, `entity_type`, `entity_id`)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                [
+                PDOParams::positional([
                     $userId,
                     $method,
                     $path,
@@ -56,7 +57,7 @@ final class AuditLogger
                     $responseStatus,
                     $entityType,
                     $entityId,
-                ]
+                ])
             );
         } catch (\Throwable $e) {
             Logger::warning('AuditLogger insert failed: ' . $e->getMessage(), [

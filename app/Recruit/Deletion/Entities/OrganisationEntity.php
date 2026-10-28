@@ -4,13 +4,10 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Deletion\Entities;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 use CorporateAid\Recruit\Models\Organisation;
 use CorporateAid\Platform\Deletion\DeletableEntity;
 
-/**
- * Wraps an Organisation so DeletionService can archive/delete it
- * with proper dependency checks.
- */
 final class OrganisationEntity implements DeletableEntity
 {
     public function __construct(
@@ -34,13 +31,11 @@ final class OrganisationEntity implements DeletableEntity
         return $this->organisation->name . ' (' . $this->organisation->code . ')';
     }
 
+    /** @return array<int, array{label:string, count:int, route:string}> */
     public function getDependents(): array
     {
-        // These tables don't exist yet. Counts return 0 for now.
-        // When each child module is built, we'll plug the queries in here.
         $dependents = [];
 
-        // Contacts (future)
         $contactCount = $this->safeCount('organisation_contacts', 'organisation_id');
         if ($contactCount > 0) {
             $dependents[] = [
@@ -50,7 +45,6 @@ final class OrganisationEntity implements DeletableEntity
             ];
         }
 
-        // Engagements (future)
         $engagementCount = $this->safeCount('engagements', 'organisation_id');
         if ($engagementCount > 0) {
             $dependents[] = [
@@ -60,7 +54,6 @@ final class OrganisationEntity implements DeletableEntity
             ];
         }
 
-        // Vacancies (future)
         $vacancyCount = $this->safeCount('vacancies', 'organisation_id');
         if ($vacancyCount > 0) {
             $dependents[] = [
@@ -70,13 +63,12 @@ final class OrganisationEntity implements DeletableEntity
             ];
         }
 
-        // Custom field values (already exists)
         $customValueCount = $this->safeCountEntity('custom_field_values', 'organisation');
         if ($customValueCount > 0) {
             $dependents[] = [
                 'label' => 'Custom field value' . ($customValueCount === 1 ? '' : 's'),
                 'count' => $customValueCount,
-                'route' => '#', // no view for these
+                'route' => '#',
             ];
         }
 
@@ -87,18 +79,14 @@ final class OrganisationEntity implements DeletableEntity
     {
         $deleted = 0;
 
-        // Custom field values (children)
         $deleted += $this->db->execute(
             "DELETE FROM `core_custom_field_values` WHERE `entity_type` = ? AND `entity_id` = ?",
-            ['organisation', $this->organisation->id]
+            PDOParams::positional(['organisation', $this->organisation->id])
         );
 
-        // Future: cascades for contacts, engagements, vacancies go here.
-
-        // The organisation itself
         $deleted += $this->db->execute(
             "DELETE FROM `recruit_client_organisations` WHERE `id` = ?",
-            [$this->organisation->id]
+            PDOParams::positional([$this->organisation->id])
         );
 
         return $deleted;
@@ -108,7 +96,7 @@ final class OrganisationEntity implements DeletableEntity
     {
         $this->db->execute(
             "UPDATE `recruit_client_organisations` SET `deleted_at` = NOW() WHERE `id` = ?",
-            [$this->organisation->id]
+            PDOParams::positional([$this->organisation->id])
         );
     }
 
@@ -116,25 +104,17 @@ final class OrganisationEntity implements DeletableEntity
     {
         $this->db->execute(
             "UPDATE `recruit_client_organisations` SET `deleted_at` = NULL WHERE `id` = ?",
-            [$this->organisation->id]
+            PDOParams::positional([$this->organisation->id])
         );
     }
 
-    // ---------- helpers ----------
-
-    /**
-     * Count rows in a child table IF the table exists.
-     * Returns 0 otherwise. This lets us build Organisations now
-     * and plug in child modules later without breaking anything.
-     */
     private function safeCount(string $table, string $foreignKey): int
     {
         try {
-            $count = $this->db->scalar(
+            return $this->db->scalarInt(
                 "SELECT COUNT(*) FROM `{$table}` WHERE `{$foreignKey}` = ?",
-                [$this->organisation->id]
+                PDOParams::positional([$this->organisation->id])
             );
-            return (int) ($count ?? 0);
         } catch (\Throwable) {
             return 0;
         }
@@ -143,11 +123,10 @@ final class OrganisationEntity implements DeletableEntity
     private function safeCountEntity(string $table, string $entityType): int
     {
         try {
-            $count = $this->db->scalar(
+            return $this->db->scalarInt(
                 "SELECT COUNT(*) FROM `{$table}` WHERE `entity_type` = ? AND `entity_id` = ?",
-                [$entityType, $this->organisation->id]
+                PDOParams::positional([$entityType, $this->organisation->id])
             );
-            return (int) ($count ?? 0);
         } catch (\Throwable) {
             return 0;
         }

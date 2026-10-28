@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Deletion\Entities;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 use CorporateAid\Recruit\Models\Vacancy;
 use CorporateAid\Platform\Deletion\DeletableEntity;
 
@@ -22,15 +23,15 @@ final class VacancyEntity implements DeletableEntity
         return $this->vacancy->title . ' (' . $this->vacancy->code . ')';
     }
 
+    /** @return array<int, array{label:string, count:int, route:string}> */
     public function getDependents(): array
     {
         $dependents = [];
 
-        // Pipeline stages (cloned, will be cascade-deleted via FK)
-        $stageCount = (int) ($this->db->scalar(
+        $stageCount = $this->db->scalarInt(
             "SELECT COUNT(*) FROM `recruit_vacancy_stages` WHERE `vacancy_id` = ?",
-            [$this->vacancy->id]
-        ) ?? 0);
+            PDOParams::positional([$this->vacancy->id])
+        );
         if ($stageCount > 0) {
             $dependents[] = [
                 'label' => 'Pipeline stage' . ($stageCount === 1 ? '' : 's'),
@@ -39,11 +40,10 @@ final class VacancyEntity implements DeletableEntity
             ];
         }
 
-        // Requirements
-        $reqCount = (int) ($this->db->scalar(
+        $reqCount = $this->db->scalarInt(
             "SELECT COUNT(*) FROM `recruit_vacancy_requirements` WHERE `vacancy_id` = ?",
-            [$this->vacancy->id]
-        ) ?? 0);
+            PDOParams::positional([$this->vacancy->id])
+        );
         if ($reqCount > 0) {
             $dependents[] = [
                 'label' => 'Requirement item' . ($reqCount === 1 ? '' : 's'),
@@ -52,12 +52,11 @@ final class VacancyEntity implements DeletableEntity
             ];
         }
 
-        // Custom field values
-        $cfCount = (int) ($this->db->scalar(
+        $cfCount = $this->db->scalarInt(
             "SELECT COUNT(*) FROM `core_custom_field_values`
              WHERE `entity_type` = 'vacancy' AND `entity_id` = ?",
-            [$this->vacancy->id]
-        ) ?? 0);
+            PDOParams::positional([$this->vacancy->id])
+        );
         if ($cfCount > 0) {
             $dependents[] = [
                 'label' => 'Custom field value' . ($cfCount === 1 ? '' : 's'),
@@ -66,14 +65,14 @@ final class VacancyEntity implements DeletableEntity
             ];
         }
 
-        // Applications (future)
         $appCount = 0;
         try {
-            $appCount = (int) ($this->db->scalar(
+            $appCount = $this->db->scalarInt(
                 "SELECT COUNT(*) FROM `applications` WHERE `vacancy_id` = ? AND `deleted_at` IS NULL",
-                [$this->vacancy->id]
-            ) ?? 0);
-        } catch (\Throwable) {}
+                PDOParams::positional([$this->vacancy->id])
+            );
+        } catch (\Throwable) {
+        }
         if ($appCount > 0) {
             $dependents[] = [
                 'label' => 'Application' . ($appCount === 1 ? '' : 's'),
@@ -91,22 +90,22 @@ final class VacancyEntity implements DeletableEntity
 
         $deleted += $this->db->execute(
             "DELETE FROM `recruit_vacancy_requirements` WHERE `vacancy_id` = ?",
-            [$this->vacancy->id]
+            PDOParams::positional([$this->vacancy->id])
         );
 
         $deleted += $this->db->execute(
             "DELETE FROM `recruit_vacancy_stages` WHERE `vacancy_id` = ?",
-            [$this->vacancy->id]
+            PDOParams::positional([$this->vacancy->id])
         );
 
         $deleted += $this->db->execute(
             "DELETE FROM `core_custom_field_values` WHERE `entity_type` = 'vacancy' AND `entity_id` = ?",
-            [$this->vacancy->id]
+            PDOParams::positional([$this->vacancy->id])
         );
 
         $deleted += $this->db->execute(
             "DELETE FROM `recruit_vacancies` WHERE `id` = ?",
-            [$this->vacancy->id]
+            PDOParams::positional([$this->vacancy->id])
         );
 
         return $deleted;
@@ -116,7 +115,7 @@ final class VacancyEntity implements DeletableEntity
     {
         $this->db->execute(
             "UPDATE `recruit_vacancies` SET `deleted_at` = NOW() WHERE `id` = ?",
-            [$this->vacancy->id]
+            PDOParams::positional([$this->vacancy->id])
         );
     }
 
@@ -124,7 +123,7 @@ final class VacancyEntity implements DeletableEntity
     {
         $this->db->execute(
             "UPDATE `recruit_vacancies` SET `deleted_at` = NULL WHERE `id` = ?",
-            [$this->vacancy->id]
+            PDOParams::positional([$this->vacancy->id])
         );
     }
 }

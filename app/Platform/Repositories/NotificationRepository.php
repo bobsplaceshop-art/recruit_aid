@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Platform\Repositories;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 use CorporateAid\Platform\Models\Notification;
 
 final class NotificationRepository
@@ -19,16 +20,16 @@ final class NotificationRepository
              WHERE `user_id` = ?
              ORDER BY `created_at` DESC
              LIMIT {$limit}",
-            [$userId]
+            PDOParams::positional([$userId])
         );
         return array_map([Notification::class, 'fromRow'], $rows);
     }
 
     public function unreadCount(int $userId): int
     {
-        return (int) $this->db->scalar(
+        return $this->db->scalarInt(
             "SELECT COUNT(*) FROM `core_notifications` WHERE `user_id` = ? AND `read_at` IS NULL",
-            [$userId]
+            PDOParams::positional([$userId])
         );
     }
 
@@ -36,7 +37,7 @@ final class NotificationRepository
     {
         $row = $this->db->selectOne(
             "SELECT * FROM `core_notifications` WHERE `id` = ? LIMIT 1",
-            [$id]
+            PDOParams::positional([$id])
         );
         return $row ? Notification::fromRow($row) : null;
     }
@@ -46,7 +47,7 @@ final class NotificationRepository
         return $this->db->insert(
             "INSERT INTO `core_notifications` (`user_id`, `type`, `title`, `body`, `link`)
              VALUES (?, ?, ?, ?, ?)",
-            [$userId, $type, $title, $body, $link]
+            PDOParams::positional([$userId, $type, $title, $body, $link])
         );
     }
 
@@ -55,7 +56,7 @@ final class NotificationRepository
         $this->db->execute(
             "UPDATE `core_notifications` SET `read_at` = NOW()
              WHERE `id` = ? AND `user_id` = ? AND `read_at` IS NULL",
-            [$id, $userId]
+            PDOParams::positional([$id, $userId])
         );
     }
 
@@ -64,7 +65,7 @@ final class NotificationRepository
         $this->db->execute(
             "UPDATE `core_notifications` SET `read_at` = NOW()
              WHERE `user_id` = ? AND `read_at` IS NULL",
-            [$userId]
+            PDOParams::positional([$userId])
         );
     }
 
@@ -74,7 +75,7 @@ final class NotificationRepository
             "DELETE FROM `core_notifications`
              WHERE `read_at` IS NOT NULL
                AND `created_at` < DATE_SUB(NOW(), INTERVAL ? DAY)",
-            [$days]
+            PDOParams::positional([$days])
         );
     }
 }

@@ -120,7 +120,11 @@ final class App
     {
         $configDir = $this->basePath . '/config';
         $merged = [];
-        foreach (glob($configDir . '/*.php') as $file) {
+        $files = glob($configDir . '/*.php');
+        if ($files === false) {
+            $files = [];
+        }
+        foreach ($files as $file) {
             $name = basename($file, '.php');
             if ($name === 'local') {
                 continue;
@@ -134,12 +138,12 @@ final class App
                 $merged = array_replace_recursive($merged, $overrides);
             }
         }
-        $this->container->instance('config', new Config($merged));
+        $this->container->instance(Config::class, new Config($merged));
     }
 
     private function registerTimezone(): void
     {
-        $tz = $this->container->get('config')->get('app.timezone', 'Africa/Nairobi');
+        $tz = $this->container->get(Config::class)->get('app.timezone', 'Africa/Nairobi');
         date_default_timezone_set($tz);
     }
 
@@ -148,10 +152,10 @@ final class App
         $c = $this->container;
 
         // ---------- Core services ----------
-        $c->singleton(Database::class, fn() => new Database((array) $c->get('config')->get('database', [])));
-        $c->singleton(View::class,     fn() => new View($this->basePath . '/resources/views', $c->get('config')));
+        $c->singleton(Database::class, fn() => new Database(DatabaseConfig::fromArray((array) $c->get(Config::class)->get('database', []))));
+        $c->singleton(View::class,     fn() => new View($this->basePath . '/resources/views', $c->get(Config::class)));
         $c->singleton(Router::class,   fn() => new Router($c));
-        $c->singleton(Session::class,  fn() => new Session((array) $c->get('config')->get('app.session', [])));
+        $c->singleton(Session::class,  fn() => new Session((array) $c->get(Config::class)->get('app.session', [])));
         $c->singleton(Csrf::class,     fn() => new Csrf($c->get(Session::class)));
 
         // ---------- Repositories ----------
@@ -179,7 +183,7 @@ final class App
         $c->singleton(CodeGenerator::class,  fn() => new CodeGenerator($c->get(Database::class)));
         $c->singleton(RateLimiter::class,     fn() => new RateLimiter($c->get(RateLimitRepository::class), $c->get(SystemSettingService::class)));
         $c->singleton(EmailService::class,    fn() => new EmailService(
-            (array) $c->get('config')->get('mail', []),
+            (array) $c->get(Config::class)->get('mail', []),
             new Logger()
         ));
         $c->singleton(ActivityLogger::class, fn() => new ActivityLogger($c->get(Database::class), $c->get(Auth::class)));

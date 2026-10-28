@@ -6,5 +6,5 @@ parameters:
         - bin
     excludePaths:
         - app/Helpers/functions.php
-    ignoreErrors:
-        # Add specific ignores here if needed
+    bootstrapFiles:
+        - vendor/autoload.php

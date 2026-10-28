@@ -10,15 +10,17 @@ use RuntimeException;
 
 /**
  * Thin wrapper over PDO. Every query goes through prepared statements.
+ *
+ * Configuration is a DatabaseConfig value object — no raw arrays.
+ * Query parameters are PDOParams value objects — the caller declares
+ * positional vs named at the call site, and PHPStan can verify it.
  */
 final class Database
 {
-    private array $config;
     private ?PDO $pdo = null;
 
-    public function __construct(array $config)
+    public function __construct(private readonly DatabaseConfig $config)
     {
-        $this->config = $config;
     }
 
     public function pdo(): PDO
@@ -27,24 +29,12 @@ final class Database
             return $this->pdo;
         }
 
-        $driver = $this->config['driver'] ?? 'mysql';
-        if ($driver !== 'mysql') {
-            throw new RuntimeException("Unsupported DB driver: {$driver}");
-        }
-
-        $host = $this->config['host'] ?? 'localhost';
-        $port = $this->config['port'] ?? 3306;
-        $name = $this->config['database'] ?? '';
-        $charset = $this->config['charset'] ?? 'utf8mb4';
-
-        $dsn = "mysql:host={$host};port={$port};dbname={$name};charset={$charset}";
-
         try {
             $this->pdo = new PDO(
-                $dsn,
-                (string) ($this->config['username'] ?? ''),
-                (string) ($this->config['password'] ?? ''),
-                (array) ($this->config['options'] ?? [])
+                $this->config->dsn(),
+                $this->config->username,
+                $this->config->password,
+                $this->config->pdoOptions
             );
         } catch (PDOException $e) {
             throw new RuntimeException('Database connection failed. Check config/local.php.', 0, $e);
@@ -53,36 +43,61 @@ final class Database
         return $this->pdo;
     }
 
-    public function query(string $sql, array $params = []): PDOStatement
+    public function query(string $sql, ?PDOParams $params = null): PDOStatement
     {
+        $params ??= PDOParams::empty();
         $stmt = $this->pdo()->prepare($sql);
-        $stmt->execute($params);
+        $stmt->execute($params->toArray());
         return $stmt;
     }
 
-    public function select(string $sql, array $params = []): array
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function select(string $sql, ?PDOParams $params = null): array
     {
-        return $this->query($sql, $params)->fetchAll();
+        $rows = $this->query($sql, $params)->fetchAll();
+        /** @var array<int, array<string, mixed>> $rows */
+        return $rows;
     }
 
-    public function selectOne(string $sql, array $params = []): ?array
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function selectOne(string $sql, ?PDOParams $params = null): ?array
     {
         $row = $this->query($sql, $params)->fetch();
-        return $row === false ? null : $row;
+        if ($row === false) {
+            return null;
+        }
+        /** @var array<string, mixed> $row */
+        return $row;
     }
 
-    public function scalar(string $sql, array $params = []): mixed
+    public function scalar(string $sql, ?PDOParams $params = null): mixed
     {
         $value = $this->query($sql, $params)->fetchColumn();
         return $value === false ? null : $value;
     }
 
-    public function execute(string $sql, array $params = []): int
+    public function scalarInt(string $sql, ?PDOParams $params = null): int
+    {
+        $value = $this->scalar($sql, $params);
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
+    public function scalarString(string $sql, ?PDOParams $params = null): string
+    {
+        $value = $this->scalar($sql, $params);
+        return is_scalar($value) ? (string) $value : '';
+    }
+
+    public function execute(string $sql, ?PDOParams $params = null): int
     {
         return $this->query($sql, $params)->rowCount();
     }
 
-    public function insert(string $sql, array $params = []): int
+    public function insert(string $sql, ?PDOParams $params = null): int
     {
         $this->query($sql, $params);
         return (int) $this->pdo()->lastInsertId();

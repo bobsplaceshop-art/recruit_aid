@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Platform\Repositories;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 use CorporateAid\Platform\Models\File;
 
 final class FileRepository
@@ -14,7 +15,7 @@ final class FileRepository
     {
         $row = $this->db->selectOne(
             "SELECT * FROM `core_files` WHERE `id` = ? AND `deleted_at` IS NULL LIMIT 1",
-            [$id]
+            PDOParams::positional([$id])
         );
         return $row ? File::fromRow($row) : null;
     }
@@ -23,7 +24,7 @@ final class FileRepository
     {
         $row = $this->db->selectOne(
             "SELECT * FROM `core_files` WHERE `uuid` = ? AND `deleted_at` IS NULL LIMIT 1",
-            [$uuid]
+            PDOParams::positional([$uuid])
         );
         return $row ? File::fromRow($row) : null;
     }
@@ -32,15 +33,11 @@ final class FileRepository
     {
         $row = $this->db->selectOne(
             "SELECT * FROM `core_files` WHERE `sha256_hash` = ? AND `deleted_at` IS NULL LIMIT 1",
-            [$sha256]
+            PDOParams::positional([$sha256])
         );
         return $row ? File::fromRow($row) : null;
     }
 
-    /**
-     * Insert a new files row.
-     * Caller is responsible for having written the file to disk.
-     */
     public function create(
         string $uuid,
         string $originalName,
@@ -57,37 +54,30 @@ final class FileRepository
                 (`uuid`, `original_name`, `stored_name`, `storage_path`,
                  `mime_type`, `extension`, `size_bytes`, `sha256_hash`, `uploaded_by`)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
+            PDOParams::positional([
                 $uuid, $originalName, $storedName, $storagePath,
                 $mimeType, $extension, $sizeBytes, $sha256, $uploadedBy,
-            ]
+            ])
         );
     }
 
-    /**
-     * Soft-delete: mark the row so it disappears from findById/findByUuid.
-     * Physical deletion is deferred to a purge cron.
-     */
     public function softDelete(int $id): void
     {
         $this->db->execute(
             "UPDATE `core_files` SET `deleted_at` = NOW() WHERE `id` = ? AND `deleted_at` IS NULL",
-            [$id]
+            PDOParams::positional([$id])
         );
     }
 
-    /** Hard delete — only used by the purge cron. */
     public function hardDelete(int $id): void
     {
-        $this->db->execute("DELETE FROM `core_files` WHERE `id` = ?", [$id]);
+        $this->db->execute(
+            "DELETE FROM `core_files` WHERE `id` = ?",
+            PDOParams::positional([$id])
+        );
     }
 
-    /**
-     * Return files linked to an entity (via entity_files).
-     * Optional $category filters by file_category.
-     *
-     * @return File[]
-     */
+    /** @return File[] */
     public function forEntity(string $entityType, int $entityId, ?string $category = null): array
     {
         $sql = "SELECT f.* FROM `core_files` f
@@ -103,7 +93,7 @@ final class FileRepository
 
         $sql .= " ORDER BY f.`created_at` DESC, f.`id` DESC";
 
-        $rows = $this->db->select($sql, $params);
+        $rows = $this->db->select($sql, PDOParams::positional($params));
         return array_map([File::class, 'fromRow'], $rows);
     }
 }

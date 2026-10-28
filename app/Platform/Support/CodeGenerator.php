@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Platform\Support;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 
 /**
  * Generates human-friendly identifier codes.
@@ -19,10 +20,6 @@ final class CodeGenerator
     /**
      * Generate the next code for the given table. E.g. next('organisations', 'ORG')
      * returns "ORG-000001" if the table is empty, "ORG-000042" if 41 rows exist.
-     *
-     * Note: this is NOT transactionally safe under heavy concurrency. For a
-     * recruitment tool with low write volume, it's fine. If we ever need high
-     * concurrency, switch to a dedicated sequences table with SELECT ... FOR UPDATE.
      */
     public function next(string $table, string $prefix, int $padding = 6): string
     {
@@ -32,13 +29,12 @@ final class CodeGenerator
                 LIMIT 1";
         $like = $prefix . '-%';
 
-        $last = $this->db->scalar($sql, [$like]);
+        $last = $this->db->scalarString($sql, PDOParams::positional([$like]));
 
-        if ($last === null || $last === false) {
+        if ($last === '') {
             $num = 1;
         } else {
-            // Extract the numeric part after the last dash
-            $parts = explode('-', (string) $last);
+            $parts = explode('-', $last);
             $num = (int) end($parts) + 1;
         }
 

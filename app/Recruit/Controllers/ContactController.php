@@ -23,7 +23,7 @@ final class ContactController
      */
     public function index(Request $request, array $params = []): Response
     {
-        $orgCode = (string) ($params['code'] ?? '');
+        $orgCode = ($params['code'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -55,7 +55,7 @@ final class ContactController
      */
     public function showCreate(Request $request, array $params = []): Response
     {
-        $orgCode = (string) ($params['code'] ?? '');
+        $orgCode = ($params['code'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -87,7 +87,7 @@ final class ContactController
      */
     public function store(Request $request, array $params = []): Response
     {
-        $orgCode = (string) ($params['code'] ?? '');
+        $orgCode = ($params['code'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -130,8 +130,8 @@ final class ContactController
      */
     public function show(Request $request, array $params = []): Response
     {
-        $orgCode = (string) ($params['code'] ?? '');
-        $contactCode = (string) ($params['contactCode'] ?? '');
+        $orgCode = ($params['code'] ?? '');
+        $contactCode = ($params['contactCode'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -168,8 +168,8 @@ final class ContactController
      */
     public function showEdit(Request $request, array $params = []): Response
     {
-        $orgCode = (string) ($params['code'] ?? '');
-        $contactCode = (string) ($params['contactCode'] ?? '');
+        $orgCode = ($params['code'] ?? '');
+        $contactCode = ($params['contactCode'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -208,8 +208,8 @@ final class ContactController
      */
     public function update(Request $request, array $params = []): Response
     {
-        $orgCode = (string) ($params['code'] ?? '');
-        $contactCode = (string) ($params['contactCode'] ?? '');
+        $orgCode = ($params['code'] ?? '');
+        $contactCode = ($params['contactCode'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -273,8 +273,8 @@ final class ContactController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $phrase = (string) $request->input('confirmation', '');
-        $reason = trim((string) $request->input('reason', '')) ?: null;
+        $phrase = $request->inputString('confirmation', '');
+        $reason = trim($request->inputString('reason', '')) ?: null;
 
         $result = $service->delete($contact->id, $phrase, $reason);
 
@@ -318,7 +318,7 @@ final class ContactController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $reason = trim((string) $request->input('reason', '')) ?: null;
+        $reason = trim($request->inputString('reason', '')) ?: null;
 
         try {
             $result = $method === 'archive'
@@ -336,8 +336,8 @@ final class ContactController
     /** @return array{0:\CorporateAid\Recruit\Models\Organisation,1:\CorporateAid\Recruit\Models\Contact} */
     private function resolveOrgAndContact(array $params, bool $includeDeleted = false): array
     {
-        $orgCode = (string) ($params['code'] ?? '');
-        $contactCode = (string) ($params['contactCode'] ?? '');
+        $orgCode = ($params['code'] ?? '');
+        $contactCode = ($params['contactCode'] ?? '');
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
@@ -364,21 +364,21 @@ final class ContactController
         if (!is_array($cf)) $cf = [];
 
         return [
-            'first_name'              => trim((string) $request->input('first_name', '')),
-            'last_name'               => trim((string) $request->input('last_name', '')),
-            'position'                => trim((string) $request->input('position', '')),
-            'department'              => trim((string) $request->input('department', '')),
-            'email'                   => trim((string) $request->input('email', '')),
-            'phone'                   => trim((string) $request->input('phone', '')),
-            'alt_phone'               => trim((string) $request->input('alt_phone', '')),
-            'country_code'            => trim((string) $request->input('country_code', '')),
-            'preferred_communication' => trim((string) $request->input('preferred_communication', 'email')),
-            'is_primary'              => (bool) $request->input('is_primary', false),
-            'is_hiring_manager'       => (bool) $request->input('is_hiring_manager', false),
-            'is_finance'              => (bool) $request->input('is_finance', false),
-            'is_hr'                   => (bool) $request->input('is_hr', false),
-            'is_decision_maker'       => (bool) $request->input('is_decision_maker', false),
-            'notes'                   => trim((string) $request->input('notes', '')),
+            'first_name'              => trim($request->inputString('first_name', '')),
+            'last_name'               => trim($request->inputString('last_name', '')),
+            'position'                => trim($request->inputString('position', '')),
+            'department'              => trim($request->inputString('department', '')),
+            'email'                   => trim($request->inputString('email', '')),
+            'phone'                   => trim($request->inputString('phone', '')),
+            'alt_phone'               => trim($request->inputString('alt_phone', '')),
+            'country_code'            => trim($request->inputString('country_code', '')),
+            'preferred_communication' => trim($request->inputString('preferred_communication', 'email')),
+            'is_primary'              => $request->inputBool('is_primary', false),
+            'is_hiring_manager'       => $request->inputBool('is_hiring_manager', false),
+            'is_finance'              => $request->inputBool('is_finance', false),
+            'is_hr'                   => $request->inputBool('is_hr', false),
+            'is_decision_maker'       => $request->inputBool('is_decision_maker', false),
+            'notes'                   => trim($request->inputString('notes', '')),
             'cf'                      => $cf,
         ];
     }

@@ -5,6 +5,7 @@ namespace CorporateAid\Platform\Support;
 
 use CorporateAid\Core\Auth;
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 
 /**
  * Writes entries into the `core_activities` table.
@@ -18,12 +19,12 @@ final class ActivityLogger
     }
 
     /**
-     * @param string      $action        Short verb, e.g. "organisation.created"
-     * @param string      $module        Short module name, e.g. "organisations"
-     * @param string      $description   Human-readable summary for the timeline
-     * @param string|null $subjectType   e.g. "organisation"
-     * @param int|null    $subjectId     Numeric ID of the affected record
-     * @param array       $meta          Optional structured context
+     * @param string               $action        Short verb, e.g. "organisation.created"
+     * @param string               $module        Short module name, e.g. "organisations"
+     * @param string               $description   Human-readable summary for the timeline
+     * @param string|null          $subjectType   e.g. "organisation"
+     * @param int|null             $subjectId     Numeric ID of the affected record
+     * @param array<string, mixed> $meta          Optional structured context
      */
     public function log(
         string $action,
@@ -41,9 +42,12 @@ final class ActivityLogger
 
         $ip = null;
         if (!empty($_SERVER['REMOTE_ADDR'])) {
-            $packed = @inet_pton((string) $_SERVER['REMOTE_ADDR']);
-            if ($packed !== false) {
-                $ip = $packed;
+            $remoteAddr = $_SERVER['REMOTE_ADDR'];
+            if (is_string($remoteAddr)) {
+                $packed = @inet_pton($remoteAddr);
+                if ($packed !== false) {
+                    $ip = $packed;
+                }
             }
         }
 
@@ -52,7 +56,7 @@ final class ActivityLogger
                 (`user_id`, `action`, `module`, `subject_type`, `subject_id`,
                  `description`, `meta`, `ip_address`, `created_at`)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())",
-            [
+            PDOParams::positional([
                 $userId,
                 $action,
                 $module,
@@ -61,7 +65,7 @@ final class ActivityLogger
                 $description,
                 $meta ? json_encode($meta, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null,
                 $ip,
-            ]
+            ])
         );
     }
 }

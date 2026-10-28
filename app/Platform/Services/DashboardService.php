@@ -5,6 +5,7 @@ namespace CorporateAid\Platform\Services;
 
 use CorporateAid\Core\Auth;
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 
 /**
  * Aggregates dashboard content for the current user.
@@ -12,24 +13,13 @@ use CorporateAid\Core\Database;
  */
 final class DashboardService
 {
-
-    // ---------- scalar coercion helper (PHPStan Level 9) ----------
-
-    private static function toInt(mixed $value): int
-    {
-        return is_numeric($value) ? (int) $value : 0;
-    }
-
     public function __construct(
         private Database $db,
         private ?Auth $auth = null
     ) {
     }
 
-    /**
-     * Vacancies with a target hire date in the next 30 days.
-     * @return array<int, array<string,mixed>>
-     */
+    /** @return array<int, array<string,mixed>> */
     public function upcomingVacancyDeadlines(int $limit = 5): array
     {
         return $this->db->select(
@@ -48,10 +38,7 @@ final class DashboardService
         );
     }
 
-    /**
-     * Vacancies that have been open more than 30 days.
-     * @return array<int, array<string,mixed>>
-     */
+    /** @return array<int, array<string,mixed>> */
     public function agingVacancies(int $limit = 5): array
     {
         return $this->db->select(
@@ -69,11 +56,7 @@ final class DashboardService
         );
     }
 
-    /**
-     * Engagements at or near capacity.
-     * Counts active vacancies per engagement and compares to agreed capacity.
-     * @return array<int, array<string,mixed>>
-     */
+    /** @return array<int, array<string,mixed>> */
     public function engagementsNearCapacity(int $limit = 5): array
     {
         return $this->db->select(
@@ -94,10 +77,7 @@ final class DashboardService
         );
     }
 
-    /**
-     * Recent activity for the current user.
-     * @return array<int, array<string,mixed>>
-     */
+    /** @return array<int, array<string,mixed>> */
     public function recentActivity(int $limit = 8): array
     {
         $userId = $this->auth?->user()?->id;
@@ -109,28 +89,22 @@ final class DashboardService
              WHERE a.`user_id` = ?
              ORDER BY a.`created_at` DESC
              LIMIT {$limit}",
-            [$userId]
+            PDOParams::positional([$userId])
         );
     }
 
-    /**
-     * Summary counts for dashboard cards.
-     * @return array<string,int>
-     */
+    /** @return array<string, int> */
     public function summaryCounts(): array
     {
         return [
-            'organisations' => self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_client_organisations` WHERE `deleted_at` IS NULL")),
-            'contacts'      => self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_client_contacts` WHERE `deleted_at` IS NULL")),
-            'engagements'   => self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_engagements` WHERE `deleted_at` IS NULL")),
-            'vacancies'     => self::toInt($this->db->scalar("SELECT COUNT(*) FROM `recruit_vacancies` WHERE `deleted_at` IS NULL")),
+            'organisations' => $this->db->scalarInt("SELECT COUNT(*) FROM `recruit_client_organisations` WHERE `deleted_at` IS NULL"),
+            'contacts'      => $this->db->scalarInt("SELECT COUNT(*) FROM `recruit_client_contacts` WHERE `deleted_at` IS NULL"),
+            'engagements'   => $this->db->scalarInt("SELECT COUNT(*) FROM `recruit_engagements` WHERE `deleted_at` IS NULL"),
+            'vacancies'     => $this->db->scalarInt("SELECT COUNT(*) FROM `recruit_vacancies` WHERE `deleted_at` IS NULL"),
         ];
     }
 
-    /**
-     * Everything the dashboard needs in one call.
-     * @return array<string,mixed>
-     */
+    /** @return array<string, mixed> */
     public function forCurrentUser(): array
     {
         return [

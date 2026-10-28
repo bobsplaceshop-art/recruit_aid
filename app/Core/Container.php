@@ -10,7 +10,8 @@ use RuntimeException;
  * Minimal dependency injection container.
  * Stores services so they are built once and reused.
  *
- * @template-covariant T of object  (documentation only; the class is not generic per-instance)
+ * Explicit bindings only — no autowiring. Every class resolved via
+ * get() must be bound in App::registerServices().
  */
 final class Container
 {

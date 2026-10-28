@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Repositories;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 use CorporateAid\Recruit\Models\Contact;
 
 final class ContactRepository
@@ -14,7 +15,7 @@ final class ContactRepository
     {
         $row = $this->db->selectOne(
             "SELECT * FROM `recruit_client_contacts` WHERE `id` = ? LIMIT 1",
-            [$id]
+            PDOParams::positional([$id])
         );
         return $row ? Contact::fromRow($row) : null;
     }
@@ -27,7 +28,7 @@ final class ContactRepository
         }
         $sql .= " LIMIT 1";
 
-        $row = $this->db->selectOne($sql, [$code]);
+        $row = $this->db->selectOne($sql, PDOParams::positional([$code]));
         return $row ? Contact::fromRow($row) : null;
     }
 
@@ -40,41 +41,61 @@ final class ContactRepository
         }
         $sql .= " ORDER BY `is_primary` DESC, `last_name` ASC, `first_name` ASC";
 
-        $rows = $this->db->select($sql, [$organisationId]);
+        $rows = $this->db->select($sql, PDOParams::positional([$organisationId]));
         return array_map([Contact::class, 'fromRow'], $rows);
     }
 
     public function countForOrganisation(int $organisationId): int
     {
-        return (int) $this->db->scalar(
+        return $this->db->scalarInt(
             "SELECT COUNT(*) FROM `recruit_client_contacts`
              WHERE `organisation_id` = ? AND `deleted_at` IS NULL",
-            [$organisationId]
+            PDOParams::positional([$organisationId])
         );
     }
 
     public function codeExists(string $code): bool
     {
-        $count = (int) $this->db->scalar(
+        return $this->db->scalarInt(
             "SELECT COUNT(*) FROM `recruit_client_contacts` WHERE `code` = ?",
-            [$code]
-        );
-        return $count > 0;
+            PDOParams::positional([$code])
+        ) > 0;
     }
 
     public function nextCode(): string
     {
-        // Reserve the next number from the sequence counter (never reused)
         $this->db->execute(
             "UPDATE `core_sequence_counters` SET `last_value` = `last_value` + 1 WHERE `name` = 'rec_client_contact_code'"
         );
-        $num = (int) $this->db->scalar(
+        $num = $this->db->scalarInt(
             "SELECT `last_value` FROM `core_sequence_counters` WHERE `name` = 'rec_client_contact_code'"
         );
 
         return 'CNT-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
     }
 
+    /**
+     * @param array{
+     *   organisation_id: int,
+     *   code: string,
+     *   first_name: string,
+     *   last_name: string,
+     *   position?: ?string,
+     *   department?: ?string,
+     *   email?: ?string,
+     *   phone?: ?string,
+     *   alt_phone?: ?string,
+     *   country_code?: ?string,
+     *   preferred_communication?: string,
+     *   is_primary?: bool,
+     *   is_hiring_manager?: bool,
+     *   is_finance?: bool,
+     *   is_hr?: bool,
+     *   is_decision_maker?: bool,
+     *   notes?: ?string,
+     *   created_by?: ?int
+     * } $data
+     */
     public function create(array $data): int
     {
         $sql = "INSERT INTO `recruit_client_contacts`
@@ -85,7 +106,7 @@ final class ContactRepository
              `notes`, `created_by`)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        return $this->db->insert($sql, [
+        return $this->db->insert($sql, PDOParams::positional([
             $data['organisation_id'],
             $data['code'],
             $data['first_name'],
@@ -104,7 +125,7 @@ final class ContactRepository
             !empty($data['is_decision_maker']) ? 1 : 0,
             $data['notes'] ?? null,
             $data['created_by'] ?? null,
-        ]);
+        ]));
     }
 
     /** @return array<string, array{old:mixed,new:mixed}> */
@@ -146,7 +167,6 @@ final class ContactRepository
             };
             $oldVal = $existing->$prop ?? null;
 
-            // Normalize for comparison
             $newForCompare = $newVal;
             if (in_array($col, ['is_primary','is_hiring_manager','is_finance','is_hr','is_decision_maker'], true)) {
                 $newForCompare = (bool) $newVal;
@@ -169,7 +189,7 @@ final class ContactRepository
         $params[] = $id;
         $this->db->execute(
             "UPDATE `recruit_client_contacts` SET " . implode(', ', $sets) . " WHERE `id` = ?",
-            $params
+            PDOParams::positional($params)
         );
 
         return $changes;
@@ -179,7 +199,7 @@ final class ContactRepository
     {
         $this->db->execute(
             "UPDATE `recruit_client_contacts` SET `deleted_at` = NOW() WHERE `id` = ?",
-            [$id]
+            PDOParams::positional([$id])
         );
     }
 
@@ -187,16 +207,11 @@ final class ContactRepository
     {
         $this->db->execute(
             "UPDATE `recruit_client_contacts` SET `deleted_at` = NULL WHERE `id` = ?",
-            [$id]
+            PDOParams::positional([$id])
         );
     }
 
-    /**
-     * Return all active (non-deleted) contacts across all organisations.
-     * Used for preloading dropdowns on vacancy/engagement forms.
-     *
-     * @return Contact[]
-     */
+    /** @return Contact[] */
     public function allActive(): array
     {
         $rows = $this->db->select(

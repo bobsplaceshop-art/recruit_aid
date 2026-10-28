@@ -31,8 +31,8 @@ final class AuthController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        $intended = (string) $request->query('intended', '');
-        $oldEmail = (string) $session->old('email', '');
+        $intended = $request->queryStringValue('intended', '');
+        $oldEmail = is_scalar($session->old('email', '')) ? (string) $session->old('email', '') : '';
         $error = $session->getFlash('error');
 
         $html = $view->render('auth/login', [

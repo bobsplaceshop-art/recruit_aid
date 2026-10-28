@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Deletion\Entities;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 use CorporateAid\Recruit\Models\Engagement;
 use CorporateAid\Platform\Deletion\DeletableEntity;
 
@@ -30,15 +31,15 @@ final class EngagementEntity implements DeletableEntity
         return $this->engagement->name . ' (' . $this->engagement->code . ')';
     }
 
+    /** @return array<int, array{label:string, count:int, route:string}> */
     public function getDependents(): array
     {
         $dependents = [];
 
-        // Assigned recruiters
-        $recruiterCount = (int) ($this->db->scalar(
+        $recruiterCount = $this->db->scalarInt(
             "SELECT COUNT(*) FROM `recruit_engagement_recruiters` WHERE `engagement_id` = ?",
-            [$this->engagement->id]
-        ) ?? 0);
+            PDOParams::positional([$this->engagement->id])
+        );
         if ($recruiterCount > 0) {
             $dependents[] = [
                 'label' => 'Assigned recruiter' . ($recruiterCount === 1 ? '' : 's'),
@@ -47,12 +48,11 @@ final class EngagementEntity implements DeletableEntity
             ];
         }
 
-        // Custom field values
-        $cfCount = (int) ($this->db->scalar(
+        $cfCount = $this->db->scalarInt(
             "SELECT COUNT(*) FROM `core_custom_field_values`
              WHERE `entity_type` = 'engagement' AND `entity_id` = ?",
-            [$this->engagement->id]
-        ) ?? 0);
+            PDOParams::positional([$this->engagement->id])
+        );
         if ($cfCount > 0) {
             $dependents[] = [
                 'label' => 'Custom field value' . ($cfCount === 1 ? '' : 's'),
@@ -61,15 +61,13 @@ final class EngagementEntity implements DeletableEntity
             ];
         }
 
-        // Vacancies (future)
         $vacancyCount = 0;
         try {
-            $vacancyCount = (int) ($this->db->scalar(
+            $vacancyCount = $this->db->scalarInt(
                 "SELECT COUNT(*) FROM `recruit_vacancies` WHERE `engagement_id` = ? AND `deleted_at` IS NULL",
-                [$this->engagement->id]
-            ) ?? 0);
+                PDOParams::positional([$this->engagement->id])
+            );
         } catch (\Throwable) {
-            // vacancies table doesn't exist yet
         }
         if ($vacancyCount > 0) {
             $dependents[] = [
@@ -86,22 +84,19 @@ final class EngagementEntity implements DeletableEntity
     {
         $deleted = 0;
 
-        // engagement_recruiters (cascade via FK, but explicit for count)
         $deleted += $this->db->execute(
             "DELETE FROM `recruit_engagement_recruiters` WHERE `engagement_id` = ?",
-            [$this->engagement->id]
+            PDOParams::positional([$this->engagement->id])
         );
 
-        // custom field values
         $deleted += $this->db->execute(
             "DELETE FROM `core_custom_field_values` WHERE `entity_type` = 'engagement' AND `entity_id` = ?",
-            [$this->engagement->id]
+            PDOParams::positional([$this->engagement->id])
         );
 
-        // The engagement itself
         $deleted += $this->db->execute(
             "DELETE FROM `recruit_engagements` WHERE `id` = ?",
-            [$this->engagement->id]
+            PDOParams::positional([$this->engagement->id])
         );
 
         return $deleted;
@@ -111,7 +106,7 @@ final class EngagementEntity implements DeletableEntity
     {
         $this->db->execute(
             "UPDATE `recruit_engagements` SET `deleted_at` = NOW() WHERE `id` = ?",
-            [$this->engagement->id]
+            PDOParams::positional([$this->engagement->id])
         );
     }
 
@@ -119,7 +114,7 @@ final class EngagementEntity implements DeletableEntity
     {
         $this->db->execute(
             "UPDATE `recruit_engagements` SET `deleted_at` = NULL WHERE `id` = ?",
-            [$this->engagement->id]
+            PDOParams::positional([$this->engagement->id])
         );
     }
 }

@@ -19,6 +19,12 @@ use CorporateAid\Platform\Support\Logger;
 
 final class PasswordResetController
 {
+
+    private static function toStr(mixed $value): string
+    {
+        return is_scalar($value) ? (string) $value : '';
+    }
+
     public function __construct(private Container $container) {}
 
     /**
@@ -226,7 +232,7 @@ final class PasswordResetController
      */
     private function absoluteUrl(string $path): string
     {
-        $base = rtrim((string) config('app.url', ''), '/');
+        $base = rtrim(is_scalar(config('app.url', '')) ? (string) config('app.url', '') : '', '/');
         if ($base === '') {
             // Fall back to current request host
             $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
