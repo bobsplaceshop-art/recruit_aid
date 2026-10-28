@@ -105,21 +105,21 @@ final class FileValidator
         $errors = [];
 
         // --- Upload error codes ---
-        $code = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+        $code = (int) $file['error'];
         if ($code !== UPLOAD_ERR_OK) {
             $errors[] = $this->uploadErrorMessage($code);
             return $errors; // nothing else to check
         }
 
         // --- Sanity: tmp_name must be a real uploaded file ---
-        $tmp = (string) ($file['tmp_name'] ?? '');
+        $tmp = (string) $file['tmp_name'];
         if ($tmp === '' || !is_uploaded_file($tmp)) {
             $errors[] = 'The file was not received correctly.';
             return $errors;
         }
 
         // --- Filename checks ---
-        $originalName = (string) ($file['name'] ?? '');
+        $originalName = (string) $file['name'];
 
         // Reject null bytes in filenames (bypass attempt)
         if (strpos($originalName, "\0") !== false) {
@@ -134,7 +134,7 @@ final class FileValidator
         }
 
         // --- Size ---
-        $size = (int) ($file['size'] ?? 0);
+        $size = (int) $file['size'];
         if ($size <= 0) {
             $errors[] = 'The file is empty.';
         }

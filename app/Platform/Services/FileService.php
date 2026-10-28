@@ -66,7 +66,7 @@ final class FileService
         //    any attempt to pass an arbitrary server path (e.g. /etc/passwd)
         //    through this method, even if a future refactor accidentally
         //    drops the validator call.
-        $tmpPath = (string) ($file['tmp_name'] ?? '');
+        $tmpPath = (string) $file['tmp_name'];
         if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
             return ['The file was not received correctly.'];
         }

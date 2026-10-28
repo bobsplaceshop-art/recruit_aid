@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CorporateAid\Platform\Models;
 
+use CorporateAid\Core\Row;
+
 final class CustomField
 {
     public int $id;
@@ -29,12 +31,12 @@ final class CustomField
     public static function fromRow(array $row): self
     {
         $f = new self();
-        $f->id = (int) ($row['id'] ?? 0);
-        $f->entityType = (string) ($row['entity_type'] ?? '');
-        $f->fieldKey = (string) ($row['field_key'] ?? '');
-        $f->label = (string) ($row['label'] ?? '');
-        $f->inputType = (string) ($row['input_type'] ?? '');
-        $f->isRequired = (bool) ($row['is_required'] ?? false);
+        $f->id = Row::int($row, 'id');
+        $f->entityType = Row::str($row, 'entity_type');
+        $f->fieldKey = Row::str($row, 'field_key');
+        $f->label = Row::str($row, 'label');
+        $f->inputType = Row::str($row, 'input_type');
+        $f->isRequired = Row::bool($row, 'is_required');
 
         $f->options = [];
         $rawOptions = $row['options'] ?? null;
@@ -60,15 +62,15 @@ final class CustomField
             }
         }
 
-        $f->defaultValue = $row['default_value'] !== null ? (string) ($row['default_value']) : null;
-        $f->helpText = $row['help_text'] !== null ? (string) ($row['help_text']) : null;
-        $f->sortOrder = (int) ($row['sort_order'] ?? 0);
-        $f->isActive = (bool) ($row['is_active'] ?? false);
-        $f->isSystem = (bool) ($row['is_system'] ?? false);
-        $f->createdBy = $row['created_by'] !== null ? (int) ($row['created_by']) : null;
-        $f->createdAt = $row['created_at'] !== null ? (string) ($row['created_at']) : null;
-        $f->updatedAt = $row['updated_at'] !== null ? (string) ($row['updated_at']) : null;
-        $f->deletedAt = $row['deleted_at'] !== null ? (string) ($row['deleted_at']) : null;
+        $f->defaultValue = Row::nullableStr($row, 'default_value');
+        $f->helpText = Row::nullableStr($row, 'help_text');
+        $f->sortOrder = Row::int($row, 'sort_order');
+        $f->isActive = Row::bool($row, 'is_active');
+        $f->isSystem = Row::bool($row, 'is_system');
+        $f->createdBy = Row::nullableInt($row, 'created_by');
+        $f->createdAt = Row::nullableStr($row, 'created_at');
+        $f->updatedAt = Row::nullableStr($row, 'updated_at');
+        $f->deletedAt = Row::nullableStr($row, 'deleted_at');
         return $f;
     }
 

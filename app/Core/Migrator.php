@@ -38,7 +38,11 @@ final class Migrator
     /** @return array<string, true> */
     public function applied(): array
     {
-        $rows = $this->pdo->query("SELECT `filename` FROM `core_migrations`")->fetchAll(PDO::FETCH_COLUMN);
+        $stmt = $this->pdo->query("SELECT `filename` FROM `core_migrations`");
+        if ($stmt === false) {
+            throw new RuntimeException('Failed to query applied migrations.');
+        }
+        $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
         $out = [];
         foreach ($rows as $f) {
             $out[(string) $f] = true;
@@ -71,7 +75,11 @@ final class Migrator
             return [];
         }
 
-        $batch = (int) $this->pdo->query("SELECT COALESCE(MAX(`batch`), 0) + 1 FROM `core_migrations`")->fetchColumn();
+        $stmt = $this->pdo->query("SELECT COALESCE(MAX(`batch`), 0) + 1 FROM `core_migrations`");
+        if ($stmt === false) {
+            throw new RuntimeException('Failed to compute migration batch number.');
+        }
+        $batch = (int) $stmt->fetchColumn();
         $ran = [];
 
         foreach ($pending as $filename) {
