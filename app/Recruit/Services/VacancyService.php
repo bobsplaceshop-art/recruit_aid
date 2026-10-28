@@ -86,6 +86,9 @@ final class VacancyService
         }
 
         $vacancy = $this->vacancies->findById($id);
+        if ($vacancy === null) {
+            return ['id' => $id, 'vacancy' => null, 'errors' => ['Vacancy was created but could not be retrieved.']];
+        }
 
         $this->activity->log(
             'vacancy.created',

@@ -57,6 +57,9 @@ final class ContactService
         }
 
         $contact = $this->contacts->findById($id);
+        if ($contact === null) {
+            return ['id' => $id, 'contact' => null, 'errors' => ['Contact was created but could not be retrieved.']];
+        }
 
         $this->activity->log(
             'contact.created',

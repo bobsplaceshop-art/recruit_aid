@@ -67,6 +67,9 @@ final class OrganisationService
         }
 
         $org = $this->organisations->findById($id);
+        if ($org === null) {
+            return ['id' => $id, 'organisation' => null, 'errors' => ['Organisation was created but could not be retrieved.']];
+        }
 
         $this->activity->log(
             'organisation.created',

@@ -175,8 +175,14 @@ final class VacancyController
             );
         }
 
-        $session->flash('success', 'Vacancy created: ' . $result['vacancy']->title);
-        return Response::redirect('/vacancies/' . $result['vacancy']->code);
+        $vacancy = $result['vacancy'];
+        if ($vacancy === null) {
+            $session->flash('error', 'Vacancy was created but could not be retrieved.');
+            return Response::redirect('/vacancies');
+        }
+
+        $session->flash('success', 'Vacancy created: ' . $vacancy->title);
+        return Response::redirect('/vacancies/' . $vacancy->code);
     }
 
     public function show(Request $request, array $params = []): Response

@@ -57,6 +57,9 @@ final class EngagementService
         }
 
         $engagement = $this->engagements->findById($id);
+        if ($engagement === null) {
+            return ['id' => $id, 'engagement' => null, 'errors' => ['Engagement was created but could not be retrieved.']];
+        }
 
         $this->activity->log(
             'engagement.created',

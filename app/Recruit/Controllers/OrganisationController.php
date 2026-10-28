@@ -112,8 +112,14 @@ final class OrganisationController
             return Response::html($html)->withHeader('X-Form-Error', '1');
         }
 
-        $session->flash('success', 'Organisation created: ' . $result['organisation']->name);
-        return Response::redirect('/organisations/' . $result['organisation']->code);
+        $organisation = $result['organisation'];
+        if ($organisation === null) {
+            $session->flash('error', 'Organisation was created but could not be retrieved.');
+            return Response::redirect('/organisations');
+        }
+
+        $session->flash('success', 'Organisation created: ' . $organisation->name);
+        return Response::redirect('/organisations/' . $organisation->code);
     }
 
     /**

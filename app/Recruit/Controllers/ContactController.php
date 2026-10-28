@@ -121,8 +121,14 @@ final class ContactController
             return Response::html($html)->withHeader('X-Form-Error', '1');
         }
 
-        $session->flash('success', 'Contact created: ' . $result['contact']->fullName());
-        return Response::redirect('/organisations/' . $org->code . '/contacts/' . $result['contact']->code);
+        $contact = $result['contact'];
+        if ($contact === null) {
+            $session->flash('error', 'Contact was created but could not be retrieved.');
+            return Response::redirect('/organisations/' . $org->code . '/contacts');
+        }
+
+        $session->flash('success', 'Contact created: ' . $contact->fullName());
+        return Response::redirect('/organisations/' . $org->code . '/contacts/' . $contact->code);
     }
 
     /**

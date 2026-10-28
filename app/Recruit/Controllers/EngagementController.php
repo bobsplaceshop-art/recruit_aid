@@ -134,8 +134,14 @@ final class EngagementController
             return Response::html($html)->withHeader('X-Form-Error', '1');
         }
 
-        $session->flash('success', 'Engagement created: ' . $result['engagement']->name);
-        return Response::redirect('/engagements/' . $result['engagement']->code);
+        $engagement = $result['engagement'];
+        if ($engagement === null) {
+            $session->flash('error', 'Engagement was created but could not be retrieved.');
+            return Response::redirect('/engagements');
+        }
+
+        $session->flash('success', 'Engagement created: ' . $engagement->name);
+        return Response::redirect('/engagements/' . $engagement->code);
     }
 
     public function show(Request $request, array $params = []): Response
