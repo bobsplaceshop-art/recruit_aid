@@ -34,7 +34,8 @@ final class VacancyService
     }
 
     /**
-     * @return array{id:int, vacancy:?Vacancy, errors:string[], capacity_warning:?array}
+     * @param array<string, mixed> $input
+     * @return array{id:int, vacancy:?Vacancy, errors:string[], capacity_warning:?array<string, mixed>}
      */
     public function create(int $organisationId, array $input): array
     {
@@ -106,7 +107,10 @@ final class VacancyService
         ];
     }
 
-    /** @return array{success:bool, errors:string[], changes:array} */
+    /**
+     * @param array<string, mixed> $input
+     * @return array{success:bool, errors:string[], changes:array<string, array{old:mixed,new:mixed}>}
+     */
     public function update(int $id, array $input): array
     {
         $existing = $this->vacancies->findById($id);
@@ -186,6 +190,11 @@ final class VacancyService
 
     // ---------- helpers ----------
 
+    /**
+     * @param array<string, string[]> $baseErrors
+     * @param array<string, string[]> $cfErrors
+     * @return string[]
+     */
     private function flattenErrors(array $baseErrors, array $cfErrors): array
     {
         $out = [];
@@ -198,6 +207,7 @@ final class VacancyService
         return $out;
     }
 
+    /** @param array<string, array{old:mixed,new:mixed}> $changes */
     private function summarizeChanges(array $changes): string
     {
         $parts = [];
@@ -211,7 +221,13 @@ final class VacancyService
 
     private function formatValue(mixed $v): string
     {
-        if (is_array($v)) return implode(', ', $v);
+        if (is_array($v)) {
+            $strs = [];
+            foreach ($v as $part) {
+                if (is_scalar($part)) $strs[] = (string) $part;
+            }
+            return implode(', ', $strs);
+        }
         if (is_bool($v)) return $v ? 'yes' : 'no';
         if ($v === null) return '(empty)';
         return is_scalar($v) ? (string) $v : '';

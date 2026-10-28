@@ -32,9 +32,9 @@ final class OrganisationService
     /**
      * Create a new organisation.
      *
-     * @param array $input  Base fields + 'cf' => custom field values
-     * @param array $files  Uploaded files, keyed by custom field key
-     * @return array{id:int, organisation:Organisation|null, errors:array}
+     * @param array<string, mixed> $input
+     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
+     * @return array{id:int, organisation:Organisation|null, errors:string[]}
      */
     public function create(array $input, array $files = []): array
     {
@@ -85,9 +85,9 @@ final class OrganisationService
     /**
      * Update an existing organisation.
      *
-     * @param array $input  Base fields + 'cf' => custom field values
-     * @param array $files  Uploaded files, keyed by custom field key
-     * @return array{success:bool, errors:array, changes:array}
+     * @param array<string, mixed> $input
+     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
+     * @return array{success:bool, errors:string[], changes:array<string, array{old:mixed,new:mixed}>}
      */
     public function update(int $id, array $input, array $files = []): array
     {
@@ -175,6 +175,7 @@ final class OrganisationService
 
     // ---------- helpers ----------
 
+    /** @param array<string, array{old:mixed,new:mixed}> $changes */
     private function summarizeChanges(array $changes): string
     {
         $parts = [];
@@ -188,7 +189,13 @@ final class OrganisationService
 
     private function formatValue(mixed $v): string
     {
-        if (is_array($v)) return implode(', ', $v);
+        if (is_array($v)) {
+            $strs = [];
+            foreach ($v as $part) {
+                if (is_scalar($part)) $strs[] = (string) $part;
+            }
+            return implode(', ', $strs);
+        }
         if ($v === null) return '(empty)';
         return is_scalar($v) ? (string) $v : '';
     }
