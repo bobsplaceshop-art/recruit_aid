@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Validation;
 
+use CorporateAid\Core\Row;
+
 /**
  * Validates submitted Organisation data (base fields only).
  * Custom field validation is handled by CustomFieldValueValidator.
@@ -12,14 +14,14 @@ final class OrganisationValidator
     private const VALID_STATUSES = ['prospect', 'active', 'inactive', 'former_client'];
 
     /**
-     * @return array<string, string[]> errors keyed by field name
+     * @param array<string, mixed> $input
+     * @return array<string, string[]>
      */
     public function validate(array $input): array
     {
         $errors = [];
 
-        // ---- name (required) ----
-        $name = trim((string) ($input['name'] ?? ''));
+        $name = trim(Row::str($input, 'name'));
         if ($name === '') {
             $errors['name'][] = 'Organisation name is required.';
         } elseif (mb_strlen($name) < 2) {
@@ -28,20 +30,17 @@ final class OrganisationValidator
             $errors['name'][] = 'Name must be 255 characters or fewer.';
         }
 
-        // ---- legal_name (optional) ----
-        $legalName = trim((string) ($input['legal_name'] ?? ''));
+        $legalName = trim(Row::str($input, 'legal_name'));
         if ($legalName !== '' && mb_strlen($legalName) > 255) {
             $errors['legal_name'][] = 'Legal name must be 255 characters or fewer.';
         }
 
-        // ---- industry (optional) ----
-        $industry = trim((string) ($input['industry'] ?? ''));
+        $industry = trim(Row::str($input, 'industry'));
         if ($industry !== '' && mb_strlen($industry) > 100) {
             $errors['industry'][] = 'Industry must be 100 characters or fewer.';
         }
 
-        // ---- website (optional) ----
-        $website = trim((string) ($input['website'] ?? ''));
+        $website = trim(Row::str($input, 'website'));
         if ($website !== '') {
             $parts = parse_url($website);
             if ($parts === false || empty($parts['host']) || empty($parts['scheme'])
@@ -52,20 +51,17 @@ final class OrganisationValidator
             }
         }
 
-        // ---- country_code (optional, 2 letters) ----
-        $countryCode = trim((string) ($input['country_code'] ?? ''));
+        $countryCode = trim(Row::str($input, 'country_code'));
         if ($countryCode !== '' && !preg_match('/^[A-Z]{2}$/i', $countryCode)) {
             $errors['country_code'][] = 'Country must be a 2-letter ISO code (e.g. KE, UG, TZ).';
         }
 
-        // ---- phone (optional) ----
-        $phone = trim((string) ($input['phone'] ?? ''));
+        $phone = trim(Row::str($input, 'phone'));
         if ($phone !== '' && mb_strlen($phone) > 50) {
             $errors['phone'][] = 'Phone must be 50 characters or fewer.';
         }
 
-        // ---- email (optional) ----
-        $email = trim((string) ($input['email'] ?? ''));
+        $email = trim(Row::str($input, 'email'));
         if ($email !== '') {
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $errors['email'][] = 'Email must be a valid address.';
@@ -74,8 +70,7 @@ final class OrganisationValidator
             }
         }
 
-        // ---- status (must be valid) ----
-        $status = (string) ($input['status'] ?? 'prospect');
+        $status = Row::str($input, 'status', 'prospect');
         if (!in_array($status, self::VALID_STATUSES, true)) {
             $errors['status'][] = 'Status must be one of: ' . implode(', ', self::VALID_STATUSES) . '.';
         }
@@ -84,25 +79,27 @@ final class OrganisationValidator
     }
 
     /**
-     * Normalize input before saving.
+     * @param array<string, mixed> $input
+     * @return array<string, mixed>
      */
     public function normalize(array $input): array
     {
         return [
-            'name'                => trim((string) ($input['name'] ?? '')),
-            'legal_name'          => trim((string) ($input['legal_name'] ?? '')) ?: null,
-            'industry'            => trim((string) ($input['industry'] ?? '')) ?: null,
-            'website'             => trim((string) ($input['website'] ?? '')) ?: null,
-            'country_code'        => strtoupper(trim((string) ($input['country_code'] ?? ''))) ?: null,
+            'name'                => trim(Row::str($input, 'name')),
+            'legal_name'          => trim(Row::str($input, 'legal_name')) ?: null,
+            'industry'            => trim(Row::str($input, 'industry')) ?: null,
+            'website'             => trim(Row::str($input, 'website')) ?: null,
+            'country_code'        => strtoupper(trim(Row::str($input, 'country_code'))) ?: null,
             'countries_operation' => $this->normalizeCountries($input['countries_operation'] ?? []),
-            'address'             => trim((string) ($input['address'] ?? '')) ?: null,
-            'phone'               => trim((string) ($input['phone'] ?? '')) ?: null,
-            'email'               => trim((string) ($input['email'] ?? '')) ?: null,
-            'status'              => (string) ($input['status'] ?? 'prospect'),
-            'notes'               => trim((string) ($input['notes'] ?? '')) ?: null,
+            'address'             => trim(Row::str($input, 'address')) ?: null,
+            'phone'               => trim(Row::str($input, 'phone')) ?: null,
+            'email'               => trim(Row::str($input, 'email')) ?: null,
+            'status'              => Row::str($input, 'status', 'prospect'),
+            'notes'               => trim(Row::str($input, 'notes')) ?: null,
         ];
     }
 
+    /** @return string[] */
     private function normalizeCountries(mixed $value): array
     {
         if (is_string($value)) {

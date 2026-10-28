@@ -20,7 +20,6 @@ final class EngagementService
 {
     public function __construct(
         private EngagementRepository $engagements,
-        private OrganisationRepository $organisations,
         private EngagementValidator $validator,
         private CustomFieldValueValidator $cfValidator,
         private CustomFieldValueSaver $cfSaver,

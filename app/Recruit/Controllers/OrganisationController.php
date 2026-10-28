@@ -391,6 +391,7 @@ final class OrganisationController
      *
      * @return array<string, array>  fieldKey => $_FILES-shaped array
      */
+    /** @return array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> */
     private function collectFiles(): array
     {
         $files = [];
