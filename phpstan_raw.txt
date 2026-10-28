@@ -1,40 +1,22 @@
 Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
+/mnt/c/projects/recruitaid/app/Core/App.php:168:Parameter #1 $config of class CorporateAid\Core\Session constructor expects array<string, mixed>, array<mixed, mixed> given.
 /mnt/c/projects/recruitaid/app/Core/Exceptions/HttpException.php:16:Property CorporateAid\Core\Exceptions\HttpException::$headers type has no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Exceptions/HttpException.php:18:Method CorporateAid\Core\Exceptions\HttpException::__construct() has parameter $headers with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Exceptions/HttpException.php:30:Method CorporateAid\Core\Exceptions\HttpException::getHeaders() return type has no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Core/Http/Kernel.php:137:Offset 0 on non-empty-list<string> on left side of ?? always exists and is not nullable.
-/mnt/c/projects/recruitaid/app/Core/Request.php:15:Property CorporateAid\Core\Request::$queryParams type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:16:Property CorporateAid\Core\Request::$body type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:17:Property CorporateAid\Core\Request::$files type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:18:Property CorporateAid\Core\Request::$server type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:19:Property CorporateAid\Core\Request::$cookies is never read, only written.
-/mnt/c/projects/recruitaid/app/Core/Request.php:19:Property CorporateAid\Core\Request::$cookies type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:20:Property CorporateAid\Core\Request::$headers type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:23:Method CorporateAid\Core\Request::__construct() has parameter $body with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:23:Method CorporateAid\Core\Request::__construct() has parameter $cookies with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:23:Method CorporateAid\Core\Request::__construct() has parameter $files with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:23:Method CorporateAid\Core\Request::__construct() has parameter $headers with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:23:Method CorporateAid\Core\Request::__construct() has parameter $queryParams with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:23:Method CorporateAid\Core\Request::__construct() has parameter $server with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:85:Method CorporateAid\Core\Request::extractHeaders() has parameter $server with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:85:Method CorporateAid\Core\Request::extractHeaders() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:125:Method CorporateAid\Core\Request::all() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:134:Method CorporateAid\Core\Request::only() has parameter $keys with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:134:Method CorporateAid\Core\Request::only() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Request.php:145:Method CorporateAid\Core\Request::file() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Router.php:21:Property CorporateAid\Core\Router::$routes type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Router.php:32:Method CorporateAid\Core\Router::get() has parameter $middleware with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Router.php:33:Method CorporateAid\Core\Router::post() has parameter $middleware with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Router.php:34:Method CorporateAid\Core\Router::put() has parameter $middleware with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Router.php:35:Method CorporateAid\Core\Router::patch() has parameter $middleware with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Router.php:36:Method CorporateAid\Core\Router::delete() has parameter $middleware with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Router.php:38:Method CorporateAid\Core\Router::add() has parameter $middleware with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Router.php:49:Method CorporateAid\Core\Router::compilePattern() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Router.php:112:Method CorporateAid\Core\Router::invoke() has parameter $params with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Session.php:20:Property CorporateAid\Core\Session::$config type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Session.php:24:Property CorporateAid\Core\Session::$flash is never read, only written.
-/mnt/c/projects/recruitaid/app/Core/Session.php:26:Method CorporateAid\Core\Session::__construct() has parameter $config with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Core/Session.php:158:Method CorporateAid\Core\Session::flashOldInput() has parameter $input with no value type specified in iterable type array.
+/mnt/c/projects/recruitaid/app/Core/Request.php:35:Constructor of class CorporateAid\Core\Request has an unused parameter $cookies.
+/mnt/c/projects/recruitaid/app/Core/Request.php:185:Cannot cast mixed to string.
+/mnt/c/projects/recruitaid/app/Core/Request.php:190:Cannot cast mixed to string.
+/mnt/c/projects/recruitaid/app/Core/Request.php:195:Cannot cast mixed to string.
+/mnt/c/projects/recruitaid/app/Core/Request.php:201:Cannot cast mixed to string.
+/mnt/c/projects/recruitaid/app/Core/Session.php:25:Property CorporateAid\Core\Session::$flash is never read, only written.
+/mnt/c/projects/recruitaid/app/Core/Session.php:54:Cannot cast mixed to string.
+/mnt/c/projects/recruitaid/app/Core/Session.php:55:Cannot cast mixed to string.
+/mnt/c/projects/recruitaid/app/Core/Session.php:58:Cannot cast mixed to int.
+/mnt/c/projects/recruitaid/app/Core/Session.php:59:Cannot cast mixed to string.
+/mnt/c/projects/recruitaid/app/Core/Session.php:60:Cannot cast mixed to string.
+/mnt/c/projects/recruitaid/app/Core/Session.php:187:Call to function is_array() with array<mixed> will always evaluate to true.
+/mnt/c/projects/recruitaid/app/Core/Session.php:199:Call to function is_array() with array<mixed> will always evaluate to true.
 /mnt/c/projects/recruitaid/app/Core/View.php:19:Constructor of class CorporateAid\Core\View has an unused parameter $config.
 /mnt/c/projects/recruitaid/app/Platform/CustomFields/CustomFieldRenderer.php:31:Method CorporateAid\Platform\CustomFields\CustomFieldRenderer::renderForm() has parameter $errors with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/CustomFields/CustomFieldRenderer.php:31:Method CorporateAid\Platform\CustomFields\CustomFieldRenderer::renderForm() has parameter $submitted with no value type specified in iterable type array.

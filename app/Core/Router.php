@@ -17,7 +17,7 @@ use CorporateAid\Core\Http\Kernel;
  */
 final class Router
 {
-    /** @var array<string, array<int, array{pattern:string, handler:mixed, params:array, middleware:array}>> */
+    /** @var array<string, array<int, array{pattern:string, handler:mixed, params:string[], middleware:string[]}>> */
     private array $routes = [
         'GET' => [], 'POST' => [], 'PUT' => [], 'PATCH' => [], 'DELETE' => [],
     ];
@@ -29,12 +29,18 @@ final class Router
         $this->container = $container;
     }
 
+    /** @param string[] $middleware */
     public function get(string $path, mixed $handler, array $middleware = []): void    { $this->add('GET', $path, $handler, $middleware); }
+    /** @param string[] $middleware */
     public function post(string $path, mixed $handler, array $middleware = []): void   { $this->add('POST', $path, $handler, $middleware); }
+    /** @param string[] $middleware */
     public function put(string $path, mixed $handler, array $middleware = []): void    { $this->add('PUT', $path, $handler, $middleware); }
+    /** @param string[] $middleware */
     public function patch(string $path, mixed $handler, array $middleware = []): void  { $this->add('PATCH', $path, $handler, $middleware); }
+    /** @param string[] $middleware */
     public function delete(string $path, mixed $handler, array $middleware = []): void { $this->add('DELETE', $path, $handler, $middleware); }
 
+    /** @param string[] $middleware */
     private function add(string $method, string $path, mixed $handler, array $middleware): void
     {
         [$pattern, $paramNames] = $this->compilePattern($path);
@@ -46,6 +52,7 @@ final class Router
         ];
     }
 
+    /** @return array{0:string, 1:string[]} */
     private function compilePattern(string $path): array
     {
         $path = rtrim($path, '/') ?: '/';
@@ -109,6 +116,7 @@ final class Router
         throw HttpException::notFound();
     }
 
+    /** @param array<string, string|null> $params */
     private function invoke(mixed $handler, Request $request, array $params): Response
     {
         if (is_array($handler) && isset($handler[0], $handler[1])) {

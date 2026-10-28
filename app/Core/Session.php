@@ -17,12 +17,14 @@ final class Session
         return is_numeric($value) ? (int) $value : 0;
     }
 
+    /** @var array<string, mixed> */
     private array $config;
     private bool $started = false;
 
     /** @var array<string, mixed> one-shot flash data for the next request */
     private array $flash = [];
 
+    /** @param array<string, mixed> $config */
     public function __construct(array $config = [])
     {
         $this->config = array_merge([
@@ -155,6 +157,7 @@ final class Session
 
     // ---------- Old input (after validation failure) ----------
 
+    /** @param array<string, mixed> $input */
     public function flashOldInput(array $input): void
     {
         unset($input['password'], $input['password_confirmation'], $input['_csrf']);
@@ -181,7 +184,8 @@ final class Session
             return;
         }
 
-        $last = self::toInt($_SESSION['_last_activity'] ?? 0);
+        $session = is_array($_SESSION) ? $_SESSION : [];
+        $last = self::toInt($session['_last_activity'] ?? 0);
         if ($last > 0 && (time() - $last) > $lifetime) {
             $this->destroy();
             $this->start();
@@ -192,7 +196,8 @@ final class Session
     private function rotateIfStale(): void
     {
         $interval = 300; // rotate session id every 5 minutes
-        $last = self::toInt($_SESSION['_rotated_at'] ?? 0);
+        $session = is_array($_SESSION) ? $_SESSION : [];
+        $last = self::toInt($session['_rotated_at'] ?? 0);
         if ($last > 0 && (time() - $last) > $interval) {
             $this->regenerate(true);
         }

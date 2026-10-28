@@ -12,14 +12,26 @@ final class Request
     private string $method;
     private string $path;
     private string $queryString;
+    /** @var array<string, mixed> */
     private array $queryParams;
+    /** @var array<string, mixed> */
     private array $body;
+    /** @var array<string, mixed> */
     private array $files;
+    /** @var array<string, mixed> */
     private array $server;
-    private array $cookies;
+    /** @var array<string, mixed> */
     private array $headers;
     private ?string $rawBody;
 
+    /**
+     * @param array<string, mixed> $queryParams
+     * @param array<string, mixed> $body
+     * @param array<string, mixed> $files
+     * @param array<string, mixed> $server
+     * @param array<string, mixed> $cookies
+     * @param array<string, mixed> $headers
+     */
     public function __construct(
         string $method,
         string $path,
@@ -39,7 +51,6 @@ final class Request
         $this->body = $body;
         $this->files = $files;
         $this->server = $server;
-        $this->cookies = $cookies;
         $this->headers = $headers;
         $this->rawBody = $rawBody;
     }
@@ -82,6 +93,10 @@ final class Request
         );
     }
 
+    /**
+     * @param array<string, mixed> $server
+     * @return array<string, mixed>
+     */
     private static function extractHeaders(array $server): array
     {
         $headers = [];
@@ -122,6 +137,7 @@ final class Request
         return $default;
     }
 
+    /** @return array<string, mixed> */
     public function all(): array
     {
         $merged = $this->queryParams;
@@ -131,6 +147,10 @@ final class Request
         return $merged;
     }
 
+    /**
+     * @param string[] $keys
+     * @return array<string, mixed>
+     */
     public function only(array $keys): array
     {
         $all = $this->all();
@@ -142,12 +162,16 @@ final class Request
         return array_key_exists($key, $this->body) || array_key_exists($key, $this->queryParams);
     }
 
+    /**
+     * @return array{name:string,type:string,tmp_name:string,error:int,size:int}|null
+     */
     public function file(string $key): ?array
     {
         $file = $this->files[$key] ?? null;
         if (!is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
             return null;
         }
+        /** @var array{name:string,type:string,tmp_name:string,error:int,size:int} $file */
         return $file;
     }
 
@@ -202,9 +226,7 @@ final class Request
         return filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public function inputArray(string $key): array
     {
         $value = $this->input($key, []);
