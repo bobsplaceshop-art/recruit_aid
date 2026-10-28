@@ -251,7 +251,6 @@ final class App
         // ---------- Engagement service ----------
         $c->singleton(EngagementService::class, fn() => new EngagementService(
             $c->get(EngagementRepository::class),
-            $c->get(OrganisationRepository::class),
             $c->get(EngagementValidator::class),
             $c->get(CustomFieldValueValidator::class),
             $c->get(CustomFieldValueSaver::class),
