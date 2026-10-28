@@ -21,6 +21,7 @@ final class ContactController
     /**
      * GET /organisations/{code}/contacts
      */
+    /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
         $orgCode = ($params['code'] ?? '');
@@ -53,6 +54,7 @@ final class ContactController
     /**
      * GET /organisations/{code}/contacts/create
      */
+    /** @param array<string, string> $params */
     public function showCreate(Request $request, array $params = []): Response
     {
         $orgCode = ($params['code'] ?? '');
@@ -85,6 +87,7 @@ final class ContactController
     /**
      * POST /organisations/{code}/contacts
      */
+    /** @param array<string, string> $params */
     public function store(Request $request, array $params = []): Response
     {
         $orgCode = ($params['code'] ?? '');
@@ -134,6 +137,7 @@ final class ContactController
     /**
      * GET /organisations/{code}/contacts/{contactCode}
      */
+    /** @param array<string, string> $params */
     public function show(Request $request, array $params = []): Response
     {
         $orgCode = ($params['code'] ?? '');
@@ -172,6 +176,7 @@ final class ContactController
     /**
      * GET /organisations/{code}/contacts/{contactCode}/edit
      */
+    /** @param array<string, string> $params */
     public function showEdit(Request $request, array $params = []): Response
     {
         $orgCode = ($params['code'] ?? '');
@@ -212,6 +217,7 @@ final class ContactController
     /**
      * POST /organisations/{code}/contacts/{contactCode}  (with _method=PUT)
      */
+    /** @param array<string, string> $params */
     public function update(Request $request, array $params = []): Response
     {
         $orgCode = ($params['code'] ?? '');
@@ -260,16 +266,19 @@ final class ContactController
         return Response::redirect('/organisations/' . $org->code . '/contacts/' . $contact->code);
     }
 
+    /** @param array<string, string> $params */
     public function archive(Request $request, array $params = []): Response
     {
         return $this->lifecycleAction($request, $params, 'archive');
     }
 
+    /** @param array<string, string> $params */
     public function restore(Request $request, array $params = []): Response
     {
         return $this->lifecycleAction($request, $params, 'restore');
     }
 
+    /** @param array<string, string> $params */
     public function destroy(Request $request, array $params = []): Response
     {
         [$org, $contact] = $this->resolveOrgAndContact($params, true);
@@ -293,6 +302,7 @@ final class ContactController
         return Response::redirect('/organisations/' . $org->code . '/contacts/' . $contact->code);
     }
 
+    /** @param array<string, string> $params */
     public function deleteInfo(Request $request, array $params = []): Response
     {
         [$org, $contact] = $this->resolveOrgAndContact($params, true);

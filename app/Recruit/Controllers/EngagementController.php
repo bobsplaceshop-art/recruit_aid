@@ -18,6 +18,7 @@ final class EngagementController
 {
     public function __construct(private Container $container) {}
 
+    /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -59,6 +60,7 @@ final class EngagementController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function showCreate(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -94,6 +96,7 @@ final class EngagementController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function store(Request $request, array $params = []): Response
     {
         /** @var EngagementService $service */
@@ -144,6 +147,7 @@ final class EngagementController
         return Response::redirect('/engagements/' . $engagement->code);
     }
 
+    /** @param array<string, string> $params */
     public function show(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');
@@ -187,6 +191,7 @@ final class EngagementController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function showEdit(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');
@@ -221,6 +226,7 @@ final class EngagementController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function update(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');
@@ -265,16 +271,19 @@ final class EngagementController
         return Response::redirect('/engagements/' . $engagement->code);
     }
 
+    /** @param array<string, string> $params */
     public function archive(Request $request, array $params = []): Response
     {
         return $this->lifecycleAction($request, $params, 'archive');
     }
 
+    /** @param array<string, string> $params */
     public function restore(Request $request, array $params = []): Response
     {
         return $this->lifecycleAction($request, $params, 'restore');
     }
 
+    /** @param array<string, string> $params */
     public function destroy(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');
@@ -305,6 +314,7 @@ final class EngagementController
         return Response::redirect('/engagements/' . $engagement->code);
     }
 
+    /** @param array<string, string> $params */
     public function deleteInfo(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');
@@ -332,6 +342,7 @@ final class EngagementController
         ]);
     }
 
+    /** @param array<string, string> $params */
     public function assignRecruiter(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');
@@ -361,6 +372,7 @@ final class EngagementController
         return Response::redirect('/engagements/' . $engagement->code);
     }
 
+    /** @param array<string, string> $params */
     public function unassignRecruiter(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');

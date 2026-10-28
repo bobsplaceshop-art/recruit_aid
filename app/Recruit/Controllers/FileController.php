@@ -45,6 +45,7 @@ final class FileController
 
     public function __construct(private Container $container) {}
 
+    /** @param array<string, string> $params */
     public function serve(Request $request, array $params = []): Response
     {
         $uuid = (string) ($params['uuid'] ?? '');

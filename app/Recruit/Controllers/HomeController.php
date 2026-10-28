@@ -21,6 +21,7 @@ final class HomeController
         $this->container = $container;
     }
 
+    /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -37,6 +38,7 @@ final class HomeController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function health(Request $request, array $params = []): Response
     {
         return Response::json([

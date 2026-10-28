@@ -25,6 +25,7 @@ final class PasswordResetController
     /**
      * GET /password/forgot — show the "enter your email" form
      */
+    /** @param array<string, string> $params */
     public function showForgot(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -46,6 +47,7 @@ final class PasswordResetController
      * POST /password/forgot — validate email, send reset link
      * Always says "check your email" (never reveals whether email exists)
      */
+    /** @param array<string, string> $params */
     public function sendResetLink(Request $request, array $params = []): Response
     {
         // Record this attempt (success or failure — prevents enumeration spam)
@@ -114,6 +116,7 @@ final class PasswordResetController
     /**
      * GET /password/reset/{token} — show the reset form
      */
+    /** @param array<string, string> $params */
     public function showReset(Request $request, array $params = []): Response
     {
         $token = (string) ($params['token'] ?? '');
@@ -154,6 +157,7 @@ final class PasswordResetController
     /**
      * POST /password/reset — change the password
      */
+    /** @param array<string, string> $params */
     public function processReset(Request $request, array $params = []): Response
     {
         /** @var RateLimiter $limiter */

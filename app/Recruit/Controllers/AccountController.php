@@ -23,6 +23,7 @@ final class AccountController
         $this->container = $container;
     }
 
+    /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -38,6 +39,7 @@ final class AccountController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function showChangePassword(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -60,6 +62,7 @@ final class AccountController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function changePassword(Request $request, array $params = []): Response
     {
         /** @var Auth $auth */
@@ -115,6 +118,7 @@ final class AccountController
      * Called via POST /account/theme from the topbar toggle.
      * Returns JSON for AJAX callers, redirects for form-posters.
      */
+    /** @param array<string, string> $params */
     public function setTheme(Request $request, array $params = []): Response
     {
         /** @var Auth $auth */
@@ -149,6 +153,7 @@ final class AccountController
      * GET /account/confirm-password?next=<url>
      * Ask the user to re-enter their password before a sensitive action.
      */
+    /** @param array<string, string> $params */
     public function showConfirmPassword(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -180,6 +185,7 @@ final class AccountController
      * POST /account/confirm-password
      * Verify the password and mark the session as recently re-authenticated.
      */
+    /** @param array<string, string> $params */
     public function confirmPassword(Request $request, array $params = []): Response
     {
         /** @var Auth $auth */

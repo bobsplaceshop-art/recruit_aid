@@ -21,6 +21,7 @@ final class OrganisationController
     /**
      * GET /organisations
      */
+    /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
         /** @var OrganisationRepository $orgs */
@@ -64,6 +65,7 @@ final class OrganisationController
     /**
      * GET /organisations/create
      */
+    /** @param array<string, string> $params */
     public function showCreate(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -85,6 +87,7 @@ final class OrganisationController
     /**
      * POST /organisations
      */
+    /** @param array<string, string> $params */
     public function store(Request $request, array $params = []): Response
     {
         /** @var OrganisationService $service */
@@ -125,6 +128,7 @@ final class OrganisationController
     /**
      * GET /organisations/{code}
      */
+    /** @param array<string, string> $params */
     public function show(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');
@@ -154,6 +158,7 @@ final class OrganisationController
     /**
      * GET /organisations/{code}/edit
      */
+    /** @param array<string, string> $params */
     public function showEdit(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');
@@ -185,6 +190,7 @@ final class OrganisationController
     /**
      * POST /organisations/{code} (with _method=PUT for update)
      */
+    /** @param array<string, string> $params */
     public function update(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');
@@ -229,6 +235,7 @@ final class OrganisationController
     /**
      * POST /organisations/{code}/archive
      */
+    /** @param array<string, string> $params */
     public function archive(Request $request, array $params = []): Response
     {
         return $this->lifecycleAction($request, $params, 'archive');
@@ -237,6 +244,7 @@ final class OrganisationController
     /**
      * POST /organisations/{code}/restore
      */
+    /** @param array<string, string> $params */
     public function restore(Request $request, array $params = []): Response
     {
         return $this->lifecycleAction($request, $params, 'restore');
@@ -245,6 +253,7 @@ final class OrganisationController
     /**
      * POST /organisations/{code}/delete
      */
+    /** @param array<string, string> $params */
     public function destroy(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');
@@ -280,6 +289,7 @@ final class OrganisationController
     /**
      * GET /organisations/{code}/delete-info (JSON)
      */
+    /** @param array<string, string> $params */
     public function deleteInfo(Request $request, array $params = []): Response
     {
         $code = ($params['code'] ?? '');

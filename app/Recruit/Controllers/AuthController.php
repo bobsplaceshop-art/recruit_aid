@@ -24,6 +24,7 @@ final class AuthController
         $this->container = $container;
     }
 
+    /** @param array<string, string> $params */
     public function showLogin(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -45,6 +46,7 @@ final class AuthController
         return Response::html($html);
     }
 
+    /** @param array<string, string> $params */
     public function login(Request $request, array $params = []): Response
     {
         /** @var Auth $auth */
@@ -97,6 +99,7 @@ final class AuthController
         return Response::redirect($target);
     }
 
+    /** @param array<string, string> $params */
     public function logout(Request $request, array $params = []): Response
     {
         /** @var Auth $auth */

@@ -19,6 +19,7 @@ final class NotificationController
     /**
      * GET /notifications — full notifications page
      */
+    /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
         /** @var View $view */
@@ -43,6 +44,7 @@ final class NotificationController
      * GET /api/notifications — JSON for the bell dropdown
      * Returns: { unread_count: N, items: [...] }
      */
+    /** @param array<string, string> $params */
     public function api(Request $request, array $params = []): Response
     {
         /** @var NotificationService $notifications */
@@ -79,6 +81,7 @@ final class NotificationController
     /**
      * POST /notifications/{id}/read
      */
+    /** @param array<string, string> $params */
     public function markRead(Request $request, array $params = []): Response
     {
         $id = (int) ($params['id'] ?? 0);
@@ -103,6 +106,7 @@ final class NotificationController
     /**
      * POST /notifications/read-all
      */
+    /** @param array<string, string> $params */
     public function markAllRead(Request $request, array $params = []): Response
     {
         /** @var NotificationService $notifications */
