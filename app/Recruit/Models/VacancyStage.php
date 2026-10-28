@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Models;
 
+use CorporateAid\Core\Row;
+
 final class VacancyStage
 {
     public int $id;
@@ -16,19 +18,20 @@ final class VacancyStage
     public ?string $createdAt;
     public ?string $updatedAt;
 
+    /** @param array<string, mixed> $row */
     public static function fromRow(array $row): self
     {
         $s = new self();
-        $s->id = (int) $row['id'];
-        $s->vacancyId = (int) $row['vacancy_id'];
-        $s->keySlug = (string) $row['key_slug'];
-        $s->label = (string) $row['label'];
-        $s->sortOrder = (int) $row['sort_order'];
-        $s->isTerminal = (bool) $row['is_terminal'];
-        $s->isDefault = (bool) $row['is_default'];
-        $s->color = $row['color'] !== null ? (string) $row['color'] : null;
-        $s->createdAt = $row['created_at'] !== null ? (string) $row['created_at'] : null;
-        $s->updatedAt = $row['updated_at'] !== null ? (string) $row['updated_at'] : null;
+        $s->id = Row::int($row, 'id');
+        $s->vacancyId = Row::int($row, 'vacancy_id');
+        $s->keySlug = Row::str($row, 'key_slug');
+        $s->label = Row::str($row, 'label');
+        $s->sortOrder = Row::int($row, 'sort_order');
+        $s->isTerminal = Row::bool($row, 'is_terminal');
+        $s->isDefault = Row::bool($row, 'is_default');
+        $s->color = Row::nullableStr($row, 'color');
+        $s->createdAt = Row::nullableStr($row, 'created_at');
+        $s->updatedAt = Row::nullableStr($row, 'updated_at');
         return $s;
     }
 }

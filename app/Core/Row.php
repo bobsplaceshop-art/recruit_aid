@@ -76,4 +76,33 @@ final class Row
         if ($v === null) return null;
         return is_numeric($v) ? (int) $v : null;
     }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    public static function float(array $row, string $key, float $default = 0.0): float
+    {
+        $v = $row[$key] ?? null;
+        return is_numeric($v) ? (float) $v : $default;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    public static function nullableBool(array $row, string $key): ?bool
+    {
+        $v = $row[$key] ?? null;
+        if ($v === null) return null;
+        return (bool) (is_numeric($v) ? (int) $v : 0);
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    public static function nullableFloat(array $row, string $key): ?float
+    {
+        $v = $row[$key] ?? null;
+        if ($v === null) return null;
+        return is_numeric($v) ? (float) $v : null;
+    }
 }

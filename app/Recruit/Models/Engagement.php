@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Models;
 
+use CorporateAid\Core\Row;
+
 final class Engagement
 {
     public int $id;
@@ -16,51 +18,61 @@ final class Engagement
     public ?string $endDate;
     public int $agreedActiveRoleCapacity;
     public string $reportingFrequency;
+
     /** @var string[] */
     public array $countries;
+
     public ?string $scopeDescription;
+
     /** @var string[] */
     public array $stagesIncluded;
+
     public ?string $notes;
     public ?int $createdBy;
     public ?string $createdAt;
     public ?string $updatedAt;
     public ?string $deletedAt;
 
+    /** @param array<string, mixed> $row */
     public static function fromRow(array $row): self
     {
         $e = new self();
-        $e->id = (int) $row['id'];
-        $e->code = (string) $row['code'];
-        $e->organisationId = (int) $row['organisation_id'];
-        $e->packageId = $row['package_id'] !== null ? (int) $row['package_id'] : null;
-        $e->name = (string) $row['name'];
-        $e->serviceType = (string) $row['service_type'];
-        $e->status = (string) $row['status'];
-        $e->startDate = $row['start_date'] !== null ? (string) $row['start_date'] : null;
-        $e->endDate = $row['end_date'] !== null ? (string) $row['end_date'] : null;
-        $e->agreedActiveRoleCapacity = (int) $row['agreed_active_role_capacity'];
-        $e->reportingFrequency = (string) $row['reporting_frequency'];
+        $e->id = Row::int($row, 'id');
+        $e->code = Row::str($row, 'code');
+        $e->organisationId = Row::int($row, 'organisation_id');
+        $e->packageId = Row::nullableInt($row, 'package_id');
+        $e->name = Row::str($row, 'name');
+        $e->serviceType = Row::str($row, 'service_type');
+        $e->status = Row::str($row, 'status');
+        $e->startDate = Row::nullableStr($row, 'start_date');
+        $e->endDate = Row::nullableStr($row, 'end_date');
+        $e->agreedActiveRoleCapacity = Row::int($row, 'agreed_active_role_capacity');
+        $e->reportingFrequency = Row::str($row, 'reporting_frequency');
 
         $e->countries = self::decodeJsonArray($row['countries'] ?? null);
         $e->stagesIncluded = self::decodeJsonArray($row['stages_included'] ?? null);
 
-        $e->scopeDescription = $row['scope_description'] !== null ? (string) $row['scope_description'] : null;
-        $e->notes = $row['notes'] !== null ? (string) $row['notes'] : null;
-        $e->createdBy = $row['created_by'] !== null ? (int) $row['created_by'] : null;
-        $e->createdAt = $row['created_at'] !== null ? (string) $row['created_at'] : null;
-        $e->updatedAt = $row['updated_at'] !== null ? (string) $row['updated_at'] : null;
-        $e->deletedAt = $row['deleted_at'] !== null ? (string) $row['deleted_at'] : null;
+        $e->scopeDescription = Row::nullableStr($row, 'scope_description');
+        $e->notes = Row::nullableStr($row, 'notes');
+        $e->createdBy = Row::nullableInt($row, 'created_by');
+        $e->createdAt = Row::nullableStr($row, 'created_at');
+        $e->updatedAt = Row::nullableStr($row, 'updated_at');
+        $e->deletedAt = Row::nullableStr($row, 'deleted_at');
 
         return $e;
     }
 
+    /** @return string[] */
     private static function decodeJsonArray(mixed $raw): array
     {
         if (empty($raw)) return [];
         $decoded = json_decode(is_scalar($raw) ? (string) $raw : '', true);
         if (!is_array($decoded)) return [];
-        return array_values(array_map('strval', $decoded));
+        $out = [];
+        foreach ($decoded as $v) {
+            if (is_scalar($v)) $out[] = (string) $v;
+        }
+        return $out;
     }
 
     public function isDeleted(): bool

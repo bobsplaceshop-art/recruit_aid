@@ -13,10 +13,13 @@ final class CustomField
     public string $label;
     public string $inputType;
     public bool $isRequired;
+
     /** @var string[] */
     public array $options;
-    /** @var array<string,mixed> */
+
+    /** @var array<string, mixed> */
     public array $constraints;
+
     public ?string $defaultValue;
     public ?string $helpText;
     public int $sortOrder;

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CorporateAid\Platform\Models;
 
+use CorporateAid\Core\Row;
+
 /**
  * Represents a stored file (metadata row in `core_files`).
  *
@@ -24,21 +26,22 @@ final class File
     public ?string $createdAt;
     public ?string $deletedAt;
 
+    /** @param array<string, mixed> $row */
     public static function fromRow(array $row): self
     {
         $f = new self();
-        $f->id           = (int) $row['id'];
-        $f->uuid         = (string) $row['uuid'];
-        $f->originalName = (string) $row['original_name'];
-        $f->storedName   = (string) $row['stored_name'];
-        $f->storagePath  = (string) $row['storage_path'];
-        $f->mimeType     = (string) $row['mime_type'];
-        $f->extension    = (string) $row['extension'];
-        $f->sizeBytes    = (int) $row['size_bytes'];
-        $f->sha256Hash   = (string) $row['sha256_hash'];
-        $f->uploadedBy   = $row['uploaded_by'] !== null ? (int) $row['uploaded_by'] : null;
-        $f->createdAt    = $row['created_at'] !== null ? (string) $row['created_at'] : null;
-        $f->deletedAt    = $row['deleted_at'] !== null ? (string) $row['deleted_at'] : null;
+        $f->id           = Row::int($row, 'id');
+        $f->uuid         = Row::str($row, 'uuid');
+        $f->originalName = Row::str($row, 'original_name');
+        $f->storedName   = Row::str($row, 'stored_name');
+        $f->storagePath  = Row::str($row, 'storage_path');
+        $f->mimeType     = Row::str($row, 'mime_type');
+        $f->extension    = Row::str($row, 'extension');
+        $f->sizeBytes    = Row::int($row, 'size_bytes');
+        $f->sha256Hash   = Row::str($row, 'sha256_hash');
+        $f->uploadedBy   = Row::nullableInt($row, 'uploaded_by');
+        $f->createdAt    = Row::nullableStr($row, 'created_at');
+        $f->deletedAt    = Row::nullableStr($row, 'deleted_at');
         return $f;
     }
 

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CorporateAid\Platform\Models;
 
+use CorporateAid\Core\Row;
+
 final class Notification
 {
     public int $id;
@@ -14,17 +16,18 @@ final class Notification
     public ?string $readAt;
     public ?string $createdAt;
 
+    /** @param array<string, mixed> $row */
     public static function fromRow(array $row): self
     {
         $n = new self();
-        $n->id = (int) $row['id'];
-        $n->userId = (int) $row['user_id'];
-        $n->type = (string) $row['type'];
-        $n->title = (string) $row['title'];
-        $n->body = $row['body'] !== null ? (string) $row['body'] : null;
-        $n->link = $row['link'] !== null ? (string) $row['link'] : null;
-        $n->readAt = $row['read_at'] !== null ? (string) $row['read_at'] : null;
-        $n->createdAt = $row['created_at'] !== null ? (string) $row['created_at'] : null;
+        $n->id = Row::int($row, 'id');
+        $n->userId = Row::int($row, 'user_id');
+        $n->type = Row::str($row, 'type');
+        $n->title = Row::str($row, 'title');
+        $n->body = Row::nullableStr($row, 'body');
+        $n->link = Row::nullableStr($row, 'link');
+        $n->readAt = Row::nullableStr($row, 'read_at');
+        $n->createdAt = Row::nullableStr($row, 'created_at');
         return $n;
     }
 

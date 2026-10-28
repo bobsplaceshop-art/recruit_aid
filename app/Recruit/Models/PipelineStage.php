@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Models;
 
+use CorporateAid\Core\Row;
+
 final class PipelineStage
 {
     public int $id;
@@ -18,21 +20,22 @@ final class PipelineStage
     public ?string $updatedAt;
     public ?string $deletedAt;
 
+    /** @param array<string, mixed> $row */
     public static function fromRow(array $row): self
     {
         $s = new self();
-        $s->id = (int) $row['id'];
-        $s->organisationId = $row['organisation_id'] !== null ? (int) $row['organisation_id'] : null;
-        $s->keySlug = (string) $row['key_slug'];
-        $s->label = (string) $row['label'];
-        $s->sortOrder = (int) $row['sort_order'];
-        $s->isTerminal = (bool) $row['is_terminal'];
-        $s->isDefault = (bool) $row['is_default'];
-        $s->color = $row['color'] !== null ? (string) $row['color'] : null;
-        $s->description = $row['description'] !== null ? (string) $row['description'] : null;
-        $s->createdAt = $row['created_at'] !== null ? (string) $row['created_at'] : null;
-        $s->updatedAt = $row['updated_at'] !== null ? (string) $row['updated_at'] : null;
-        $s->deletedAt = $row['deleted_at'] !== null ? (string) $row['deleted_at'] : null;
+        $s->id = Row::int($row, 'id');
+        $s->organisationId = Row::nullableInt($row, 'organisation_id');
+        $s->keySlug = Row::str($row, 'key_slug');
+        $s->label = Row::str($row, 'label');
+        $s->sortOrder = Row::int($row, 'sort_order');
+        $s->isTerminal = Row::bool($row, 'is_terminal');
+        $s->isDefault = Row::bool($row, 'is_default');
+        $s->color = Row::nullableStr($row, 'color');
+        $s->description = Row::nullableStr($row, 'description');
+        $s->createdAt = Row::nullableStr($row, 'created_at');
+        $s->updatedAt = Row::nullableStr($row, 'updated_at');
+        $s->deletedAt = Row::nullableStr($row, 'deleted_at');
         return $s;
     }
 }

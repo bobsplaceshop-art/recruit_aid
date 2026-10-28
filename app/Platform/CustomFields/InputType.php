@@ -34,6 +34,10 @@ interface InputType
      *
      * @return string[]
      */
+    /**
+     * @param array<string, mixed> $constraints
+     * @return string[]
+     */
     public function validate(mixed $value, array $constraints, bool $isRequired): array;
 
     /**
@@ -58,6 +62,11 @@ interface InputType
      * @param string|null  $helpText
      * @param bool         $isRequired
      * @param string[]     $errors        validation messages (may be empty)
+     */
+    /**
+     * @param array<string, mixed> $constraints
+     * @param string[] $options
+     * @param string[] $errors
      */
     public function render(
         string $fieldKey,

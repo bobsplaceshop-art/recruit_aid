@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CorporateAid\Platform\Models;
 
+use CorporateAid\Core\Row;
+
 /**
  * Represents a row in the `core_users` table.
  */
@@ -33,27 +35,28 @@ final class User
     /** @var string[] */
     public array $permissionSlugs = [];
 
+    /** @param array<string, mixed> $row */
     public static function fromRow(array $row): self
     {
         $u = new self();
-        $u->id = (int) $row['id'];
-        $u->name = (string) $row['name'];
-        $u->email = (string) $row['email'];
-        $u->passwordHash = (string) $row['password_hash'];
-        $u->phone = $row['phone'] !== null ? (string) $row['phone'] : null;
-        $u->avatarPath = $row['avatar_path'] !== null ? (string) $row['avatar_path'] : null;
-        $u->timezone = (string) ($row['timezone'] ?? 'Africa/Nairobi');
-        $u->locale = (string) ($row['locale'] ?? 'en');
-        $u->themePreference = (string) ($row['theme_preference'] ?? 'dark');
-        $u->status = (string) $row['status'];
-        $u->isClientUser = (bool) $row['is_client_user'];
-        $u->organisationId = $row['organisation_id'] !== null ? (int) $row['organisation_id'] : null;
-        $u->failedLogins = (int) ($row['failed_logins'] ?? 0);
-        $u->lockedUntil = $row['locked_until'] !== null ? (string) $row['locked_until'] : null;
-        $u->lastLoginAt = $row['last_login_at'] !== null ? (string) $row['last_login_at'] : null;
-        $u->createdAt = $row['created_at'] !== null ? (string) $row['created_at'] : null;
-        $u->updatedAt = $row['updated_at'] !== null ? (string) $row['updated_at'] : null;
-        $u->deletedAt = $row['deleted_at'] !== null ? (string) $row['deleted_at'] : null;
+        $u->id = Row::int($row, 'id');
+        $u->name = Row::str($row, 'name');
+        $u->email = Row::str($row, 'email');
+        $u->passwordHash = Row::str($row, 'password_hash');
+        $u->phone = Row::nullableStr($row, 'phone');
+        $u->avatarPath = Row::nullableStr($row, 'avatar_path');
+        $u->timezone = Row::str($row, 'timezone', 'Africa/Nairobi');
+        $u->locale = Row::str($row, 'locale', 'en');
+        $u->themePreference = Row::str($row, 'theme_preference', 'dark');
+        $u->status = Row::str($row, 'status');
+        $u->isClientUser = Row::bool($row, 'is_client_user');
+        $u->organisationId = Row::nullableInt($row, 'organisation_id');
+        $u->failedLogins = Row::int($row, 'failed_logins', 0);
+        $u->lockedUntil = Row::nullableStr($row, 'locked_until');
+        $u->lastLoginAt = Row::nullableStr($row, 'last_login_at');
+        $u->createdAt = Row::nullableStr($row, 'created_at');
+        $u->updatedAt = Row::nullableStr($row, 'updated_at');
+        $u->deletedAt = Row::nullableStr($row, 'deleted_at');
         return $u;
     }
 
@@ -88,6 +91,6 @@ final class User
     public function firstName(): string
     {
         $parts = explode(' ', trim($this->name), 2);
-        return $parts[0] ?? '';
+        return $parts[0];
     }
 }

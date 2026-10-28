@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Models;
 
+use CorporateAid\Core\Row;
+
 /**
  * Represents a row in the `recruit_client_organisations` table.
  */
@@ -15,8 +17,10 @@ final class Organisation
     public ?string $industry;
     public ?string $website;
     public ?string $countryCode;
+
     /** @var string[] */
     public array $countriesOperation;
+
     public ?string $address;
     public ?string $phone;
     public ?string $email;
@@ -27,34 +31,40 @@ final class Organisation
     public ?string $updatedAt;
     public ?string $deletedAt;
 
+    /** @param array<string, mixed> $row */
     public static function fromRow(array $row): self
     {
         $o = new self();
-        $o->id = (int) $row['id'];
-        $o->code = (string) $row['code'];
-        $o->name = (string) $row['name'];
-        $o->legalName = $row['legal_name'] !== null ? (string) $row['legal_name'] : null;
-        $o->industry = $row['industry'] !== null ? (string) $row['industry'] : null;
-        $o->website = $row['website'] !== null ? (string) $row['website'] : null;
-        $o->countryCode = $row['country_code'] !== null ? (string) $row['country_code'] : null;
+        $o->id = Row::int($row, 'id');
+        $o->code = Row::str($row, 'code');
+        $o->name = Row::str($row, 'name');
+        $o->legalName = Row::nullableStr($row, 'legal_name');
+        $o->industry = Row::nullableStr($row, 'industry');
+        $o->website = Row::nullableStr($row, 'website');
+        $o->countryCode = Row::nullableStr($row, 'country_code');
 
         $o->countriesOperation = [];
-        if (!empty($row['countries_operation'])) {
-            $decoded = json_decode((string) $row['countries_operation'], true);
+        $rawCountries = $row['countries_operation'] ?? null;
+        if (!empty($rawCountries) && is_scalar($rawCountries)) {
+            $decoded = json_decode((string) $rawCountries, true);
             if (is_array($decoded)) {
-                $o->countriesOperation = array_values(array_filter(array_map('strval', $decoded)));
+                $out = [];
+                foreach ($decoded as $v) {
+                    if (is_scalar($v)) $out[] = (string) $v;
+                }
+                $o->countriesOperation = $out;
             }
         }
 
-        $o->address = $row['address'] !== null ? (string) $row['address'] : null;
-        $o->phone = $row['phone'] !== null ? (string) $row['phone'] : null;
-        $o->email = $row['email'] !== null ? (string) $row['email'] : null;
-        $o->status = (string) $row['status'];
-        $o->notes = $row['notes'] !== null ? (string) $row['notes'] : null;
-        $o->createdBy = $row['created_by'] !== null ? (int) $row['created_by'] : null;
-        $o->createdAt = $row['created_at'] !== null ? (string) $row['created_at'] : null;
-        $o->updatedAt = $row['updated_at'] !== null ? (string) $row['updated_at'] : null;
-        $o->deletedAt = $row['deleted_at'] !== null ? (string) $row['deleted_at'] : null;
+        $o->address = Row::nullableStr($row, 'address');
+        $o->phone = Row::nullableStr($row, 'phone');
+        $o->email = Row::nullableStr($row, 'email');
+        $o->status = Row::str($row, 'status');
+        $o->notes = Row::nullableStr($row, 'notes');
+        $o->createdBy = Row::nullableInt($row, 'created_by');
+        $o->createdAt = Row::nullableStr($row, 'created_at');
+        $o->updatedAt = Row::nullableStr($row, 'updated_at');
+        $o->deletedAt = Row::nullableStr($row, 'deleted_at');
 
         return $o;
     }

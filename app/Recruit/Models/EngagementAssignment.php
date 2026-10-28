@@ -3,38 +3,37 @@ declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Models;
 
+use CorporateAid\Core\Row;
+
 final class EngagementAssignment
 {
     public int $id;
     public int $engagementId;
-    public string $assigneeType;   // 'role' | 'permission' | 'user'
-    public string $assigneeValue;  // slug or user id
+    public string $assigneeType;
+    public string $assigneeValue;
     public bool $canView;
     public bool $canEdit;
     public ?int $assignedBy;
     public ?string $createdAt;
     public ?string $updatedAt;
 
+    public string $assigneeLabel = '';
+
+    /** @param array<string, mixed> $row */
     public static function fromRow(array $row): self
     {
         $a = new self();
-        $a->id = (int) $row['id'];
-        $a->engagementId = (int) $row['engagement_id'];
-        $a->assigneeType = (string) $row['assignee_type'];
-        $a->assigneeValue = (string) $row['assignee_value'];
-        $a->canView = (bool) $row['can_view'];
-        $a->canEdit = (bool) $row['can_edit'];
-        $a->assignedBy = $row['assigned_by'] !== null ? (int) $row['assigned_by'] : null;
-        $a->createdAt = $row['created_at'] !== null ? (string) $row['created_at'] : null;
-        $a->updatedAt = $row['updated_at'] !== null ? (string) $row['updated_at'] : null;
+        $a->id = Row::int($row, 'id');
+        $a->engagementId = Row::int($row, 'engagement_id');
+        $a->assigneeType = Row::str($row, 'assignee_type');
+        $a->assigneeValue = Row::str($row, 'assignee_value');
+        $a->canView = Row::bool($row, 'can_view');
+        $a->canEdit = Row::bool($row, 'can_edit');
+        $a->assignedBy = Row::nullableInt($row, 'assigned_by');
+        $a->createdAt = Row::nullableStr($row, 'created_at');
+        $a->updatedAt = Row::nullableStr($row, 'updated_at');
         return $a;
     }
-
-    /**
-     * Human-readable label for the assignee. Populated by the repository
-     * so we don't have to guess role names in the view.
-     */
-    public string $assigneeLabel = '';
 
     public function describe(): string
     {

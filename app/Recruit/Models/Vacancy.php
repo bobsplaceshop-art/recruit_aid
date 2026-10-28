@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Models;
 
+use CorporateAid\Core\Row;
+
 final class Vacancy
 {
     public int $id;
@@ -28,8 +30,13 @@ final class Vacancy
     public ?string $responsibilities;
     public ?string $requirements;
     public ?string $preferredQualifications;
+
+    /** @var string[] */
     public array $skills;
+
+    /** @var string[] */
     public array $languages;
+
     public ?string $assessmentCriteria;
     public ?string $internalNotes;
     public ?string $clientNotes;
@@ -41,53 +48,61 @@ final class Vacancy
     public ?string $updatedAt;
     public ?string $deletedAt;
 
+    /** @param array<string, mixed> $row */
     public static function fromRow(array $row): self
     {
         $v = new self();
-        $v->id = (int) $row['id'];
-        $v->code = (string) $row['code'];
-        $v->organisationId = (int) $row['organisation_id'];
-        $v->engagementId = $row['engagement_id'] !== null ? (int) $row['engagement_id'] : null;
-        $v->title = (string) $row['title'];
-        $v->department = $row['department'] !== null ? (string) $row['department'] : null;
-        $v->countryCode = $row['country_code'] !== null ? (string) $row['country_code'] : null;
-        $v->city = $row['city'] !== null ? (string) $row['city'] : null;
-        $v->workMode = (string) $row['work_mode'];
-        $v->employmentType = (string) $row['employment_type'];
-        $v->seniority = (string) $row['seniority'];
-        $v->positionsCount = (int) $row['positions_count'];
-        $v->openingDate = $row['opening_date'] !== null ? (string) $row['opening_date'] : null;
-        $v->targetHireDate = $row['target_hire_date'] !== null ? (string) $row['target_hire_date'] : null;
-        $v->recruiterId = $row['recruiter_id'] !== null ? (int) $row['recruiter_id'] : null;
-        $v->hiringManagerContactId = $row['hiring_manager_contact_id'] !== null ? (int) $row['hiring_manager_contact_id'] : null;
-        $v->salaryMin = $row['salary_min'] !== null ? (float) $row['salary_min'] : null;
-        $v->salaryMax = $row['salary_max'] !== null ? (float) $row['salary_max'] : null;
-        $v->currency = $row['currency'] !== null ? (string) $row['currency'] : null;
-        $v->description = $row['description'] !== null ? (string) $row['description'] : null;
-        $v->responsibilities = $row['responsibilities'] !== null ? (string) $row['responsibilities'] : null;
-        $v->requirements = $row['requirements'] !== null ? (string) $row['requirements'] : null;
-        $v->preferredQualifications = $row['preferred_qualifications'] !== null ? (string) $row['preferred_qualifications'] : null;
+        $v->id = Row::int($row, 'id');
+        $v->code = Row::str($row, 'code');
+        $v->organisationId = Row::int($row, 'organisation_id');
+        $v->engagementId = Row::nullableInt($row, 'engagement_id');
+        $v->title = Row::str($row, 'title');
+        $v->department = Row::nullableStr($row, 'department');
+        $v->countryCode = Row::nullableStr($row, 'country_code');
+        $v->city = Row::nullableStr($row, 'city');
+        $v->workMode = Row::str($row, 'work_mode');
+        $v->employmentType = Row::str($row, 'employment_type');
+        $v->seniority = Row::str($row, 'seniority');
+        $v->positionsCount = Row::int($row, 'positions_count');
+        $v->openingDate = Row::nullableStr($row, 'opening_date');
+        $v->targetHireDate = Row::nullableStr($row, 'target_hire_date');
+        $v->recruiterId = Row::nullableInt($row, 'recruiter_id');
+        $v->hiringManagerContactId = Row::nullableInt($row, 'hiring_manager_contact_id');
+        $v->salaryMin = Row::nullableFloat($row, 'salary_min');
+        $v->salaryMax = Row::nullableFloat($row, 'salary_max');
+        $v->currency = Row::nullableStr($row, 'currency');
+        $v->description = Row::nullableStr($row, 'description');
+        $v->responsibilities = Row::nullableStr($row, 'responsibilities');
+        $v->requirements = Row::nullableStr($row, 'requirements');
+        $v->preferredQualifications = Row::nullableStr($row, 'preferred_qualifications');
+
         $v->skills = self::decodeJsonArray($row['skills'] ?? null);
         $v->languages = self::decodeJsonArray($row['languages'] ?? null);
-        $v->assessmentCriteria = $row['assessment_criteria'] !== null ? (string) $row['assessment_criteria'] : null;
-        $v->internalNotes = $row['internal_notes'] !== null ? (string) $row['internal_notes'] : null;
-        $v->clientNotes = $row['client_notes'] !== null ? (string) $row['client_notes'] : null;
-        $v->status = (string) $row['status'];
-        $v->isPublic = (bool) $row['is_public'];
-        $v->publicSlug = $row['public_slug'] !== null ? (string) $row['public_slug'] : null;
-        $v->createdBy = $row['created_by'] !== null ? (int) $row['created_by'] : null;
-        $v->createdAt = $row['created_at'] !== null ? (string) $row['created_at'] : null;
-        $v->updatedAt = $row['updated_at'] !== null ? (string) $row['updated_at'] : null;
-        $v->deletedAt = $row['deleted_at'] !== null ? (string) $row['deleted_at'] : null;
+
+        $v->assessmentCriteria = Row::nullableStr($row, 'assessment_criteria');
+        $v->internalNotes = Row::nullableStr($row, 'internal_notes');
+        $v->clientNotes = Row::nullableStr($row, 'client_notes');
+        $v->status = Row::str($row, 'status');
+        $v->isPublic = Row::bool($row, 'is_public');
+        $v->publicSlug = Row::nullableStr($row, 'public_slug');
+        $v->createdBy = Row::nullableInt($row, 'created_by');
+        $v->createdAt = Row::nullableStr($row, 'created_at');
+        $v->updatedAt = Row::nullableStr($row, 'updated_at');
+        $v->deletedAt = Row::nullableStr($row, 'deleted_at');
         return $v;
     }
 
+    /** @return string[] */
     private static function decodeJsonArray(mixed $raw): array
     {
         if (empty($raw)) return [];
         $decoded = json_decode(is_scalar($raw) ? (string) $raw : '', true);
         if (!is_array($decoded)) return [];
-        return array_values(array_map('strval', $decoded));
+        $out = [];
+        foreach ($decoded as $v) {
+            if (is_scalar($v)) $out[] = (string) $v;
+        }
+        return $out;
     }
 
     public function isDeleted(): bool

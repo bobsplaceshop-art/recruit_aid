@@ -21,42 +21,33 @@ Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
 /mnt/c/projects/recruitaid/app/Platform/CustomFields/CustomFieldRenderer.php:31:Method CorporateAid\Platform\CustomFields\CustomFieldRenderer::renderForm() has parameter $errors with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/CustomFields/CustomFieldRenderer.php:31:Method CorporateAid\Platform\CustomFields\CustomFieldRenderer::renderForm() has parameter $submitted with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/CustomFields/CustomFieldValueValidator.php:15:Method CorporateAid\Platform\CustomFields\CustomFieldValueValidator::validate() has parameter $submitted with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputType.php:37:Method CorporateAid\Platform\CustomFields\InputType::validate() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputType.php:62:Method CorporateAid\Platform\CustomFields\InputType::render() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/CheckboxType.php:15:Method CorporateAid\Platform\CustomFields\InputTypes\CheckboxType::validate() has parameter $constraints with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/CheckboxType.php:22:Method CorporateAid\Platform\CustomFields\InputTypes\CheckboxType::cast() never returns null so it can be removed from the return type.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/CheckboxType.php:33:Method CorporateAid\Platform\CustomFields\InputTypes\CheckboxType::render() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/DateType.php:24:Method CorporateAid\Platform\CustomFields\InputTypes\DateType::validate() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/DateType.php:81:Method CorporateAid\Platform\CustomFields\InputTypes\DateType::render() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/EmailType.php:15:Method CorporateAid\Platform\CustomFields\InputTypes\EmailType::validate() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/EmailType.php:33:Method CorporateAid\Platform\CustomFields\InputTypes\EmailType::render() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/FileType.php:61:Method CorporateAid\Platform\CustomFields\InputTypes\FileType::validate() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/FileType.php:84:Method CorporateAid\Platform\CustomFields\InputTypes\FileType::render() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/LongTextType.php:19:Method CorporateAid\Platform\CustomFields\InputTypes\LongTextType::validate() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/LongTextType.php:46:Method CorporateAid\Platform\CustomFields\InputTypes\LongTextType::render() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:23:Method CorporateAid\Platform\CustomFields\InputTypes\NumberType::validate() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:66:Method CorporateAid\Platform\CustomFields\InputTypes\NumberType::render() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/PhoneType.php:15:Method CorporateAid\Platform\CustomFields\InputTypes\PhoneType::validate() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/PhoneType.php:35:Method CorporateAid\Platform\CustomFields\InputTypes\PhoneType::render() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/SelectType.php:15:Method CorporateAid\Platform\CustomFields\InputTypes\SelectType::validate() has parameter $constraints with no value type specified in iterable type array.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/DateType.php:42:Binary operation "." between 'Must be on or after ' and mixed results in an error.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/DateType.php:45:Binary operation "." between 'Must be on or…' and mixed results in an error.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/DateType.php:89:Parameter #1 $value of function e expects string|null, mixed given.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/DateType.php:90:Parameter #1 $value of function e expects string|null, mixed given.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/FileType.php:87:Cannot cast mixed to int.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/FileType.php:96:Parameter #1 $value of function e expects string|null, mixed given.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/LongTextType.php:29:Cannot cast mixed to int.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/LongTextType.php:48:Cannot cast mixed to int.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:39:Cannot cast mixed to float.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:40:Binary operation "." between 'Must be at least ' and mixed results in an error.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:42:Cannot cast mixed to float.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:43:Binary operation "." between 'Must be at most ' and mixed results in an error.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:46:Cannot cast mixed to int.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:69:Cannot cast mixed to int.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:70:Cannot cast mixed to int.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:79:Cannot cast mixed to float.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/NumberType.php:80:Cannot cast mixed to float.
 /mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/SelectType.php:25:Parameter #1 $callback of function array_map expects (callable(mixed): mixed)|null, 'strval' given.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/SelectType.php:39:Method CorporateAid\Platform\CustomFields\InputTypes\SelectType::render() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/TextType.php:21:Method CorporateAid\Platform\CustomFields\InputTypes\TextType::validate() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/TextType.php:52:Method CorporateAid\Platform\CustomFields\InputTypes\TextType::render() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/UrlType.php:15:Method CorporateAid\Platform\CustomFields\InputTypes\UrlType::validate() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/UrlType.php:38:Method CorporateAid\Platform\CustomFields\InputTypes\UrlType::render() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/YesNoType.php:15:Method CorporateAid\Platform\CustomFields\InputTypes\YesNoType::validate() has parameter $constraints with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/YesNoType.php:40:Method CorporateAid\Platform\CustomFields\InputTypes\YesNoType::render() has parameter $constraints with no value type specified in iterable type array.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/SelectType.php:43:Cannot cast mixed to int.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/SelectType.php:49:Parameter #1 $value of function e expects string|null, mixed given.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/TextType.php:31:Cannot cast mixed to int.
+/mnt/c/projects/recruitaid/app/Platform/CustomFields/InputTypes/TextType.php:62:Cannot cast mixed to int.
 /mnt/c/projects/recruitaid/app/Platform/CustomFields/ValidationException.php:13:Method CorporateAid\Platform\CustomFields\ValidationException::__construct() has parameter $errors with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Deletion/DeletionResult.php:32:Method CorporateAid\Platform\Deletion\DeletionResult::inspection() has parameter $dependents with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Deletion/DeletionService.php:137:Method CorporateAid\Platform\Deletion\DeletionService::deleteBulk() has parameter $entities with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Platform/Deletion/DeletionService.php:206:Method CorporateAid\Platform\Deletion\DeletionService::logDeletion() has parameter $dependents with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Models/CustomFieldValue.php:16:Method CorporateAid\Platform\Models\CustomFieldValue::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Models/EntityFile.php:20:Method CorporateAid\Platform\Models\EntityFile::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Models/File.php:27:Method CorporateAid\Platform\Models\File::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Models/Notification.php:17:Method CorporateAid\Platform\Models\Notification::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Models/User.php:36:Method CorporateAid\Platform\Models\User::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Platform/Models/User.php:91:Offset 0 on non-empty-list<string> on left side of ?? always exists and is not nullable.
 /mnt/c/projects/recruitaid/app/Platform/Repositories/UserRepository.php:50:Parameter #1 $string of function trim expects string, mixed given.
 /mnt/c/projects/recruitaid/app/Platform/Repositories/UserRepository.php:51:Parameter #1 $plain of static method CorporateAid\Platform\Support\Hasher::hash() expects string, mixed given.
 /mnt/c/projects/recruitaid/app/Platform/Repositories/UserRepository.php:159:Method CorporateAid\Platform\Repositories\UserRepository::listForAssignment() should return array<int, array{id: int, name: string, email: string, role_slugs: string}> but returns array<int, array<string, mixed>>.
@@ -99,21 +90,6 @@ Note: Using configuration file /mnt/c/projects/recruitaid/phpstan.neon.
 /mnt/c/projects/recruitaid/app/Recruit/Controllers/VacancyController.php:405:Method CorporateAid\Recruit\Controllers\VacancyController::lifecycleAction() has parameter $params with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Recruit/Controllers/VacancyController.php:436:Method CorporateAid\Recruit\Controllers\VacancyController::collectInput() return type has no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Recruit/Controllers/VacancyController.php:489:Method CorporateAid\Recruit\Controllers\VacancyController::linesToList() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/Contact.php:34:Method CorporateAid\Recruit\Models\Contact::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/Engagement.php:30:Method CorporateAid\Recruit\Models\Engagement::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/Engagement.php:58:Method CorporateAid\Recruit\Models\Engagement::decodeJsonArray() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/Engagement.php:63:Parameter #1 $callback of function array_map expects (callable(mixed): mixed)|null, 'strval' given.
-/mnt/c/projects/recruitaid/app/Recruit/Models/EngagementAssignment.php:18:Method CorporateAid\Recruit\Models\EngagementAssignment::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/Organisation.php:30:Method CorporateAid\Recruit\Models\Organisation::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/Organisation.php:45:Parameter #1 $callback of function array_map expects (callable(mixed): mixed)|null, 'strval' given.
-/mnt/c/projects/recruitaid/app/Recruit/Models/PipelineStage.php:21:Method CorporateAid\Recruit\Models\PipelineStage::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/Vacancy.php:31:Property CorporateAid\Recruit\Models\Vacancy::$skills type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/Vacancy.php:32:Property CorporateAid\Recruit\Models\Vacancy::$languages type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/Vacancy.php:44:Method CorporateAid\Recruit\Models\Vacancy::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/Vacancy.php:85:Method CorporateAid\Recruit\Models\Vacancy::decodeJsonArray() return type has no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/Vacancy.php:90:Parameter #1 $callback of function array_map expects (callable(mixed): mixed)|null, 'strval' given.
-/mnt/c/projects/recruitaid/app/Recruit/Models/VacancyRequirement.php:15:Method CorporateAid\Recruit\Models\VacancyRequirement::fromRow() has parameter $row with no value type specified in iterable type array.
-/mnt/c/projects/recruitaid/app/Recruit/Models/VacancyStage.php:19:Method CorporateAid\Recruit\Models\VacancyStage::fromRow() has parameter $row with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Recruit/Repositories/ContactRepository.php:132:Method CorporateAid\Recruit\Repositories\ContactRepository::update() has parameter $data with no value type specified in iterable type array.
 /mnt/c/projects/recruitaid/app/Recruit/Repositories/EngagementRepository.php:261:Method CorporateAid\Recruit\Repositories\EngagementRepository::recruitersFor() should return array<int, array{user_id: int, role: string, name: string, email: string}> but returns array<int, array<string, mixed>>.
 /mnt/c/projects/recruitaid/app/Recruit/Services/ContactService.php:37:Method CorporateAid\Recruit\Services\ContactService::create() has parameter $input with no value type specified in iterable type array.
