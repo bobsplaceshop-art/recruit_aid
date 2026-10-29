@@ -53,6 +53,50 @@ final class ContactController
     }
 
     /**
+     * GET /contacts — global list across all organisations with filters
+     */
+    /** @param array<string, string> $params */
+    public function showGlobalList(Request $request, array $params = []): Response
+    {
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+        /** @var ContactRepository $contacts */
+        $contacts = $this->container->get(ContactRepository::class);
+        /** @var \CorporateAid\Recruit\Repositories\OrganisationRepository $orgs */
+        $orgs = $this->container->get(\CorporateAid\Recruit\Repositories\OrganisationRepository::class);
+
+        $q     = trim($request->queryStringValue('q', ''));
+        $orgId = $request->queryInt('org', 0);
+        $role  = trim($request->queryStringValue('role', ''));
+        $page  = max(1, $request->queryInt('page', 1));
+
+        $filters = [];
+        if ($q !== '')     $filters['q'] = $q;
+        if ($orgId > 0)    $filters['org_id'] = $orgId;
+        if ($role !== '')  $filters['role'] = $role;
+
+        $result = $contacts->paginateAll($filters, $page, 50);
+
+        $html = $view->render('contacts/all', [
+            'title'      => 'Contacts',
+            'user'       => $auth->user(),
+            'rows'       => $result['rows'],
+            'total'      => $result['total'],
+            'page'       => $result['page'],
+            'perPage'    => $result['per_page'],
+            'totalPages' => $result['total_pages'],
+            'allOrgs'    => $orgs->allForFilter(),
+            'q'          => $q,
+            'orgId'      => $orgId,
+            'role'       => $role,
+        ], 'layouts/app');
+
+        return Response::html($html);
+    }
+
+    /**
      * GET /organisations/{code}/contacts/create
      */
     /** @param array<string, string> $params */

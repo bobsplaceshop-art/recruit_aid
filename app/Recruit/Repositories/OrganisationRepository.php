@@ -255,4 +255,26 @@ final class OrganisationRepository
 
         return 'ORG-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Minimal list for filter dropdowns — active orgs only.
+     * @return array<int, array{id: int, code: string, name: string}>
+     */
+    public function allForFilter(): array
+    {
+        $rows = $this->db->select(
+            "SELECT `id`, `code`, `name`
+             FROM `recruit_client_organisations`
+             WHERE `deleted_at` IS NULL
+             ORDER BY `name` ASC"
+        );
+        return array_map(
+            fn(array $r) => [
+                'id'   => Row::int($r, 'id'),
+                'code' => Row::str($r, 'code'),
+                'name' => Row::str($r, 'name'),
+            ],
+            $rows
+        );
+    }
 }

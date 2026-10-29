@@ -240,4 +240,82 @@ final class ContactRepository
         );
         return array_map([Contact::class, 'fromRow'], $rows);
     }
+
+    /**
+     * Paginate active contacts across all organisations with filters.
+     *
+     * @param array{q?: string, org_id?: int, role?: string} $filters
+     * @return array{rows: array<int, array{contact: Contact, organisation_name: string, organisation_code: string}>, total: int, page: int, per_page: int, total_pages: int}
+     */
+    public function paginateAll(array $filters = [], int $page = 1, int $perPage = 50): array
+    {
+        $page = max(1, $page);
+        $perPage = max(1, min($perPage, 100));
+        $offset = ($page - 1) * $perPage;
+
+        // Build WHERE clauses
+        $where = ['c.`deleted_at` IS NULL', 'o.`deleted_at` IS NULL'];
+        $params = [];
+
+        $q = trim((string) ($filters['q'] ?? ''));
+        if ($q !== '') {
+            $where[] = '(c.`first_name` LIKE ? OR c.`last_name` LIKE ? OR c.`email` LIKE ? OR c.`position` LIKE ? OR o.`name` LIKE ?)';
+            $like = '%' . $q . '%';
+            for ($i = 0; $i < 5; $i++) $params[] = $like;
+        }
+
+        $orgId = (int) ($filters['org_id'] ?? 0);
+        if ($orgId > 0) {
+            $where[] = 'c.`organisation_id` = ?';
+            $params[] = $orgId;
+        }
+
+        $role = (string) ($filters['role'] ?? '');
+        $validRoles = ['is_primary', 'is_hiring_manager', 'is_finance', 'is_hr', 'is_decision_maker'];
+        if (in_array($role, $validRoles, true)) {
+            $where[] = "c.`{$role}` = 1";
+        }
+
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
+
+        // Total count using the same WHERE
+        $total = $this->db->scalarInt(
+            "SELECT COUNT(*) FROM `recruit_client_contacts` c
+             INNER JOIN `recruit_client_organisations` o ON o.`id` = c.`organisation_id`
+             {$whereSql}",
+            PDOParams::positional($params)
+        );
+
+        // Paginated rows. LIMIT/OFFSET inlined as ints (see Doctrine #47).
+        $rows = $this->db->select(
+            "SELECT c.*,
+                    o.`name` AS `organisation_name`,
+                    o.`code` AS `organisation_code`
+             FROM `recruit_client_contacts` c
+             INNER JOIN `recruit_client_organisations` o ON o.`id` = c.`organisation_id`
+             {$whereSql}
+             ORDER BY o.`name` ASC, c.`is_primary` DESC, c.`last_name` ASC, c.`first_name` ASC
+             LIMIT " . $perPage . " OFFSET " . $offset,
+            PDOParams::positional($params)
+        );
+
+        $out = [];
+        foreach ($rows as $row) {
+            $out[] = [
+                'contact'           => Contact::fromRow($row),
+                'organisation_name' => Row::str($row, 'organisation_name'),
+                'organisation_code' => Row::str($row, 'organisation_code'),
+            ];
+        }
+
+        $totalPages = max(1, (int) ceil($total / $perPage));
+
+        return [
+            'rows'        => $out,
+            'total'       => $total,
+            'page'        => $page,
+            'per_page'    => $perPage,
+            'total_pages' => $totalPages,
+        ];
+    }
 }

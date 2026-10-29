@@ -18,6 +18,7 @@ use CorporateAid\Recruit\Controllers\HomeController;
 use CorporateAid\Recruit\Controllers\NotificationController;
 use CorporateAid\Recruit\Controllers\OrganisationController;
 use CorporateAid\Recruit\Controllers\ContactController;
+use CorporateAid\Recruit\Controllers\ComingSoonController;
 use CorporateAid\Recruit\Controllers\EngagementController;
 use CorporateAid\Recruit\Controllers\FileController;
 use CorporateAid\Recruit\Controllers\VacancyController;
@@ -26,6 +27,21 @@ use CorporateAid\Recruit\Controllers\VacancyController;
 
 $router->get('/',       [HomeController::class, 'index']);
 $router->get('/health', [HomeController::class, 'health']);
+
+// ---------- Coming Soon (planned features) ----------
+// These render a branded "Coming Soon" page instead of a 404.
+// When a feature ships, replace the route with the real controller.
+
+$router->get('/candidates',   [ComingSoonController::class, 'candidates'],   ['auth']);
+$router->get('/applications', [ComingSoonController::class, 'applications'], ['auth']);
+$router->get('/interviews',   [ComingSoonController::class, 'interviews'],   ['auth']);
+$router->get('/offers',       [ComingSoonController::class, 'offers'],       ['auth']);
+$router->get('/tasks',        [ComingSoonController::class, 'tasks'],        ['auth']);
+$router->get('/calendar',     [ComingSoonController::class, 'calendar'],     ['auth']);
+$router->get('/activity',     [ComingSoonController::class, 'activity'],     ['auth']);
+$router->get('/reports',      [ComingSoonController::class, 'reports'],      ['auth']);
+$router->get('/documents',    [ComingSoonController::class, 'documents'],    ['auth']);
+$router->get('/admin/audit',  [ComingSoonController::class, 'audit'],        ['auth', 'permission:core.settings.manage']);
 
 $router->get('/dashboard', [DashboardController::class, 'index'], ['auth']);
 
@@ -53,6 +69,7 @@ $router->get('/organisations/{code}/delete-info',  [OrganisationController::clas
 // ---------------------------------------------------------------------
 // Organisation Contacts
 // ---------------------------------------------------------------------
+$router->get('/contacts', [ContactController::class, 'showGlobalList'], ['auth', 'permission:recruit.contacts.view']);
 $router->get('/organisations/{code}/contacts',                          [ContactController::class, 'index'],       ['auth', 'permission:recruit.contacts.view']);
 $router->get('/organisations/{code}/contacts/create',                   [ContactController::class, 'showCreate'],  ['auth', 'permission:recruit.contacts.create']);
 $router->post('/organisations/{code}/contacts',                         [ContactController::class, 'store'],       ['auth', 'permission:recruit.contacts.create', 'csrf']);
