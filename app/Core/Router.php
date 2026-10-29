@@ -101,6 +101,7 @@ final class Router
             $middleware = $route['middleware'];
             if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
                 array_unshift($middleware, 'audit');
+                $middleware[] = 'cffile'; // innermost — runs after csrf/auth, before controller
             }
 
             // No middleware at all (after injection) — call directly.

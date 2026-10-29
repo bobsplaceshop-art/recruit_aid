@@ -1,14 +1,13 @@
 <?php
-
 declare(strict_types=1);
 
 namespace CorporateAid\Platform\CustomFields;
 
 use CorporateAid\Core\Auth;
+use CorporateAid\Core\Row;
 use CorporateAid\Platform\Models\CustomField;
 use CorporateAid\Platform\Repositories\CustomFieldRepository;
 use CorporateAid\Platform\Repositories\CustomFieldValueRepository;
-use CorporateAid\Core\Row;
 use CorporateAid\Platform\Services\FileService;
 use CorporateAid\Platform\Support\Logger;
 
@@ -22,8 +21,8 @@ final class CustomFieldValueSaver
     ) {}
 
     /**
-     * @param array<string, mixed> $submitted
-     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
+     * @param array<string, mixed> $submitted The cf array (not wrapped).
+     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files Legacy raw uploads.
      */
     public function save(string $entityType, int $entityId, array $submitted, array $files = []): void
     {
@@ -32,32 +31,51 @@ final class CustomFieldValueSaver
         foreach ($definitions as $field) {
             $type = InputTypeRegistry::get($field->inputType);
             $isFileField = $field->inputType === 'file';
-            $hasFile = $isFileField && isset($files[$field->fieldKey]);
-            $hasValue = array_key_exists($field->fieldKey, $submitted);
-
-            if ($hasFile) {
-                $this->saveFileValue($field, $entityType, $entityId, $files[$field->fieldKey]);
-                continue;
-            }
 
             if ($isFileField) {
+                // The value should be a UUID string (injected by middleware)
+                if (isset($submitted[$field->fieldKey]) && is_string($submitted[$field->fieldKey])) {
+                    $uuid = $submitted[$field->fieldKey];
+                    if ($uuid !== '') {
+                        $this->linkExistingFileByUuid($field, $entityType, $entityId, $uuid);
+                    }
+                    continue;
+                }
+                // Legacy: raw fileData passed via $files argument
+                if (isset($files[$field->fieldKey])) {
+                    $this->saveFileValue($field, $entityType, $entityId, $files[$field->fieldKey]);
+                }
                 continue;
             }
 
-            if (!$hasValue) {
+            // Non-file fields
+            if (!array_key_exists($field->fieldKey, $submitted)) {
                 continue;
             }
 
             $rawValue = $submitted[$field->fieldKey];
             $casted = $type->cast($rawValue);
 
-            $this->values->setValue(
-                $field->id,
-                $entityType,
-                $entityId,
-                $casted
-            );
+            $this->values->setValue($field->id, $entityType, $entityId, $casted);
         }
+    }
+
+    private function linkExistingFileByUuid(
+        CustomField $field,
+        string $entityType,
+        int $entityId,
+        string $uuid
+    ): void {
+        // Look up the file ID from the UUID
+        $file = $this->files->findByUuid($uuid);
+        if ($file === null) {
+            Logger::warning('SAVER-FAIL: UUID not found in core_files', ['uuid' => $uuid]);
+            return;
+        }
+
+        $userId = $this->auth?->user()?->id;
+        $this->files->link($file->id, $entityType, $entityId, $field->fieldKey, $userId);
+        $this->values->setValue($field->id, $entityType, $entityId, $uuid);
     }
 
     /** @param array{name:string,type:string,tmp_name:string,error:int,size:int} $fileData */
@@ -75,9 +93,7 @@ final class CustomFieldValueSaver
             $maxMb = FileService::DEFAULT_MAX_MB;
         }
 
-        $category = $field->fieldKey;
-
-        $result = $this->files->store($fileData, $userId, $category, $maxMb);
+        $result = $this->files->store($fileData, $userId, $field->fieldKey, $maxMb);
 
         if (is_array($result)) {
             Logger::warning('Custom field file upload failed', [
@@ -89,19 +105,7 @@ final class CustomFieldValueSaver
             return;
         }
 
-        $this->values->setValue(
-            $field->id,
-            $entityType,
-            $entityId,
-            $result->uuid
-        );
-
-        $this->files->link(
-            $result->id,
-            $entityType,
-            $entityId,
-            $category,
-            $userId
-        );
+        $this->values->setValue($field->id, $entityType, $entityId, $result->uuid);
+        $this->files->link($result->id, $entityType, $entityId, $field->fieldKey, $userId);
     }
 }

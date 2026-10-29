@@ -32,10 +32,9 @@ final class EngagementService
 
     /**
      * @param array<string, mixed> $input
-     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
      * @return array{id:int, engagement:?Engagement, errors:string[]}
      */
-    public function create(int $organisationId, array $input, array $files = []): array
+    public function create(int $organisationId, array $input): array
     {
         $baseErrors = $this->validator->validate($input);
         $cfValues = is_array($input['cf'] ?? null) ? $input['cf'] : [];
@@ -53,8 +52,8 @@ final class EngagementService
 
         $id = $this->engagements->create($normalized);
 
-        if (!empty($cfValues) || !empty($files)) {
-            $this->cfSaver->save('engagement', $id, $cfValues, $files);
+        if (!empty($cfValues)) {
+            $this->cfSaver->save('engagement', $id, $cfValues);
         }
 
         $engagement = $this->engagements->findById($id);
@@ -75,10 +74,9 @@ final class EngagementService
 
     /**
      * @param array<string, mixed> $input
-     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
      * @return array{success:bool, errors:string[], changes:array<string, array{old:mixed,new:mixed}>}
      */
-    public function update(int $id, array $input, array $files = []): array
+    public function update(int $id, array $input): array
     {
         $existing = $this->engagements->findById($id);
         if (!$existing) {
@@ -97,8 +95,8 @@ final class EngagementService
         $normalized = $this->validator->normalize($input);
         $changes = $this->engagements->update($id, $normalized);
 
-        if (!empty($cfValues) || !empty($files)) {
-            $this->cfSaver->save('engagement', $id, $cfValues, $files);
+        if (!empty($cfValues)) {
+            $this->cfSaver->save('engagement', $id, $cfValues);
         }
 
         if (!empty($changes)) {

@@ -18,7 +18,6 @@ use CorporateAid\Platform\Repositories\UserRepository;
 use CorporateAid\Recruit\Repositories\VacancyRepository;
 use CorporateAid\Recruit\Repositories\VacancyStageRepository;
 use CorporateAid\Recruit\Services\VacancyService;
-use CorporateAid\Platform\CustomFields\FileCollector;
 
 final class VacancyController
 {
@@ -147,8 +146,7 @@ final class VacancyController
         }
 
         $input = $this->collectInput($request);
-        $files = FileCollector::collect();
-        $result = $service->create($org->id, $input, $files);
+        $result = $service->create($org->id, $input);
 
         if (!empty($result['errors'])) {
             $orgsList = $orgs->paginate([], 1, 500)['rows'];
@@ -313,8 +311,7 @@ final class VacancyController
         $auth = $this->container->get(Auth::class);
 
         $input = $this->collectInput($request);
-        $files = FileCollector::collect();
-        $result = $service->update($vacancy->id, $input, $files);
+        $result = $service->update($vacancy->id, $input);
 
         if (!$result['success']) {
             $html = $view->render('vacancies/form', [

@@ -33,10 +33,9 @@ final class OrganisationService
      * Create a new organisation.
      *
      * @param array<string, mixed> $input
-     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
      * @return array{id:int, organisation:Organisation|null, errors:string[]}
      */
-    public function create(array $input, array $files = []): array
+    public function create(array $input): array
     {
         $baseErrors = $this->validator->validate($input);
         $cfValues = is_array($input['cf'] ?? null) ? $input['cf'] : [];
@@ -62,8 +61,8 @@ final class OrganisationService
         $id = $this->organisations->create($normalized);
 
         // Save custom field values (including any uploaded files)
-        if (!empty($cfValues) || !empty($files)) {
-            $this->cfSaver->save('organisation', $id, $cfValues, $files);
+        if (!empty($cfValues)) {
+            $this->cfSaver->save('organisation', $id, $cfValues);
         }
 
         $org = $this->organisations->findById($id);
@@ -86,10 +85,9 @@ final class OrganisationService
      * Update an existing organisation.
      *
      * @param array<string, mixed> $input
-     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
      * @return array{success:bool, errors:string[], changes:array<string, array{old:mixed,new:mixed}>}
      */
-    public function update(int $id, array $input, array $files = []): array
+    public function update(int $id, array $input): array
     {
         $existing = $this->organisations->findById($id);
         if (!$existing) {
@@ -115,8 +113,8 @@ final class OrganisationService
         $normalized = $this->validator->normalize($input);
         $changes = $this->organisations->update($id, $normalized);
 
-        if (!empty($cfValues) || !empty($files)) {
-            $this->cfSaver->save('organisation', $id, $cfValues, $files);
+        if (!empty($cfValues)) {
+            $this->cfSaver->save('organisation', $id, $cfValues);
         }
 
         if (!empty($changes)) {

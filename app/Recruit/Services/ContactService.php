@@ -33,10 +33,9 @@ final class ContactService
      * Create a new contact for an organisation.
      *
      * @param array<string, mixed> $input
-     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
      * @return array{id:int, contact:?Contact, errors:string[]}
      */
-    public function create(int $organisationId, array $input, array $files = []): array
+    public function create(int $organisationId, array $input): array
     {
         $baseErrors = $this->validator->validate($input);
         $cfValues = is_array($input['cf'] ?? null) ? $input['cf'] : [];
@@ -55,8 +54,8 @@ final class ContactService
 
         $id = $this->contacts->create($normalized);
 
-        if (!empty($cfValues) || !empty($files)) {
-            $this->cfSaver->save('contact', $id, $cfValues, $files);
+        if (!empty($cfValues)) {
+            $this->cfSaver->save('contact', $id, $cfValues);
         }
 
         $contact = $this->contacts->findById($id);
@@ -77,10 +76,9 @@ final class ContactService
 
     /**
      * @param array<string, mixed> $input
-     * @param array<string, array{name:string,type:string,tmp_name:string,error:int,size:int}> $files
      * @return array{success:bool, errors:string[], changes:array<string, array{old:mixed,new:mixed}>}
      */
-    public function update(int $id, array $input, array $files = []): array
+    public function update(int $id, array $input): array
     {
         $existing = $this->contacts->findById($id);
         if (!$existing) {
@@ -99,8 +97,8 @@ final class ContactService
         $normalized = $this->validator->normalize($input);
         $changes = $this->contacts->update($id, $normalized);
 
-        if (!empty($cfValues) || !empty($files)) {
-            $this->cfSaver->save('contact', $id, $cfValues, $files);
+        if (!empty($cfValues)) {
+            $this->cfSaver->save('contact', $id, $cfValues);
         }
 
         if (!empty($changes)) {

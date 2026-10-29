@@ -10,6 +10,7 @@ use CorporateAid\Core\Response;
 use CorporateAid\Platform\Middleware\AuditLoggerMiddleware;
 use CorporateAid\Platform\Middleware\AuthMiddleware;
 use CorporateAid\Platform\Middleware\CsrfMiddleware;
+use CorporateAid\Platform\Middleware\CustomFieldFileMiddleware;
 use CorporateAid\Platform\Middleware\GuestMiddleware;
 use CorporateAid\Platform\Middleware\PermissionMiddleware;
 use CorporateAid\Platform\Middleware\RateLimitMiddleware;
@@ -56,6 +57,7 @@ final class Kernel
         'auth'       => AuthMiddleware::class,
         'guest'      => GuestMiddleware::class,
         'csrf'       => CsrfMiddleware::class,
+        'cffile'     => CustomFieldFileMiddleware::class,
         'permission' => PermissionMiddleware::class,
         'ratelimit'  => RateLimitMiddleware::class,
         'audit'      => AuditLoggerMiddleware::class,

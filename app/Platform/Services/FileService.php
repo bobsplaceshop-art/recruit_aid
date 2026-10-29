@@ -142,6 +142,11 @@ final class FileService
         return $stored;
     }
 
+    public function findByUuid(string $uuid): ?\CorporateAid\Platform\Models\File
+    {
+        return $this->files->findByUuid($uuid);
+    }
+
     public function link(int $fileId, string $entityType, int $entityId, string $category, ?int $linkedBy): void
     {
         $this->links->link($fileId, $entityType, $entityId, $category, $linkedBy);

@@ -12,7 +12,6 @@ use CorporateAid\Core\Session;
 use CorporateAid\Core\View;
 use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Recruit\Services\OrganisationService;
-use CorporateAid\Platform\CustomFields\FileCollector;
 use CorporateAid\Core\Row;
 
 final class OrganisationController
@@ -101,9 +100,8 @@ final class OrganisationController
         $auth = $this->container->get(Auth::class);
 
         $input = $this->collectInput($request);
-        $files = FileCollector::collect();
 
-        $result = $service->create($input, $files);
+        $result = $service->create($input);
 
         if (!empty($result['errors'])) {
             $html = $view->render('organisations/form', [
@@ -214,9 +212,8 @@ final class OrganisationController
         $auth = $this->container->get(Auth::class);
 
         $input = $this->collectInput($request);
-        $files = FileCollector::collect();
 
-        $result = $service->update($org->id, $input, $files);
+        $result = $service->update($org->id, $input);
 
         if (!$result['success']) {
             $html = $view->render('organisations/form', [

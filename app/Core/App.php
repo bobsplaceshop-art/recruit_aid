@@ -350,6 +350,7 @@ final class App
         $c->singleton(\CorporateAid\Platform\Middleware\AuthMiddleware::class,       fn() => new \CorporateAid\Platform\Middleware\AuthMiddleware($c->get(Auth::class)));
         $c->singleton(\CorporateAid\Platform\Middleware\GuestMiddleware::class,      fn() => new \CorporateAid\Platform\Middleware\GuestMiddleware($c->get(Auth::class)));
         $c->singleton(\CorporateAid\Platform\Middleware\CsrfMiddleware::class,       fn() => new \CorporateAid\Platform\Middleware\CsrfMiddleware($c->get(Csrf::class)));
+        $c->singleton(\CorporateAid\Platform\Middleware\CustomFieldFileMiddleware::class, fn() => new \CorporateAid\Platform\Middleware\CustomFieldFileMiddleware($c));
 
         // ---------- Audit ----------
         // AuditLogger writes rows to `core_audit_logs` (HTTP request audit).

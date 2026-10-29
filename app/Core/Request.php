@@ -159,6 +159,32 @@ final class Request
     }
 
     /**
+     * Return a new Request with the given body overrides merged in.
+     * Used by middleware that injects data for downstream handlers.
+     *
+     * @param array<string, mixed> $overrides
+     */
+    public function withBody(array $overrides): self
+    {
+        $newBody = $this->body;
+        foreach ($overrides as $k => $v) {
+            $newBody[$k] = $v;
+        }
+        return new self(
+            $this->method,
+            $this->path,
+            $this->queryString,
+            $this->queryParams,
+            $newBody,
+            $this->files,
+            $this->server,
+            [],
+            $this->headers,
+            $this->rawBody
+        );
+    }
+
+    /**
      * @param string[] $keys
      * @return array<string, mixed>
      */
