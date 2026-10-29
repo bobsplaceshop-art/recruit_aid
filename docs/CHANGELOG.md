@@ -17,6 +17,96 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.7.0-alpha] — 2026-10-29
+
+The "permissions and file uploads" release. Granular role-based access
+control with full UI management, dynamic sidebar visibility, and a
+middleware-based file upload architecture for custom fields. Also
+shipped PHPStan Level 9 compliance (448 errors eliminated, 0 remaining).
+
+### Added
+
+**Custom field file uploads (middleware-based)**
+- `CustomFieldFileMiddleware` intercepts `cf_*_file` uploads on every
+  POST/PUT/PATCH request
+- Stores the file via `FileService`, injects the resulting UUID into
+  the request body
+- `CustomFieldValueSaver` links the file to the entity and saves the
+  value
+- Works for any current or future module — zero per-controller code
+- Preserves the legacy `$files` argument path for backward compatibility
+- Handles PUT method spoofing (edit forms) correctly
+
+**Granular roles & permissions management**
+- `/admin/roles-perm/roles` — role list with Create/Edit/Delete
+- `/admin/roles-perm/roles/create` — create new role
+- `/admin/roles-perm/roles/{id}/edit` — edit role (name, description)
+- `/admin/roles-perm/permissions?role_id=X` — permission matrix
+  with role selector, human-readable labels, and save
+- `/admin/roles-perm/roles/{id}/edit` shows "Users with this role"
+  table with inline Remove buttons
+- `POST /admin/roles-perm/roles/{id}/users/{userId}/remove` — detach
+  a user from a role (preserves other roles)
+
+**User management CRUD**
+- `/admin/users` — list all users with status, roles, last login
+- `/admin/users/create` — create user with role assignment
+- `/admin/users/{id}/edit` — edit user (name, email, status, roles,
+  optional password change)
+- Role checkboxes on user form show name + system badge + description
+
+**Dynamic sidebar visibility**
+- Sidebar items wrapped in `$user->can('permission.slug')`
+- Users see only nav items their roles grant them
+- Super admins bypass all checks via `User::isSuperAdmin()`
+- Changes take effect on next page load after permission update
+
+**Branded 403 page**
+- `PermissionMiddleware` now throws `HttpException::forbidden()`
+- `App::renderException()` renders `errors/403.php`
+- Page shows shield icon, message, required permission, and
+  Back / Go-back buttons
+
+**PHPStan Level 9 compliance**
+- 448 errors eliminated (0 remaining, PHP 8.3 with `phpVersion: 80300`)
+- `composer analyse` script for one-word verification
+- `composer.json platform.php` bumped to 8.3.36 to match runtime
+
+### Changed
+
+- **Only `super_admin` is a system role.** All other seeded roles
+  (admin, recruitment_manager, recruiter, researcher, client_admin,
+  client_user) are now `is_system = 0` — admins can rename, delete, or
+  replace them without touching code.
+- Seeder updated so fresh installs get the correct `is_system` values.
+- Migration `0027_demote_non_super_admin_roles.sql` fixes existing installs.
+
+### Fixed
+
+- **`/admin/users` was broken** — route aliased the old (incomplete)
+  `UserController` to the name `AdminUserController`, hiding the fact
+  that two controllers existed. Removed the alias.
+- **Role delete produced a 500 page** instead of a flash message when
+  the role had users assigned. Business-rule rejections now use flash +
+  redirect (Doctrine #42).
+- **`PermissionMiddleware` returned raw HTML** for 403s instead of
+  using the branded error page. Now throws `HttpException::forbidden()`.
+- **`functions.php` full-file rewrite** accidentally dropped
+  `csrf_field()` and broke every form. Restored from backup and fixed
+  `config()` to resolve `Config::class` instead of `'config'`.
+- **`Hasher.php`** was analyzing for PHP 7.4 while running on 8.3.
+  `phpstan.neon` now specifies `phpVersion: 80300`. Narrowed
+  `algorithm()` return type to `string`; replaced dead `=== false`
+  check with `try/catch (ValueError)`.
+
+### Removed
+
+- `app/Platform/CustomFields/FileCollector.php` — replaced by middleware
+- `app/Recruit/Controllers/Admin/UserController.php` — superseded by
+  `AdminUserController.php`
+
+---
+
 ## [0.6.0-alpha] — 2026-09-25
 
 The "foundation hardening" release. Renamed the entire codebase to

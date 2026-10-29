@@ -270,6 +270,35 @@ multi-select, checkbox, file, currency.
 Each input type implements `InputType` and knows how to render itself,
 validate its values, and cast values for display.
 
+### File uploads — middleware pattern
+
+Custom field file uploads are handled by
+`app/Platform/Middleware/CustomFieldFileMiddleware.php`, which is
+registered globally in `Router::dispatch()` for every POST/PUT/PATCH
+request. It:
+
+1. Scans `$_FILES` for inputs matching `cf_*_file`
+2. Stores each via `FileService::store()`
+3. Injects the resulting UUID into the request body at
+   `cf[fieldKey]` and the file ID at `cf['_file_ids'][fieldKey]`
+4. Passes the mutated `Request` object downstream via `$next()`
+
+The controller sees `cf[fieldKey]` as a normal UUID string. The
+`CustomFieldValueSaver` detects the presence of `_file_ids`, calls
+`FileService::link()` (the file was already stored), and writes the
+UUID as the field value.
+
+**Why middleware:** the alternative — `FileCollector::collect()` in
+every controller and `$files` argument in every service — required
+touching 2 controllers + 2 services for every entity type. Any new
+module (HR Aid, CRM Aid, etc.) would need the same plumbing. The
+middleware approach means zero changes for new modules: they render
+`cf_*_file` inputs and the platform handles the rest.
+
+Legacy controllers still pass `$files` explicitly; the saver merges
+both sources. This preserves backward compatibility for any in-flight
+code that hasn't been reverted.
+
 ---
 
 ## 8. Audit & Activity Logging

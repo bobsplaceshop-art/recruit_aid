@@ -5,7 +5,7 @@
 **Type:** Recruitment Operations & Applicant Tracking System (ATS)
 **Model:** Sold as a white-labelled product to recruitment agencies who own and rebrand their install
 **Deployment target:** Shared cPanel hosting (PHP 8.2+, MySQL 8, Apache)
-**Current version:** 0.6.0-alpha
+**Current version:** 0.7.0-alpha
 
 ---
 
@@ -133,8 +133,15 @@ Full taxonomy: `docs/NAMING-CONVENTION.md` §1.
 - Session security (HttpOnly, SameSite, rotation, idle timeout)
 - CSRF protection on all POST/PUT/PATCH/DELETE
 - Password hashing with Argon2id
-- 7 roles, 45+ permissions
+- 7 seeded roles, 45+ permissions
 - Granular permission middleware with human-friendly slugs
+- **Roles CRUD** — create, edit (name/description), delete with guards
+- **Permission matrix** — role selector + checkbox grid with human-readable labels
+- **User management** — full CRUD with role assignment
+- **Bidirectional role membership** — role edit shows assigned users with inline Remove; user edit shows role checkboxes
+- **Dynamic sidebar** — nav items hidden based on the user's permissions
+- **Branded 403 page** — shield icon, message, required permission, Back / Go-back
+- **Only `super_admin` is a system role** — all others are renameable/deleteable starting templates
 
 ### Design System ✅
 
@@ -152,6 +159,10 @@ Full taxonomy: `docs/NAMING-CONVENTION.md` §1.
 - Field builder admin UI
 - Live preview, auto-render, auto-validate
 - Archive vs. delete
+- **File uploads handled by middleware** — `CustomFieldFileMiddleware`
+  intercepts `cf_*_file` inputs on every POST/PUT/PATCH, stores via
+  `FileService`, and injects the UUID into the request. Works for any
+  module with zero controller/service plumbing.
 
 ### Deletion Workflow ✅
 

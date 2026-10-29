@@ -359,6 +359,46 @@ failure attached. They are not suggestions.
 
 ---
 
+41. **Cross-cutting concerns belong in middleware.** A feature that must
+    run before every controller (CSRF, rate limiting, audit logging, custom
+    field file uploads) belongs in middleware. A feature that runs for one
+    specific controller belongs inline. The file-upload saga (2026-10-29)
+    proved the cost: per-controller plumbing required touching 2 controllers
+    + 2 services for every entity type, and every new module would have
+    needed the same. The middleware pattern means zero changes for new
+    modules, and it's the pattern to follow for any future cross-cutting
+    concern.
+
+42. **Business-rule rejections are not exceptions.** When a controller
+    detects a valid user request that cannot proceed due to a business
+    rule (duplicate name, users assigned, system role, capacity exceeded),
+    it should flash an error message and redirect. Throwing RuntimeException
+    and letting App::renderException() catch it produces a 500 page with an
+    ERR-xxxxxx reference — misleading, because nothing is actually broken.
+    The exception handler is for unexpected bugs, not expected rejections.
+
+    - 500 errors = unexpected bugs (uncaught exceptions, DB failures)
+    - 403 errors = authorization failures (HttpException::forbidden())
+    - 404 errors = resource not found (HttpException::notFound())
+    - Flash + redirect = business rule rejections
+
+43. **Relationship management is bidirectional.** When two entities have
+    a many-to-many relationship (users to roles, organisations to
+    recruiters, etc.), provide management from both sides: user form lists
+    available roles, role form lists assigned users. Each side has its own
+    guard (can't delete role with users, can't unassign super_admin from
+    yourself), its own flash, and its own link back to the other side.
+    This eliminates the "I have to remember where I saw that" cognitive
+    load. Example: role edit page shows "Users with this role" with Remove
+    buttons; user edit page shows role checkboxes.
+
+44. **When two files claim the same route, check the `use` clause.** The
+    /admin/users 500 bug (2026-10-29) came from `use UserController as
+    AdminUserController;` in routes/web.php — the alias hid the fact that
+    two controllers existed, and the older (broken) one was winning.
+    `grep -n "use .*Controller" routes/web.php` before debugging any route
+    that seems broken. Aliases in `use` statements are a footgun.
+
 ## How to Resume in a New Chat
 
 Paste this file as the first message, then say:
@@ -497,4 +537,4 @@ tar -xzf ~/recruitaid-backups/recruitaid-milestone14-naming-complete-*.tar.gz
 
 ---
 
-End of REMEMBER v6
+End of REMEMBER v7
