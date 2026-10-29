@@ -19,12 +19,15 @@ use CorporateAid\Recruit\Controllers\NotificationController;
 use CorporateAid\Recruit\Controllers\OrganisationController;
 use CorporateAid\Recruit\Controllers\ContactController;
 use CorporateAid\Recruit\Controllers\ActivityController;
+use CorporateAid\Recruit\Controllers\GlobalActivityController;
 use CorporateAid\Recruit\Controllers\GlobalSearchController;
 use CorporateAid\Recruit\Controllers\LiveSearchController;
 use CorporateAid\Recruit\Controllers\ComingSoonController;
 use CorporateAid\Recruit\Controllers\EngagementController;
 use CorporateAid\Recruit\Controllers\FileController;
 use CorporateAid\Recruit\Controllers\VacancyController;
+use CorporateAid\Recruit\Controllers\CandidateController;
+use CorporateAid\Recruit\Controllers\ApplicationController;
 
 /** @var Router $router */
 
@@ -35,13 +38,11 @@ $router->get('/health', [HomeController::class, 'health']);
 // These render a branded "Coming Soon" page instead of a 404.
 // When a feature ships, replace the route with the real controller.
 
-$router->get('/candidates',   [ComingSoonController::class, 'candidates'],   ['auth']);
 $router->get('/applications', [ComingSoonController::class, 'applications'], ['auth']);
 $router->get('/interviews',   [ComingSoonController::class, 'interviews'],   ['auth']);
 $router->get('/offers',       [ComingSoonController::class, 'offers'],       ['auth']);
 $router->get('/tasks',        [ComingSoonController::class, 'tasks'],        ['auth']);
 $router->get('/calendar',     [ComingSoonController::class, 'calendar'],     ['auth']);
-$router->get('/activity',     [ComingSoonController::class, 'activity'],     ['auth']);
 $router->get('/reports',      [ComingSoonController::class, 'reports'],      ['auth']);
 $router->get('/documents',    [ComingSoonController::class, 'documents'],    ['auth']);
 $router->get('/admin/audit',  [ComingSoonController::class, 'audit'],        ['auth', 'permission:core.settings.manage']);
@@ -117,6 +118,27 @@ $router->post('/vacancies/{code}/delete',         [VacancyController::class, 'de
 $router->get('/vacancies/{code}/delete-info',     [VacancyController::class, 'deleteInfo'],  ['auth', 'permission:recruit.vacancies.close']);
 
 // ---------------------------------------------------------------------
+// Applications (pipeline)
+// ---------------------------------------------------------------------
+$router->get('/vacancies/{code}/add-candidate',  [ApplicationController::class, 'addCandidateForm'], ['auth', 'permission:recruit.vacancies.edit']);
+$router->post('/vacancies/{code}/add-candidate', [ApplicationController::class, 'addCandidate'],     ['auth', 'permission:recruit.vacancies.edit', 'csrf']);
+$router->post('/applications/{code}/move',       [ApplicationController::class, 'move'],             ['auth', 'permission:recruit.vacancies.edit', 'csrf']);
+
+
+// ---------------------------------------------------------------------
+// Candidates
+// ---------------------------------------------------------------------
+$router->get('/candidates',                       [CandidateController::class, 'index'],      ['auth', 'permission:recruit.candidates.view']);
+$router->get('/candidates/create',                [CandidateController::class, 'showCreate'], ['auth', 'permission:recruit.candidates.create']);
+$router->post('/candidates',                      [CandidateController::class, 'store'],      ['auth', 'permission:recruit.candidates.create', 'csrf']);
+$router->get('/candidates/{code}',                [CandidateController::class, 'show'],       ['auth', 'permission:recruit.candidates.view']);
+$router->get('/candidates/{code}/edit',           [CandidateController::class, 'showEdit'],   ['auth', 'permission:recruit.candidates.edit']);
+$router->put('/candidates/{code}',                [CandidateController::class, 'update'],     ['auth', 'permission:recruit.candidates.edit', 'csrf']);
+$router->post('/candidates/{code}/archive',       [CandidateController::class, 'archive'],    ['auth', 'permission:recruit.candidates.delete', 'csrf']);
+$router->post('/candidates/{code}/restore',       [CandidateController::class, 'restore'],    ['auth', 'permission:recruit.candidates.delete', 'csrf']);
+
+
+// ---------------------------------------------------------------------
 // Files
 // ---------------------------------------------------------------------
 // Files are served through PHP with permission checks derived from
@@ -160,7 +182,8 @@ $router->get('/admin/lookups/{group}',                    [LookupController::cla
 $router->get('/admin/lookups/{group}/create',             [LookupController::class, 'create'], ['auth', 'permission:core.settings.manage']);
 $router->post('/admin/lookups/{group}',                   [LookupController::class, 'store'],  ['auth', 'permission:core.settings.manage', 'csrf']);
 $router->get('/admin/lookups/{group}/{id}/edit',          [LookupController::class, 'edit'],   ['auth', 'permission:core.settings.manage']);
-$router->put('/admin/lookups/{group}/{id}',               [LookupController::class, 'update'], ['auth', 'permission:core.settings.manage', 'csrf']);
+$router->put('/
+admin/lookups/{group}/{id}',               [LookupController::class, 'update'], ['auth', 'permission:core.settings.manage', 'csrf']);
 $router->delete('/admin/lookups/{group}/{id}',            [LookupController::class, 'destroy'],['auth', 'permission:core.settings.manage', 'csrf']);
 $router->get('/admin/custom-fields',                      [CustomFieldController::class, 'index'],      ['auth', 'permission:core.settings.manage']);
 $router->get('/admin/custom-fields/{entity}',             [CustomFieldController::class, 'listFor'],    ['auth', 'permission:core.settings.manage']);
@@ -204,12 +227,13 @@ $router->get('/admin/email-templates', function (Request $req, array $params): R
 }, ['auth', 'permission:core.settings.manage']);
 
 // ---------------------------------------------------------------------
-// Notifications
+// Notifications & Global Activity
 // ---------------------------------------------------------------------
 $router->get('/notifications',            [NotificationController::class, 'index'],       ['auth']);
-$router->get('/activity/{type}/{id}', [ActivityController::class, 'show'], ['auth']);
-$router->get('/api/live-search', [LiveSearchController::class, 'search'], ['auth']);
-$router->get('/api/search', [GlobalSearchController::class, 'api'], ['auth']);
+$router->get('/activity',                 [GlobalActivityController::class, 'index'],     ['auth']);
+$router->get('/activity/{type}/{id}',     [ActivityController::class, 'show'],            ['auth']);
+$router->get('/api/live-search',          [LiveSearchController::class, 'search'],        ['auth']);
+$router->get('/api/search',               [GlobalSearchController::class, 'api'],         ['auth']);
 $router->get('/api/notifications',        [NotificationController::class, 'api'],         ['auth']);
 $router->post('/notifications/{id}/read', [NotificationController::class, 'markRead'],    ['auth', 'csrf']);
 $router->post('/notifications/read-all',  [NotificationController::class, 'markAllRead'], ['auth', 'csrf']);

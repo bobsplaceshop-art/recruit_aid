@@ -17,6 +17,8 @@ use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Platform\Repositories\UserRepository;
 use CorporateAid\Recruit\Repositories\VacancyRepository;
 use CorporateAid\Recruit\Repositories\VacancyStageRepository;
+use CorporateAid\Recruit\Repositories\ApplicationRepository;
+use CorporateAid\Recruit\Repositories\CandidateRepository;
 use CorporateAid\Recruit\Services\VacancyService;
 
 final class VacancyController
@@ -220,6 +222,45 @@ final class VacancyController
 
         $requirements = $vacancies->requirementsFor($vacancy->id);
 
+        // Load pipeline applications grouped by stage
+        /** @var ApplicationRepository $appRepo */
+        $appRepo = $this->container->get(ApplicationRepository::class);
+        /** @var CandidateRepository $candRepo */
+        $candRepo = $this->container->get(CandidateRepository::class);
+
+        $applicationsByStage = [];
+        foreach ($stages as $s) {
+            $applicationsByStage[$s->id] = [];
+        }
+        $applicationsByStage['_unassigned'] = [];
+
+        foreach ($appRepo->forVacancy($vacancy->id) as $a) {
+            if ($a->status !== 'active') continue;
+            $candidate = $candRepo->findById($a->candidateId);
+            if ($candidate === null) continue;
+
+            // Time in current stage — most recent move in history (or applied_at for stage 1)
+            $movedAt = $a->appliedAt;
+            $history = $appRepo->stageHistoryFor($a->id);
+            if (!empty($history)) {
+                $lastMove = $history[count($history) - 1];
+                if ($lastMove->movedAt !== '') {
+                    $movedAt = $lastMove->movedAt;
+                }
+            }
+
+            $entry = [
+                'application' => $a,
+                'candidate'   => $candidate,
+                'stage_since' => $movedAt,
+            ];
+            if ($a->currentStageId !== null && isset($applicationsByStage[$a->currentStageId])) {
+                $applicationsByStage[$a->currentStageId][] = $entry;
+            } else {
+                $applicationsByStage['_unassigned'][] = $entry;
+            }
+        }
+
         /** @var View $view */
         $view = $this->container->get(View::class);
         /** @var Auth $auth */
@@ -233,6 +274,7 @@ final class VacancyController
             'engagement'   => $engagement,
             'stages'       => $stages,
             'requirements' => $requirements,
+            'applicationsByStage' => $applicationsByStage,
         ], 'layouts/app');
 
         return Response::html($html);

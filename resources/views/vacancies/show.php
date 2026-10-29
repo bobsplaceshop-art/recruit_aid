@@ -11,6 +11,7 @@ $renderer = App::instance()
     ->get(\CorporateAid\Platform\CustomFields\CustomFieldRenderer::class);
 
 $customFieldsHtml = $renderer->renderDetail('vacancy', $vacancy->id);
+$activityHtml = \CorporateAid\Core\App::instance()->container()->get(\CorporateAid\Platform\Services\ActivityTimelineService::class)->render('vacancy', $vacancy->id);
 
 $delBase = '/vacancies/' . $vacancy->code;
 
@@ -128,25 +129,123 @@ foreach ($requirements as $r) {
             </div>
         </div>
 
-        <!-- Pipeline stages -->
+        <!-- Pipeline Kanban -->
         <div class="ra-card mt-3">
-            <h2 class="h5 mb-3">Pipeline</h2>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 mb-0">Pipeline</h2>
+                <?php if ($user->can('recruit.vacancies.edit')): ?>
+                    <a href="/vacancies/<?= e($vacancy->code) ?>/add-candidate" class="ra-btn ra-btn-primary ra-btn-sm">
+                        <i class="bi bi-plus-lg"></i> Add candidate
+                    </a>
+                <?php endif; ?>
+            </div>
             <?php if (empty($stages)): ?>
-                <div class="muted small">No pipeline stages defined.</div>
+                <div class="muted small">No pipeline stages defined for this vacancy. Edit the vacancy to define stages.</div>
             <?php else: ?>
-                <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;">
-                    <?php foreach ($stages as $i => $s): ?>
-                        <?php if ($i > 0): ?>
-                            <i class="bi bi-chevron-right muted" style="font-size:.7rem;"></i>
-                        <?php endif; ?>
-                        <span class="ra-badge"
-                              style="<?= $s->color ? 'background:' . e($s->color) . '20;color:' . e($s->color) . ';' : '' ?>">
-                            <?= e($s->label) ?>
-                        </span>
+                <div class="ra-pipeline-board">
+                    <?php foreach ($stages as $s): ?>
+                        <?php
+                            $entries = $applicationsByStage[$s->id] ?? [];
+                            $count = count($entries);
+                        ?>
+                        <div class="ra-pipeline-column">
+                            <div class="ra-pipeline-column-header">
+                                <span class="ra-pipeline-column-title-pill"
+                                      style="background: <?= e($s->color ?? 'var(--ra-surface-3)') ?>22; color: <?= e($s->color ?? 'var(--ra-text-strong)') ?>; border-color: <?= e($s->color ?? 'transparent') ?>44;">
+                                    <?= e($s->label) ?>
+                                </span>
+                                <span class="ra-pipeline-column-count"><?= (int) $count ?></span>
+                                <?php if ($user->can('recruit.vacancies.edit')): ?>
+                                    <a href="/vacancies/<?= e($vacancy->code) ?>/add-candidate" class="ra-pipeline-add-btn" title="Add candidate to this vacancy">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                            <div class="ra-pipeline-column-body">
+                                <?php if (empty($entries)): ?>
+                                    <div class="ra-pipeline-empty">
+                                        <i class="bi bi-inbox"></i>
+                                        <span>No candidates</span>
+                                    </div>
+                                <?php else: ?>
+                                    <?php foreach ($entries as $entry): ?>
+                                        <?php
+                                            $a = $entry['application'];
+                                            $c = $entry['candidate'];
+                                            $initials = strtoupper(substr($c->firstName, 0, 1) . substr($c->lastName, 0, 1));
+                                        ?>
+                                        <div class="ra-pipeline-card" style="--stage-color: <?= e($s->color ?? 'var(--ra-primary)') ?>;">
+                                            <div class="ra-pipeline-card-header">
+                                                <div class="ra-pipeline-avatar"><?= e($initials) ?></div>
+                                                <div class="ra-pipeline-card-info">
+                                                    <a href="/candidates/<?= e($c->code) ?>" class="ra-pipeline-card-name">
+                                                        <?= e($c->fullName()) ?>
+                                                    </a>
+                                                    <div class="ra-pipeline-card-sub">
+                                                        <?php if ($c->currentJobTitle): ?>
+                                                            <?= e($c->currentJobTitle) ?>
+                                                        <?php else: ?>
+                                                            <code style="font-size:.7rem;"><?= e($c->code) ?></code>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="ra-pipeline-card-footer">
+                                                <span class="ra-pipeline-time-badge" title="Time in stage">
+                                                    <i class="bi bi-clock"></i>
+                                                    <?= e(human_time($entry['stage_since'] ?? $a->appliedAt)) ?>
+                                                </span>
+                                                <?php if ($user->can('recruit.vacancies.edit')): ?>
+                                                    <div class="dropdown">
+                                                        <button class="ra-pipeline-card-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="bi bi-three-dots"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-end">
+                                                            <li><h6 class="dropdown-header">Move to</h6></li>
+                                                            <?php foreach ($stages as $target): ?>
+                                                                <?php if ($target->id === $a->currentStageId) continue; ?>
+                                                                <li>
+                                                                    <form method="POST" action="/applications/<?= e($a->code) ?>/move" class="m-0">
+                                                                        <?= csrf_field() ?>
+                                                                        <input type="hidden" name="stage_id" value="<?= (int) $target->id ?>">
+                                                                        <button type="submit" class="dropdown-item small"><?= e($target->label) ?></button>
+                                                                    </form>
+                                                                </li>
+                                                            <?php endforeach; ?>
+                                                        </ul>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     <?php endforeach; ?>
-                </div>
-                <div class="muted small mt-3">
-                    <?= count($stages) ?> stages defined for this vacancy. These stages will be used to track candidates through the recruitment process.
+                    <?php if (!empty($applicationsByStage['_unassigned'])): ?>
+                        <div class="ra-pipeline-column">
+                            <div class="ra-pipeline-column-header">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="ra-pipeline-column-title muted">Unassigned</span>
+                                    <span class="ra-pipeline-column-count"><?= count($applicationsByStage['_unassigned']) ?></span>
+                                </div>
+                            </div>
+                            <div class="ra-pipeline-column-body">
+                                <?php foreach ($applicationsByStage['_unassigned'] as $entry): ?>
+                                    <?php $a = $entry['application']; $c = $entry['candidate']; ?>
+                                    <div class="ra-pipeline-card">
+                                        <div class="ra-pipeline-card-header">
+                                            <div class="ra-pipeline-avatar"><?= e(strtoupper(substr($c->firstName, 0, 1) . substr($c->lastName, 0, 1))) ?></div>
+                                            <div class="ra-pipeline-card-info">
+                                                <a href="/candidates/<?= e($c->code) ?>" class="ra-pipeline-card-name"><?= e($c->fullName()) ?></a>
+                                                <div class="ra-pipeline-card-sub"><code style="font-size:.7rem;"><?= e($c->code) ?></code></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
         </div>
@@ -215,6 +314,8 @@ foreach ($requirements as $r) {
 
         <?php if ($customFieldsHtml): ?><?= $customFieldsHtml ?><?php endif; ?>
 
+        <?= $activityHtml ?>
+
         <?php if ($vacancy->clientNotes): ?>
         <div class="ra-card mt-3">
             <h2 class="h5 mb-3">Client notes</h2>
@@ -256,11 +357,11 @@ foreach ($requirements as $r) {
             <?php endif; ?>
             <a href="#" class="ra-dropdown-item disabled" onclick="return false;">
                 <i class="bi bi-people"></i>
-                <span>Add candidate <span class="muted small">(soon)</span></span>
+                <span>Add candidate</span>
             </a>
             <a href="#" class="ra-dropdown-item disabled" onclick="return false;">
                 <i class="bi bi-diagram-3"></i>
-                <span>View applications <span class="muted small">(soon)</span></span>
+                <span>View applications</span>
             </a>
         </div>
     </div>

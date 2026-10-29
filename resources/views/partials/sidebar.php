@@ -1,4 +1,10 @@
 <?php
+    // Helper: render a small "soon" badge next to a nav item
+    $soonBadge = function (): string {
+        return ' <span style="font-size:.6rem;padding:.1rem .35rem;background:var(--ra-bg-elevated);color:var(--ra-muted);border-radius:.25rem;letter-spacing:.5px;">SOON</span>';
+    };
+?>
+<?php
 /**
  * Left sidebar navigation.
  *
@@ -96,13 +102,13 @@ $isLoggedIn = isset($user) && $user;
             <?php if ($user->can('recruit.interviews.view')): ?>
                 <a href="/interviews" class="ra-nav-item <?= $isActive('/interviews') ?>">
                     <i class="bi bi-calendar-event"></i>
-                    <span>Interviews</span>
+                    <span>Interviews</span><?= $soonBadge() ?>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('recruit.candidates.view')): ?>
                 <a href="/offers" class="ra-nav-item <?= $isActive('/offers') ?>">
                     <i class="bi bi-file-earmark-check"></i>
-                    <span>Offers</span>
+                    <span>Offers</span><?= $soonBadge() ?>
                 </a>
             <?php endif; ?>
         </div>
@@ -113,11 +119,11 @@ $isLoggedIn = isset($user) && $user;
             <div class="ra-nav-group-label">Work</div>
             <a href="/tasks" class="ra-nav-item <?= $isActive('/tasks') ?>">
                 <i class="bi bi-check2-square"></i>
-                <span>Tasks</span>
+                <span>Tasks</span><?= $soonBadge() ?>
             </a>
             <a href="/calendar" class="ra-nav-item <?= $isActive('/calendar') ?>">
                 <i class="bi bi-calendar3"></i>
-                <span>Calendar</span>
+                <span>Calendar</span><?= $soonBadge() ?>
             </a>
             <a href="/activity" class="ra-nav-item <?= $isActive('/activity') ?>">
                 <i class="bi bi-activity"></i>
@@ -132,13 +138,13 @@ $isLoggedIn = isset($user) && $user;
             <?php if ($user->can('recruit.reports.view')): ?>
                 <a href="/reports" class="ra-nav-item <?= $isActive('/reports') ?>">
                     <i class="bi bi-graph-up"></i>
-                    <span>Reports</span>
+                    <span>Reports</span><?= $soonBadge() ?>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('core.documents.view')): ?>
                 <a href="/documents" class="ra-nav-item <?= $isActive('/documents') ?>">
                     <i class="bi bi-folder2-open"></i>
-                    <span>Documents</span>
+                    <span>Documents</span><?= $soonBadge() ?>
                 </a>
             <?php endif; ?>
         </div>
@@ -176,7 +182,7 @@ $isLoggedIn = isset($user) && $user;
             <?php if ($user->can('core.audit.view')): ?>
                 <a href="/admin/audit" class="ra-nav-item <?= $isActive('/admin/audit') ?>">
                     <i class="bi bi-journal-text"></i>
-                    <span>Audit Log</span>
+                    <span>Audit Log</span><?= $soonBadge() ?>
                 </a>
             <?php endif; ?>
         </div>
