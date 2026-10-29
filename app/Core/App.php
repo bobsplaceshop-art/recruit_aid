@@ -13,6 +13,8 @@ use CorporateAid\Recruit\Repositories\EngagementRepository;
 use CorporateAid\Recruit\Repositories\EngagementAssignmentRepository;
 use CorporateAid\Recruit\Repositories\VacancyRepository;
 use CorporateAid\Recruit\Repositories\ApplicationRepository;
+use CorporateAid\Recruit\Repositories\InterviewRepository;
+use CorporateAid\Recruit\Repositories\ScorecardRepository;
 use CorporateAid\Recruit\Repositories\CandidateRepository;
 use CorporateAid\Recruit\Repositories\VacancyStageRepository;
 use CorporateAid\Platform\Repositories\FileRepository;
@@ -40,6 +42,7 @@ use CorporateAid\Recruit\Services\EngagementService;
 use CorporateAid\Recruit\Services\VacancyService;
 use CorporateAid\Recruit\Services\CandidateService;
 use CorporateAid\Recruit\Services\ApplicationService;
+use CorporateAid\Recruit\Services\InterviewService;
 use CorporateAid\Platform\Services\SystemSettingService;
 use CorporateAid\Platform\Services\FileService;
 use CorporateAid\Platform\Services\NotificationService;
@@ -220,6 +223,8 @@ final class App
         $c->singleton(CandidateRepository::class,         fn() => new CandidateRepository($c->get(Database::class)));
         $c->singleton(VacancyStageRepository::class,      fn() => new VacancyStageRepository($c->get(Database::class)));
         $c->singleton(ApplicationRepository::class,        fn() => new ApplicationRepository($c->get(Database::class)));
+        $c->singleton(InterviewRepository::class,          fn() => new InterviewRepository($c->get(Database::class)));
+        $c->singleton(ScorecardRepository::class,          fn() => new ScorecardRepository($c->get(Database::class)));
         $c->singleton(FileRepository::class,           fn() => new FileRepository($c->get(Database::class)));
         $c->singleton(EntityFileRepository::class,     fn() => new EntityFileRepository($c->get(Database::class)));
 
@@ -331,6 +336,14 @@ final class App
             $c->get(VacancyStageRepository::class),
             $c->get(EngagementRepository::class),
             $c->get(SystemSettingService::class),
+            $c->get(ActivityLogger::class),
+            $c->get(Auth::class)
+        ));
+
+        $c->singleton(InterviewService::class, fn() => new InterviewService(
+            $c->get(InterviewRepository::class),
+            $c->get(ScorecardRepository::class),
+            $c->get(ApplicationRepository::class),
             $c->get(ActivityLogger::class),
             $c->get(Auth::class)
         ));
