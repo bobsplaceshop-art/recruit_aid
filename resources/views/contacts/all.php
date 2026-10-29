@@ -7,14 +7,23 @@
  * $allOrgs    — array of ['id','code','name'] for org filter
  * $q, $orgId, $role — current filter values
  */
-$roleOptions = [
-    ''                   => 'Any role',
-    'is_primary'         => 'Primary',
-    'is_hiring_manager'  => 'Hiring Manager',
-    'is_finance'         => 'Finance',
-    'is_hr'              => 'HR',
-    'is_decision_maker'  => 'Decision Maker',
-];
+// Load role options from lookups
+$roleOptions = ['' => 'Any role'];
+try {
+    $lookups = \CorporateAid\Core\App::instance()
+        ->container()
+        ->get(\CorporateAid\Platform\Services\LookupService::class);
+    $roleOptions += $lookups->allFor('contact_role');
+} catch (\Throwable) {
+    // Fallback to legacy hardcoded roles if LookupService fails
+    $roleOptions += [
+        'is_primary'         => 'Primary Contact',
+        'is_hiring_manager'  => 'Hiring Manager',
+        'is_finance'         => 'Finance',
+        'is_hr'              => 'HR',
+        'is_decision_maker'  => 'Decision Maker',
+    ];
+}
 $hasFilters = $q !== '' || $orgId > 0 || $role !== '';
 
 $pageUrl = function (int $p) use ($q, $orgId, $role): string {
@@ -39,7 +48,7 @@ $pageUrl = function (int $p) use ($q, $orgId, $role): string {
     <div class="row g-2 align-items-end">
         <div class="col-md-5">
             <label class="ra-label">Search</label>
-            <input type="text" name="q" class="ra-input" value="<?= e($q) ?>"
+            <input type="text" name="q" class="ra-input" value="<?= e($q) ?>" data-live-search="contacts" autocomplete="off"
                    placeholder="Name, email, position, or org name…">
         </div>
         <div class="col-md-3">
@@ -80,7 +89,7 @@ $pageUrl = function (int $p) use ($q, $orgId, $role): string {
     <div class="ra-table-toolbar">
         <div class="ra-table-toolbar-left">
             <span class="ra-section-label">
-                <?= (int) $total ?> contact<?= $total === 1 ? '' : 's' ?>
+                <span data-live-count><?= (int) $total ?></span> contact<span data-live-count-plural><?= $total === 1 ? '' : 's' ?></span>
                 <?php if ($hasFilters): ?>
                     <span class="muted">(filtered)</span>
                 <?php endif; ?>
@@ -113,7 +122,7 @@ $pageUrl = function (int $p) use ($q, $orgId, $role): string {
                     <th style="width:100px;">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody data-live-results>
             <?php foreach ($rows as $row): ?>
                 <?php
                     $c = $row['contact'];

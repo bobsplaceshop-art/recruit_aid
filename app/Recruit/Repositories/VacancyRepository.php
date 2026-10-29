@@ -375,6 +375,7 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             'rowView'          => 'vacancies/_row',
             'extraColumns'     => ['o.name AS organisation_name', 'o.code AS organisation_code'],
             'aggregateColumns' => [],
+            'filterable'       => ['status' => 'v.`status` = ?'],
         ];
     }
 }

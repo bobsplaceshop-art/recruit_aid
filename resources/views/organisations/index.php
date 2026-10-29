@@ -57,7 +57,7 @@ $statusPills = [
         <input type="hidden" name="status" value="<?= e($activeStatus) ?>">
     <?php endif; ?>
     <div class="d-flex gap-2">
-        <input type="text" name="q" class="ra-input" value="<?= e($search) ?>"
+        <input type="text" name="q" class="ra-input" value="<?= e($search) ?>" data-live-search="organisations" autocomplete="off"
                placeholder="Search by name, code, industry, or email..."
                style="max-width:400px;">
         <button type="submit" class="ra-btn ra-btn-outline">
@@ -77,7 +77,7 @@ $statusPills = [
     <div class="ra-table-toolbar">
         <div class="ra-table-toolbar-left">
             <span class="ra-section-label">
-                <?= (int) $total ?> organisation<?= $total === 1 ? '' : 's' ?>
+                <span data-live-count><?= (int) $total ?></span> organisation<span data-live-count-plural><?= $total === 1 ? '' : 's' ?></span>
                 <?php if ($search !== ''): ?>
                     matching "<?= e($search) ?>"
                 <?php endif; ?>
@@ -116,7 +116,7 @@ $statusPills = [
                     <th style="width:100px;">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody data-live-results>
             <?php foreach ($organisations as $org): ?>
                 <tr>
                     <td>

@@ -294,6 +294,7 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
             'rowView'          => 'organisations/_row',
             'extraColumns'     => [],
             'aggregateColumns' => [],
+            'filterable'       => ['status' => 'o.`status` = ?'],
         ];
     }
 }

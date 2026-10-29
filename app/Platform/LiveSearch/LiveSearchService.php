@@ -32,11 +32,15 @@ final class LiveSearchService
      *   baseFilters: string[],
      *   joins: string[],
      *   rowView: string,
-     *   extraColumns: string[]
+     *   extraColumns: string[],
+     *   aggregateColumns?: string[],
+     *   groupBy?: string,
+     *   filterable?: array<string, string>
      * } $config
+     * @param array<string, string> $extraFilters
      * @return array{rows: array<int, array{html: string}>, total: int, page: int, per_page: int, total_pages: int}
      */
-    public function run(array $config, string $term, int $page = 1, int $perPage = 25): array
+    public function run(array $config, string $term, int $page = 1, int $perPage = 25, array $extraFilters = []): array
     {
         // Permission gate
         $user = $this->auth?->user();
@@ -50,6 +54,15 @@ final class LiveSearchService
         $joins = $config['joins'];
         $where = $config['baseFilters'];
         $params = [];
+
+        // Apply per-entity extra filters if declared in config['filterable']
+        $filterable = $config['filterable'] ?? [];
+        foreach ($extraFilters as $key => $value) {
+            if (isset($filterable[$key]) && $value !== '') {
+                $where[] = $filterable[$key];  // e.g. "o.`status` = ?"
+                $params[] = $value;
+            }
+        }
 
         if ($term !== '') {
             $like = '%' . strtolower($term) . '%';

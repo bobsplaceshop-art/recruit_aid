@@ -20,6 +20,11 @@ final class LiveSearchController
         $term = trim($request->queryStringValue('q', ''));
         $page = max(1, $request->queryInt('page', 1));
 
+        // Collect extra filters from query string (must match config['filterable'])
+        $extraFilters = [];
+        $status = trim($request->queryStringValue('status', ''));
+        if ($status !== '') $extraFilters['status'] = $status;
+
         if ($slug === '') {
             return Response::json(['error' => 'Missing entity parameter'], 400);
         }
@@ -31,7 +36,7 @@ final class LiveSearchController
 
         /** @var LiveSearchService $service */
         $service = $this->container->get(LiveSearchService::class);
-        $result = $service->run($repo->liveSearchConfig(), $term, $page, 25);
+        $result = $service->run($repo->liveSearchConfig(), $term, $page, 25, $extraFilters);
 
         return Response::json([
             'entity'      => $slug,

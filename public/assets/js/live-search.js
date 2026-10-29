@@ -24,6 +24,14 @@
         function fetchAndRender(term) {
             var url = '/api/live-search?entity=' + encodeURIComponent(entity)
                     + '&q=' + encodeURIComponent(term);
+            // Include existing filter params (status, org, etc.) so typing
+            // doesn't drop the current filter context.
+            var existing = new URLSearchParams(window.location.search);
+            existing.forEach(function (value, key) {
+                if (key !== 'q' && key !== 'page' && key !== 'entity') {
+                    url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+                }
+            });
             fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
@@ -36,6 +44,20 @@
                         html = '<tr><td colspan="10" class="text-center muted" style="padding:2rem;">No results for "' + escapeHtml(term) + '"</td></tr>';
                     }
                     resultsEl.innerHTML = html;
+
+                    // Update the count header (if present)
+                    var countEl = document.querySelector('[data-live-count]');
+                    var pluralEl = document.querySelector('[data-live-count-plural]');
+                    if (countEl && typeof data.total !== 'undefined') {
+                        countEl.textContent = String(data.total);
+                        if (pluralEl) {
+                            pluralEl.textContent = data.total === 1 ? '' : 's';
+                            // Special-case for vacancies: y/ies
+                            if (entity === 'vacancies') {
+                                pluralEl.textContent = data.total === 1 ? 'y' : 'ies';
+                            }
+                        }
+                    }
                 })
                 .catch(function () { /* silent */ });
         }
