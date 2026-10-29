@@ -5,6 +5,7 @@ namespace CorporateAid\Recruit\Services;
 
 use CorporateAid\Core\Auth;
 use CorporateAid\Core\Database;
+use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Models\Contact;
 use CorporateAid\Recruit\Repositories\ContactRepository;
 use CorporateAid\Platform\Support\ActivityLogger;
@@ -44,6 +45,21 @@ final class ContactService
         $allErrors = $this->flattenErrors($baseErrors, $cfErrors);
         if (!empty($allErrors)) {
             return ['id' => 0, 'contact' => null, 'errors' => $allErrors];
+        }
+
+        // Duplicate detection — check for existing contact with same email
+        $email = strtolower(trim(Row::str($input, 'email')));
+        if ($email !== '') {
+            $existing = $this->contacts->findByEmail($email);
+            if ($existing !== null) {
+                return [
+                    'id' => 0,
+                    'contact' => null,
+                    'errors' => [
+                        'A contact with this email already exists: ' . $existing->fullName() . ' (' . $existing->code . ').',
+                    ],
+                ];
+            }
         }
 
         $normalized = $this->validator->normalize($input);
@@ -92,6 +108,21 @@ final class ContactService
         $allErrors = $this->flattenErrors($baseErrors, $cfErrors);
         if (!empty($allErrors)) {
             return ['success' => false, 'errors' => $allErrors, 'changes' => []];
+        }
+
+        // Duplicate detection — excluding the current record
+        $email = strtolower(trim(Row::str($input, 'email')));
+        if ($email !== '') {
+            $conflict = $this->contacts->findByEmail($email, $id);
+            if ($conflict !== null) {
+                return [
+                    'success' => false,
+                    'errors' => [
+                        'A contact with this email already exists: ' . $conflict->fullName() . ' (' . $conflict->code . ').',
+                    ],
+                    'changes' => [],
+                ];
+            }
         }
 
         $normalized = $this->validator->normalize($input);

@@ -5,6 +5,7 @@ namespace CorporateAid\Recruit\Services;
 
 use CorporateAid\Core\Auth;
 use CorporateAid\Core\Database;
+use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Models\Organisation;
 use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Platform\Support\ActivityLogger;
@@ -52,6 +53,21 @@ final class OrganisationService
 
         if (!empty($allErrors)) {
             return ['id' => 0, 'organisation' => null, 'errors' => $allErrors];
+        }
+
+        // Duplicate detection — check for existing org with same email
+        $email = strtolower(trim(Row::str($input, 'email')));
+        if ($email !== '') {
+            $existing = $this->organisations->findByEmail($email);
+            if ($existing !== null) {
+                return [
+                    'id' => 0,
+                    'organisation' => null,
+                    'errors' => [
+                        'An organisation with this email already exists: ' . $existing->name . ' (' . $existing->code . ').',
+                    ],
+                ];
+            }
         }
 
         $normalized = $this->validator->normalize($input);
@@ -108,6 +124,21 @@ final class OrganisationService
 
         if (!empty($allErrors)) {
             return ['success' => false, 'errors' => $allErrors, 'changes' => []];
+        }
+
+        // Duplicate detection — excluding the current record
+        $email = strtolower(trim(Row::str($input, 'email')));
+        if ($email !== '') {
+            $conflict = $this->organisations->findByEmail($email, $id);
+            if ($conflict !== null) {
+                return [
+                    'success' => false,
+                    'errors' => [
+                        'An organisation with this email already exists: ' . $conflict->name . ' (' . $conflict->code . ').',
+                    ],
+                    'changes' => [],
+                ];
+            }
         }
 
         $normalized = $this->validator->normalize($input);

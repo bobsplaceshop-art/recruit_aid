@@ -33,6 +33,21 @@ final class OrganisationRepository
         return $row ? Organisation::fromRow($row) : null;
     }
 
+    public function findByEmail(string $email, ?int $excludeId = null): ?Organisation
+    {
+        $sql = "SELECT * FROM `recruit_client_organisations`
+                WHERE LOWER(`email`) = LOWER(?) AND `deleted_at` IS NULL";
+        $params = [$email];
+        if ($excludeId !== null) {
+            $sql .= " AND `id` != ?";
+            $params[] = $excludeId;
+        }
+        $sql .= " LIMIT 1";
+
+        $row = $this->db->selectOne($sql, PDOParams::positional($params));
+        return $row === null ? null : Organisation::fromRow($row);
+    }
+
     public function codeExists(string $code): bool
     {
         return $this->db->scalarInt(

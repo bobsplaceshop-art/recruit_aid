@@ -33,6 +33,21 @@ final class ContactRepository
         return $row ? Contact::fromRow($row) : null;
     }
 
+    public function findByEmail(string $email, ?int $excludeId = null): ?Contact
+    {
+        $sql = "SELECT * FROM `recruit_client_contacts`
+                WHERE LOWER(`email`) = LOWER(?) AND `deleted_at` IS NULL";
+        $params = [$email];
+        if ($excludeId !== null) {
+            $sql .= " AND `id` != ?";
+            $params[] = $excludeId;
+        }
+        $sql .= " LIMIT 1";
+
+        $row = $this->db->selectOne($sql, PDOParams::positional($params));
+        return $row === null ? null : Contact::fromRow($row);
+    }
+
     /** @return Contact[] */
     public function forOrganisation(int $organisationId, bool $includeDeleted = false): array
     {
