@@ -43,12 +43,12 @@ $pct = $capacity['capacity'] > 0
             <a href="/engagements" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i><span>Back</span>
             </a>
-            <?php if ($user->can('engagements.edit')): ?>
+            <?php if ($user->can('recruit.engagements.edit')): ?>
                 <a href="<?= e($delBase) ?>/edit" class="ra-btn ra-btn-outline">
                     <i class="bi bi-pencil"></i><span>Edit</span>
                 </a>
             <?php endif; ?>
-            <?php if ($user->can('engagements.delete')): ?>
+            <?php if ($user->can('recruit.engagements.delete')): ?>
                 <button type="button" class="ra-btn ra-btn-outline"
                         style="color:var(--ra-error-fg);border-color:var(--ra-error-bd);"
                         onclick="RA_DeletionModal.open({
@@ -188,7 +188,7 @@ $pct = $capacity['capacity'] > 0
                                 <div class="small"><?= e($r['name']) ?></div>
                                 <div class="muted" style="font-size:.72rem;"><?= e($r['role']) ?></div>
                             </div>
-                            <?php if ($user->can('engagements.edit')): ?>
+                            <?php if ($user->can('recruit.engagements.edit')): ?>
                                 <form method="POST" action="<?= e($delBase) ?>/recruiters/unassign" style="margin:0;"
                                       onsubmit="return confirm('Unassign this recruiter?');">
                                     <?= csrf_field() ?>
@@ -203,7 +203,7 @@ $pct = $capacity['capacity'] > 0
                 </div>
             <?php endif; ?>
 
-            <?php if ($user->can('engagements.edit')): ?>
+            <?php if ($user->can('recruit.engagements.edit')): ?>
                 <form method="POST" action="<?= e($delBase) ?>/recruiters/assign" style="margin:0;">
                     <?= csrf_field() ?>
                     <?php
@@ -234,7 +234,7 @@ $pct = $capacity['capacity'] > 0
 
         <div class="ra-card mt-3">
             <h2 class="h6 mb-3 muted">Quick actions</h2>
-            <?php if ($user->can('vacancies.create')): ?>
+            <?php if ($user->can('recruit.vacancies.create')): ?>
                 <a href="/vacancies/create?engagement=<?= e($engagement->code) ?>" class="ra-dropdown-item mb-1">
                     <i class="bi bi-briefcase"></i>
                     <span>Add vacancy</span>

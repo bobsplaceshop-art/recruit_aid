@@ -47,12 +47,12 @@ foreach ($requirements as $r) {
             <a href="/vacancies" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i><span>Back</span>
             </a>
-            <?php if ($user->can('vacancies.edit')): ?>
+            <?php if ($user->can('recruit.vacancies.edit')): ?>
                 <a href="<?= e($delBase) ?>/edit" class="ra-btn ra-btn-outline">
                     <i class="bi bi-pencil"></i><span>Edit</span>
                 </a>
             <?php endif; ?>
-            <?php if ($user->can('vacancies.close')): ?>
+            <?php if ($user->can('recruit.vacancies.close')): ?>
                 <button type="button" class="ra-btn ra-btn-outline"
                         style="color:var(--ra-error-fg);border-color:var(--ra-error-bd);"
                         onclick="RA_DeletionModal.open({
@@ -249,7 +249,7 @@ foreach ($requirements as $r) {
 
         <div class="ra-card mt-3">
             <h2 class="h6 mb-3 muted">Quick actions</h2>
-            <?php if ($user->can('vacancies.edit')): ?>
+            <?php if ($user->can('recruit.vacancies.edit')): ?>
                 <a href="<?= e($delBase) ?>/edit" class="ra-dropdown-item mb-1">
                     <i class="bi bi-pencil"></i><span>Edit vacancy</span>
                 </a>

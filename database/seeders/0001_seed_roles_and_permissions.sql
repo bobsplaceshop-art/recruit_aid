@@ -43,18 +43,22 @@ INSERT INTO `core_permissions` (`slug`, `module`, `description`) VALUES
   ('recruit.organisations.view',    'recruit.organisations', 'View organisations'),
   ('recruit.organisations.create',  'recruit.organisations', 'Create organisations'),
   ('recruit.organisations.edit',    'recruit.organisations', 'Edit organisations'),
+  ('recruit.organisations.delete',  'recruit.organisations', 'Delete organisations'),
 
   ('recruit.contacts.view',         'recruit.contacts',      'View contacts'),
   ('recruit.contacts.create',       'recruit.contacts',      'Create contacts'),
   ('recruit.contacts.edit',         'recruit.contacts',      'Edit contacts'),
+  ('recruit.contacts.delete',       'recruit.contacts',      'Delete contacts'),
 
   ('recruit.engagements.view',      'recruit.engagements',   'View engagements'),
   ('recruit.engagements.create',    'recruit.engagements',   'Create engagements'),
   ('recruit.engagements.edit',      'recruit.engagements',   'Edit engagements'),
+  ('recruit.engagements.delete',    'recruit.engagements',   'Delete engagements'),
 
   ('recruit.vacancies.view',        'recruit.vacancies',     'View vacancies'),
   ('recruit.vacancies.create',      'recruit.vacancies',     'Create vacancies'),
   ('recruit.vacancies.edit',        'recruit.vacancies',     'Edit vacancies'),
+  ('recruit.vacancies.delete',      'recruit.vacancies',     'Delete vacancies'),
   ('recruit.vacancies.close',       'recruit.vacancies',     'Close vacancies'),
 
   ('recruit.candidates.view',       'recruit.candidates',    'View candidates'),
@@ -95,9 +99,9 @@ SELECT r.`id`, p.`id` FROM `core_roles` r CROSS JOIN `core_permissions` p
 WHERE r.`slug` = 'recruitment_manager'
   AND p.`slug` IN (
     'core.users.view',
-    'recruit.organisations.view','recruit.organisations.create','recruit.organisations.edit',
-    'recruit.contacts.view','recruit.contacts.create','recruit.contacts.edit',
-    'recruit.engagements.view','recruit.engagements.create','recruit.engagements.edit',
+    'recruit.organisations.view','recruit.organisations.create','recruit.organisations.edit','recruit.organisations.delete',
+    'recruit.contacts.view','recruit.contacts.create','recruit.contacts.edit','recruit.contacts.delete',
+    'recruit.engagements.view','recruit.engagements.create','recruit.engagements.edit','recruit.engagements.delete',
     'recruit.vacancies.view','recruit.vacancies.create','recruit.vacancies.edit','recruit.vacancies.close',
     'recruit.candidates.view','recruit.candidates.create','recruit.candidates.edit','recruit.candidates.export',
     'recruit.assessments.view','recruit.assessments.create','recruit.assessments.evaluate',

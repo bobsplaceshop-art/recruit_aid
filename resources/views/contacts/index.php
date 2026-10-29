@@ -23,7 +23,7 @@ $total = count($contacts);
                 <i class="bi bi-arrow-left"></i>
                 <span>Back to organisation</span>
             </a>
-            <?php if ($user->can('contacts.create')): ?>
+            <?php if ($user->can('recruit.contacts.create')): ?>
                 <a href="/organisations/<?= e($organisation->code) ?>/contacts/create" class="ra-btn ra-btn-primary">
                     <i class="bi bi-plus-lg"></i>
                     <span>New Contact</span>
@@ -45,7 +45,7 @@ $total = count($contacts);
     <?php if ($total === 0): ?>
         <div class="text-center muted" style="padding:3rem 1.5rem;">
             <div class="mb-3">No contacts yet for <?= e($organisation->name) ?>.</div>
-            <?php if ($user->can('contacts.create')): ?>
+            <?php if ($user->can('recruit.contacts.create')): ?>
                 <a href="/organisations/<?= e($organisation->code) ?>/contacts/create" class="ra-btn ra-btn-primary">
                     <i class="bi bi-plus-lg"></i>
                     <span>Add the first contact</span>
@@ -94,7 +94,7 @@ $total = count($contacts);
                             <a href="/organisations/<?= e($organisation->code) ?>/contacts/<?= e($c->code) ?>" class="ra-row-actions" title="View">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <?php if ($user->can('contacts.edit')): ?>
+                            <?php if ($user->can('recruit.contacts.edit')): ?>
                                 <a href="/organisations/<?= e($organisation->code) ?>/contacts/<?= e($c->code) ?>/edit" class="ra-row-actions" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>

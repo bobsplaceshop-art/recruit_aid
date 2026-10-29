@@ -28,7 +28,7 @@
             <i class="bi bi-display" style="display:none;" data-ra-icon-system></i>
         </button>
 
-        <?php if (isset($user) && $user && $user->can('settings.manage')): ?>
+        <?php if (isset($user) && $user && $user->can('core.settings.manage')): ?>
             <a href="/admin/settings" class="ra-icon-btn" title="System Settings" id="settings-gear">
                 <i class="bi bi-gear"></i>
             </a>

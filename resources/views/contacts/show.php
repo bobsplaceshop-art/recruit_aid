@@ -41,13 +41,13 @@ $contactDeleteUrl = '/organisations/' . $organisation->code . '/contacts/' . $co
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
-            <?php if ($user->can('contacts.edit')): ?>
+            <?php if ($user->can('recruit.contacts.edit')): ?>
                 <a href="<?= e($contactDeleteUrl) ?>/edit" class="ra-btn ra-btn-outline">
                     <i class="bi bi-pencil"></i>
                     <span>Edit</span>
                 </a>
             <?php endif; ?>
-            <?php if ($user->can('contacts.delete')): ?>
+            <?php if ($user->can('recruit.contacts.delete')): ?>
                 <button type="button" class="ra-btn ra-btn-outline"
                         style="color:var(--ra-error-fg);border-color:var(--ra-error-bd);"
                         onclick="RA_DeletionModal.open({

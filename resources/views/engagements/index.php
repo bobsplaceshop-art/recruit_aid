@@ -27,7 +27,7 @@ $statusPills = [
             <p class="ra-page-sub">Recruitment contracts with client organisations</p>
         </div>
         <div class="ra-page-band-actions">
-            <?php if ($user->can('engagements.create')): ?>
+            <?php if ($user->can('recruit.engagements.create')): ?>
                 <a href="/engagements/create" class="ra-btn ra-btn-primary">
                     <i class="bi bi-plus-lg"></i>
                     <span>New Engagement</span>
@@ -90,7 +90,7 @@ $statusPills = [
                 </a>
             <?php else: ?>
                 <div class="mb-3">No engagements yet.</div>
-                <?php if ($user->can('engagements.create')): ?>
+                <?php if ($user->can('recruit.engagements.create')): ?>
                     <a href="/engagements/create" class="ra-btn ra-btn-primary">
                         <i class="bi bi-plus-lg"></i>
                         <span>Create the first engagement</span>
@@ -131,7 +131,7 @@ $statusPills = [
                     <td>
                         <div class="d-flex gap-1">
                             <a href="/engagements/<?= e($e->code) ?>" class="ra-row-actions" title="View"><i class="bi bi-eye"></i></a>
-                            <?php if ($user->can('engagements.edit')): ?>
+                            <?php if ($user->can('recruit.engagements.edit')): ?>
                                 <a href="/engagements/<?= e($e->code) ?>/edit" class="ra-row-actions" title="Edit"><i class="bi bi-pencil"></i></a>
                             <?php endif; ?>
                         </div>

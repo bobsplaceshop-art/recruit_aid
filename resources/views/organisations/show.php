@@ -35,13 +35,13 @@ $customFieldsHtml = $renderer->renderDetail('organisation', $organisation->id);
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
-            <?php if ($user->can('organisations.edit')): ?>
+            <?php if ($user->can('recruit.organisations.edit')): ?>
                 <a href="/organisations/<?= e($organisation->code) ?>/edit" class="ra-btn ra-btn-outline">
                     <i class="bi bi-pencil"></i>
                     <span>Edit</span>
                 </a>
             <?php endif; ?>
-            <?php if ($user->can('organisations.delete')): ?>
+            <?php if ($user->can('recruit.organisations.delete')): ?>
                 <form method="POST" action="/organisations/<?= e($organisation->code) ?>/archive" style="margin:0;"
                       onsubmit="return confirm('Archive this organisation? It will disappear from the list but can be restored.');">
                     <?= csrf_field() ?>
@@ -202,21 +202,21 @@ $customFieldsHtml = $renderer->renderDetail('organisation', $organisation->id);
         <div class="ra-card mt-3">
             <h2 class="h6 mb-3 muted">Quick actions</h2>
 
-            <?php if ($user->can('organisations.edit')): ?>
+            <?php if ($user->can('recruit.organisations.edit')): ?>
                 <a href="/organisations/<?= e($organisation->code) ?>/edit" class="ra-dropdown-item mb-1">
                     <i class="bi bi-pencil"></i>
                     <span>Edit details</span>
                 </a>
             <?php endif; ?>
 
-            <?php if ($user->can('contacts.create')): ?>
+            <?php if ($user->can('recruit.contacts.create')): ?>
                 <a href="/organisations/<?= e($organisation->code) ?>/contacts/create" class="ra-dropdown-item mb-1">
                     <i class="bi bi-person-plus"></i>
                     <span>Add contact</span>
                 </a>
             <?php endif; ?>
 
-            <?php if ($user->can('engagements.create')): ?>
+            <?php if ($user->can('recruit.engagements.create')): ?>
                 <a href="/engagements/create?organisation=<?= e($organisation->code) ?>" class="ra-dropdown-item mb-1">
                     <i class="bi bi-file-earmark-text"></i>
                     <span>Create engagement</span>

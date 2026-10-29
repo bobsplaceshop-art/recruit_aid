@@ -31,7 +31,7 @@ $statusPills = [
             <p class="ra-page-sub">The jobs you're filling across all clients</p>
         </div>
         <div class="ra-page-band-actions">
-            <?php if ($user->can('vacancies.create')): ?>
+            <?php if ($user->can('recruit.vacancies.create')): ?>
                 <a href="/vacancies/create" class="ra-btn ra-btn-primary">
                     <i class="bi bi-plus-lg"></i>
                     <span>New Vacancy</span>
@@ -94,7 +94,7 @@ $statusPills = [
                 </a>
             <?php else: ?>
                 <div class="mb-3">No vacancies yet.</div>
-                <?php if ($user->can('vacancies.create')): ?>
+                <?php if ($user->can('recruit.vacancies.create')): ?>
                     <a href="/vacancies/create" class="ra-btn ra-btn-primary">
                         <i class="bi bi-plus-lg"></i>
                         <span>Create the first vacancy</span>
@@ -143,7 +143,7 @@ $statusPills = [
                     <td>
                         <div class="d-flex gap-1">
                             <a href="/vacancies/<?= e($v->code) ?>" class="ra-row-actions" title="View"><i class="bi bi-eye"></i></a>
-                            <?php if ($user->can('vacancies.edit')): ?>
+                            <?php if ($user->can('recruit.vacancies.edit')): ?>
                                 <a href="/vacancies/<?= e($v->code) ?>/edit" class="ra-row-actions" title="Edit"><i class="bi bi-pencil"></i></a>
                             <?php endif; ?>
                         </div>

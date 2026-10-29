@@ -28,7 +28,7 @@ $statusPills = [
             <h1 class="ra-page-band-title">Organisations</h1>
         </div>
         <div class="ra-page-band-actions">
-            <?php if ($user->can('organisations.create')): ?>
+            <?php if ($user->can('recruit.organisations.create')): ?>
                 <a href="/organisations/create" class="ra-btn ra-btn-primary">
                     <i class="bi bi-plus-lg"></i>
                     <span>New Organisation</span>
@@ -95,7 +95,7 @@ $statusPills = [
                 </a>
             <?php else: ?>
                 <div class="mb-3">No organisations yet.</div>
-                <?php if ($user->can('organisations.create')): ?>
+                <?php if ($user->can('recruit.organisations.create')): ?>
                     <a href="/organisations/create" class="ra-btn ra-btn-primary">
                         <i class="bi bi-plus-lg"></i>
                         <span>Add the first organisation</span>
@@ -143,7 +143,7 @@ $statusPills = [
                             <a href="/organisations/<?= e($org->code) ?>" class="ra-row-actions" title="View">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <?php if ($user->can('organisations.edit')): ?>
+                            <?php if ($user->can('recruit.organisations.edit')): ?>
                                 <a href="/organisations/<?= e($org->code) ?>/edit" class="ra-row-actions" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>

@@ -10,7 +10,7 @@
 <p class="muted mb-4">Manage users, roles, and system-wide configuration.</p>
 
 <div class="ra-tiles">
-    <?php if ($user->can('users.view')): ?>
+    <?php if ($user->can('core.users.view')): ?>
     <a href="/admin/users" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--sky">
             <i class="bi bi-people-fill"></i>
@@ -19,7 +19,7 @@
     </a>
     <?php endif; ?>
 
-    <?php if ($user->can('settings.manage')): ?>
+    <?php if ($user->can('core.settings.manage')): ?>
     <a href="/admin/roles-perm" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--clay">
             <i class="bi bi-diagram-3-fill"></i>
@@ -28,7 +28,7 @@
     </a>
     <?php endif; ?>
 
-    <?php if ($user->can('audit.view')): ?>
+    <?php if ($user->can('core.audit.view')): ?>
     <a href="/admin/audit" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--sage">
             <i class="bi bi-journal-text"></i>
@@ -37,7 +37,7 @@
     </a>
     <?php endif; ?>
 
-    <?php if ($user->can('settings.manage')): ?>
+    <?php if ($user->can('core.settings.manage')): ?>
     <a href="/admin/branding" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--plum">
             <i class="bi bi-palette-fill"></i>
