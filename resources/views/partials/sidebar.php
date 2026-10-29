@@ -28,8 +28,16 @@ $isLoggedIn = isset($user) && $user;
 ?>
 <aside class="ra-sidebar" id="ra-sidebar">
     <a href="/dashboard" class="ra-brand">
-        <span class="ra-brand-mark"></span>
-        <span>Recruit Aid</span>
+        <?php
+            $brandLogo = app_setting('branding.logo_path', '');
+            $brandName = app_setting('branding.app_name', 'Recruit Aid');
+        ?>
+        <?php if ($brandLogo !== ''): ?>
+            <img src="/files/<?= e($brandLogo) ?>" alt="<?= e($brandName) ?>" style="max-height:36px;max-width:180px;width:auto;object-fit:contain;">
+        <?php else: ?>
+            <span class="ra-brand-mark"></span>
+            <span><?= e($brandName) ?></span>
+        <?php endif; ?>
     </a>
 
     <nav class="ra-nav">

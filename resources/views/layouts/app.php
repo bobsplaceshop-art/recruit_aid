@@ -29,7 +29,15 @@ if (function_exists('flash')) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
-    <title><?= e($title ?? 'Recruit Aid') ?> — Recruit Aid</title>
+    <title><?= e($title ?? app_setting('branding.app_name', 'Recruit Aid')) ?> — <?= e(app_setting('branding.app_name', 'Recruit Aid')) ?></title>
+    <?php
+        $fav = app_setting('branding.favicon_path', '');
+        $primaryColor = app_setting('branding.primary_color', '#0d6efd');
+    ?>
+    <?php if ($fav !== ''): ?>
+        <link rel="icon" href="/files/<?= e($fav) ?>">
+    <?php endif; ?>
+    <style>:root { --ra-primary: <?= e($primaryColor) ?>; }</style>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
