@@ -104,6 +104,39 @@ final class EmailService
         return $this->send($to, $subject, $html);
     }
 
+    /**
+     * Send an email using a DB-backed template (core_email_templates).
+     * The template is rendered through EmailRenderer (placeholders +
+     * branded layout), then dispatched.
+     *
+     * @param string|array<string, string> $to
+     * @param array<string, scalar|null>   $variables
+     */
+    public function sendDbTemplate(
+        string|array $to,
+        string $templateKey,
+        array $variables = [],
+        string $locale = 'en'
+    ): bool {
+        /** @var EmailRenderer|null $renderer */
+        $renderer = null;
+        try {
+            $app = \CorporateAid\Core\App::instance();
+            $renderer = $app->container()->get(EmailRenderer::class);
+        } catch (\Throwable $e) {
+            $this->logger->error('EmailRenderer not resolvable', ['error' => $e->getMessage()]);
+            return false;
+        }
+
+        $rendered = $renderer->render($templateKey, $variables, $locale);
+        if ($rendered === null) {
+            $this->logger->error('Email template not found', ['template' => $templateKey, 'locale' => $locale]);
+            return false;
+        }
+
+        return $this->send($to, $rendered['subject'], $rendered['html'], $rendered['text']);
+    }
+
     private function htmlToText(string $html): string
     {
         $text = strip_tags(str_replace(['</p>', '<br>', '<br/>', '<br />'], "\n", $html));

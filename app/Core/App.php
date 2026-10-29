@@ -19,6 +19,7 @@ use CorporateAid\Recruit\Repositories\OfferRepository;
 use CorporateAid\Recruit\Repositories\CandidateRepository;
 use CorporateAid\Recruit\Repositories\VacancyStageRepository;
 use CorporateAid\Platform\Repositories\FileRepository;
+use CorporateAid\Platform\Repositories\EmailTemplateRepository;
 use CorporateAid\Platform\Repositories\EntityFileRepository;
 use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Recruit\Repositories\PipelineStageRepository;
@@ -57,6 +58,8 @@ use CorporateAid\Platform\CustomFields\CustomFieldValueValidator;
 use CorporateAid\Platform\Support\CodeGenerator;
 use CorporateAid\Platform\Support\Logger;
 use CorporateAid\Platform\Support\EmailService;
+use CorporateAid\Platform\Support\EmailRenderer;
+use CorporateAid\Platform\Support\EmailLayout;
 use CorporateAid\Platform\Support\RateLimiter;
 use CorporateAid\Platform\Validation\CustomFieldValidator;
 use CorporateAid\Recruit\Validation\OrganisationValidator;
@@ -229,6 +232,7 @@ final class App
         $c->singleton(ScorecardRepository::class,          fn() => new ScorecardRepository($c->get(Database::class)));
         $c->singleton(OfferRepository::class,              fn() => new OfferRepository($c->get(Database::class)));
         $c->singleton(FileRepository::class,           fn() => new FileRepository($c->get(Database::class)));
+        $c->singleton(EmailTemplateRepository::class,   fn() => new EmailTemplateRepository($c->get(Database::class)));
         $c->singleton(EntityFileRepository::class,     fn() => new EntityFileRepository($c->get(Database::class)));
 
         // ---------- Auth ----------
@@ -247,6 +251,8 @@ final class App
             }
             return new EmailService($mailConfig, new Logger());
         });
+        $c->singleton(EmailLayout::class, fn() => new EmailLayout());
+        $c->singleton(EmailRenderer::class, fn() => new EmailRenderer($c->get(EmailTemplateRepository::class), $c->get(EmailLayout::class)));
         $c->singleton(ActivityLogger::class, fn() => new ActivityLogger($c->get(Database::class), $c->get(Auth::class)));
         $c->singleton(ActivityRepository::class, fn() => new ActivityRepository($c->get(Database::class)));
         $c->singleton(ActivityTimelineService::class, fn() => new ActivityTimelineService($c->get(ActivityRepository::class), $c->get(View::class)));
