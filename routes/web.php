@@ -28,6 +28,8 @@ use CorporateAid\Recruit\Controllers\FileController;
 use CorporateAid\Recruit\Controllers\VacancyController;
 use CorporateAid\Recruit\Controllers\CandidateController;
 use CorporateAid\Recruit\Controllers\ApplicationController;
+use CorporateAid\Recruit\Controllers\InterviewController;
+use CorporateAid\Recruit\Controllers\ScorecardController;
 
 /** @var Router $router */
 
@@ -38,7 +40,6 @@ $router->get('/health', [HomeController::class, 'health']);
 // These render a branded "Coming Soon" page instead of a 404.
 // When a feature ships, replace the route with the real controller.
 
-$router->get('/interviews',   [ComingSoonController::class, 'interviews'],   ['auth']);
 $router->get('/offers',       [ComingSoonController::class, 'offers'],       ['auth']);
 $router->get('/tasks',        [ComingSoonController::class, 'tasks'],        ['auth']);
 $router->get('/calendar',     [ComingSoonController::class, 'calendar'],     ['auth']);
@@ -124,6 +125,19 @@ $router->get('/applications',                    [ApplicationController::class, 
 $router->get('/vacancies/{code}/add-candidate',  [ApplicationController::class, 'addCandidateForm'], ['auth', 'permission:recruit.vacancies.edit']);
 $router->post('/vacancies/{code}/add-candidate', [ApplicationController::class, 'addCandidate'],     ['auth', 'permission:recruit.vacancies.edit', 'csrf']);
 $router->post('/applications/{code}/move',       [ApplicationController::class, 'move'],             ['auth', 'permission:recruit.vacancies.edit', 'csrf']);
+
+// ---------------------------------------------------------------------
+// Interviews & Scorecards
+// ---------------------------------------------------------------------
+$router->get('/interviews',                              [InterviewController::class, 'index'],         ['auth', 'permission:recruit.interviews.view']);
+$router->get('/applications/{code}/schedule-interview',  [InterviewController::class, 'scheduleForm'],  ['auth', 'permission:recruit.interviews.create']);
+$router->post('/applications/{code}/schedule-interview', [InterviewController::class, 'store'],         ['auth', 'permission:recruit.interviews.create', 'csrf']);
+$router->get('/interviews/{code}',                       [InterviewController::class, 'show'],          ['auth', 'permission:recruit.interviews.view']);
+$router->post('/interviews/{code}/complete',             [InterviewController::class, 'complete'],      ['auth', 'permission:recruit.interviews.edit', 'csrf']);
+$router->post('/interviews/{code}/cancel',               [InterviewController::class, 'cancel'],        ['auth', 'permission:recruit.interviews.delete', 'csrf']);
+$router->get('/interviews/{code}/scorecard',             [ScorecardController::class, 'form'],          ['auth', 'permission:recruit.scorecards.submit']);
+$router->post('/interviews/{code}/scorecard',            [ScorecardController::class, 'submit'],        ['auth', 'permission:recruit.scorecards.submit', 'csrf']);
+
 
 
 // ---------------------------------------------------------------------

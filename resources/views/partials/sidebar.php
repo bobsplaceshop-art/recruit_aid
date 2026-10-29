@@ -102,7 +102,7 @@ $isLoggedIn = isset($user) && $user;
             <?php if ($user->can('recruit.interviews.view')): ?>
                 <a href="/interviews" class="ra-nav-item <?= $isActive('/interviews') ?>">
                     <i class="bi bi-calendar-event"></i>
-                    <span>Interviews</span><?= $soonBadge() ?>
+                    <span>Interviews</span>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('recruit.candidates.view')): ?>

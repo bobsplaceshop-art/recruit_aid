@@ -156,8 +156,13 @@ $activityHtml = App::instance()->container()->get(\CorporateAid\Platform\Service
                                     <span class="muted">·</span>
                                     <span class="ra-badge"><?= e($a->statusLabel()) ?></span>
                                 </div>
-                                <div class="ra-timeline-time muted small">
-                                    Applied <?= e(human_time($a->appliedAt)) ?> · <code style="font-size:.7rem;"><?= e($a->code) ?></code>
+                                <div class="ra-timeline-time muted small d-flex gap-2 align-items-center">
+                                    <span>Applied <?= e(human_time($a->appliedAt)) ?> · <code style="font-size:.7rem;"><?= e($a->code) ?></code></span>
+                                    <?php if ($user->can('recruit.interviews.create')): ?>
+                                        <a href="/applications/<?= e($a->code) ?>/schedule-interview" class="ra-btn ra-btn-outline ra-btn-sm" style="font-size:.7rem;padding:.15rem .45rem;">
+                                            <i class="bi bi-calendar-plus"></i> Schedule interview
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>

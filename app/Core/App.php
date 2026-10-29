@@ -254,6 +254,7 @@ final class App
         // ---------- Validation ----------
         $c->singleton(OrganisationValidator::class, fn() => new OrganisationValidator());
         $c->singleton(ContactValidator::class,      fn() => new ContactValidator());
+        $c->singleton(CandidateValidator::class,    fn() => new CandidateValidator());
         $c->singleton(EngagementValidator::class,   fn() => new EngagementValidator());
         $c->singleton(VacancyValidator::class,      fn() => new VacancyValidator($c->get(LookupService::class)));
         $c->singleton(FileValidator::class,      fn() => new FileValidator());
