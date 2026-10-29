@@ -95,10 +95,11 @@ document.addEventListener('DOMContentLoaded', function() {
             el.type = 'text';
             el.setAttribute('placeholder', 'yyyy-mm-dd');
         }
-        
-        new AirDatepicker(el, { 
-            dateFormat: 'yyyy-MM-dd', 
+
+        new AirDatepicker(el, {
+            dateFormat: 'yyyy-MM-dd',
             autoClose: true,
+            minDate: new Date(),
             locale: {
                 days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
                 daysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],

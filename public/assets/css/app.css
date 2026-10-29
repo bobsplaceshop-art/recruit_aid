@@ -1430,3 +1430,103 @@ html[data-theme="dark"] .ra-pipeline-column-title-pill[style*="--stage-pill-colo
     background: var(--ra-surface-3);
     color: var(--ra-muted);
 }
+
+/* ============================================================
+   Participant chip picker (Interviews scheduling)
+   ============================================================ */
+
+.ra-chip-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    min-height: 0;
+}
+
+.ra-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--ra-primary) 15%, var(--ra-surface));
+    color: var(--ra-text-strong);
+    font-size: 0.82rem;
+    font-weight: 500;
+    border: 1px solid color-mix(in srgb, var(--ra-primary) 30%, var(--ra-border));
+}
+
+.ra-chip-remove {
+    background: transparent;
+    border: none;
+    color: var(--ra-muted);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    margin-left: 0.1rem;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 120ms, color 120ms;
+}
+
+.ra-chip-remove:hover {
+    background: color-mix(in srgb, var(--ra-primary) 30%, transparent);
+    color: var(--ra-text-strong);
+}
+
+.ra-participant-picker {
+    position: relative;
+}
+
+.ra-participant-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 260px;
+    overflow-y: auto;
+    background: var(--ra-surface);
+    border: 1px solid var(--ra-border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
+    z-index: 100;
+    padding: 0.25rem;
+}
+
+.ra-participant-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    border-radius: 6px;
+    border: 0;
+    background: transparent;
+    color: var(--ra-text);
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 120ms;
+}
+
+.ra-participant-option:hover:not(.is-disabled) {
+    background: var(--ra-hover-nav);
+}
+
+.ra-participant-option.is-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.ra-participant-name {
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+.ra-participant-email {
+    font-size: 0.72rem;
+}
