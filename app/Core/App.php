@@ -12,6 +12,7 @@ use CorporateAid\Recruit\Repositories\ContactRepository;
 use CorporateAid\Recruit\Repositories\EngagementRepository;
 use CorporateAid\Recruit\Repositories\EngagementAssignmentRepository;
 use CorporateAid\Recruit\Repositories\VacancyRepository;
+use CorporateAid\Recruit\Repositories\CandidateRepository;
 use CorporateAid\Recruit\Repositories\VacancyStageRepository;
 use CorporateAid\Platform\Repositories\FileRepository;
 use CorporateAid\Platform\Repositories\EntityFileRepository;
@@ -106,6 +107,7 @@ final class App
         LiveSearchRegistry::register('contacts',      ContactRepository::class);
         LiveSearchRegistry::register('engagements',   EngagementRepository::class);
         LiveSearchRegistry::register('vacancies',     VacancyRepository::class);
+        LiveSearchRegistry::register('candidates',    CandidateRepository::class);
     }
 
     private function registerErrorHandling(): void
@@ -211,6 +213,7 @@ final class App
         $c->singleton(EngagementRepository::class,        fn() => new EngagementRepository($c->get(Database::class)));
         $c->singleton(EngagementAssignmentRepository::class, fn() => new EngagementAssignmentRepository($c->get(Database::class)));
         $c->singleton(VacancyRepository::class,           fn() => new VacancyRepository($c->get(Database::class)));
+        $c->singleton(CandidateRepository::class,         fn() => new CandidateRepository($c->get(Database::class)));
         $c->singleton(VacancyStageRepository::class,      fn() => new VacancyStageRepository($c->get(Database::class)));
         $c->singleton(FileRepository::class,           fn() => new FileRepository($c->get(Database::class)));
         $c->singleton(EntityFileRepository::class,     fn() => new EntityFileRepository($c->get(Database::class)));
