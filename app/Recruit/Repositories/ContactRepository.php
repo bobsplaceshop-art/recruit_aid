@@ -8,7 +8,7 @@ use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Recruit\Models\Contact;
 
-final class ContactRepository
+final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
     public function __construct(private Database $db) {}
 
@@ -441,6 +441,29 @@ final class ContactRepository
             'page'        => $page,
             'per_page'    => $perPage,
             'total_pages' => $totalPages,
+        ];
+    }
+
+    /**
+     * Live-search configuration for the reusable LiveSearch engine.
+     */
+    public function liveSearchConfig(): array
+    {
+        return [
+            'table'            => 'recruit_client_contacts',
+            'alias'            => 'c',
+            'columns'          => ['c.first_name', 'c.last_name', 'c.email', 'c.position'],
+            'order'            => 'c.last_name ASC, c.first_name ASC',
+            'permission'       => 'recruit.contacts.view',
+            'baseFilters'      => ['c.`deleted_at` IS NULL'],
+            'joins'            => [
+                'INNER JOIN `recruit_client_organisations` o ON o.`id` = c.`organisation_id`',
+                'LEFT JOIN `recruit_contact_roles` cr ON cr.`contact_id` = c.`id`',
+            ],
+            'rowView'          => 'contacts/_row',
+            'extraColumns'     => ['o.name AS organisation_name', 'o.code AS organisation_code'],
+            'aggregateColumns' => ["GROUP_CONCAT(cr.role_slug ORDER BY cr.role_slug) AS role_slugs"],
+            'groupBy' => 'c.id',
         ];
     }
 }

@@ -97,6 +97,13 @@ final class App
         $this->registerTimezone();
         $this->registerServices();
         $this->loadRoutes();
+
+        // Boot live search registry — after all repository services are bound
+        LiveSearchRegistry::boot($this->container);
+        LiveSearchRegistry::register('organisations', OrganisationRepository::class);
+        LiveSearchRegistry::register('contacts',      ContactRepository::class);
+        LiveSearchRegistry::register('engagements',   EngagementRepository::class);
+        LiveSearchRegistry::register('vacancies',     VacancyRepository::class);
     }
 
     private function registerErrorHandling(): void

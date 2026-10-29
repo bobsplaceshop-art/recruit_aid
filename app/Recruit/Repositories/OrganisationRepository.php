@@ -8,7 +8,7 @@ use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Models\Organisation;
 
-final class OrganisationRepository
+final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
     public function __construct(private Database $db) {}
 
@@ -276,5 +276,24 @@ final class OrganisationRepository
             ],
             $rows
         );
+    }
+
+    /**
+     * Live-search configuration for the reusable LiveSearch engine.
+     */
+    public function liveSearchConfig(): array
+    {
+        return [
+            'table'            => 'recruit_client_organisations',
+            'alias'            => 'o',
+            'columns'          => ['o.name', 'o.code', 'o.industry', 'o.email'],
+            'order'            => 'o.created_at DESC',
+            'permission'       => 'recruit.organisations.view',
+            'baseFilters'      => ['o.`deleted_at` IS NULL'],
+            'joins'            => [],
+            'rowView'          => 'organisations/_row',
+            'extraColumns'     => [],
+            'aggregateColumns' => [],
+        ];
     }
 }

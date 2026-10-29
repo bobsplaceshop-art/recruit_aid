@@ -8,7 +8,7 @@ use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Models\Engagement;
 
-final class EngagementRepository
+final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
     public function __construct(private Database $db) {}
 
@@ -331,5 +331,26 @@ final class EngagementRepository
             "SELECT * FROM `recruit_engagement_packages` WHERE `slug` = ?",
             PDOParams::positional([$slug])
         );
+    }
+
+    /**
+     * Live-search configuration for the reusable LiveSearch engine.
+     */
+    public function liveSearchConfig(): array
+    {
+        return [
+            'table'            => 'recruit_engagements',
+            'alias'            => 'e',
+            'columns'          => ['e.name', 'e.code'],
+            'order'            => 'e.created_at DESC',
+            'permission'       => 'recruit.engagements.view',
+            'baseFilters'      => ['e.`deleted_at` IS NULL'],
+            'joins'            => [
+                'INNER JOIN `recruit_client_organisations` o ON o.`id` = e.`organisation_id`',
+            ],
+            'rowView'          => 'engagements/_row',
+            'extraColumns'     => ['o.name AS organisation_name', 'o.code AS organisation_code'],
+            'aggregateColumns' => [],
+        ];
     }
 }

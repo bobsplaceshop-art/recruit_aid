@@ -19,7 +19,9 @@ interface LiveSearchable
      *   baseFilters: string[],
      *   joins: string[],
      *   rowView: string,
-     *   extraColumns: string[]
+     *   extraColumns: string[],
+     *   aggregateColumns?: string[],
+     *   groupBy?: string
      * }
      */
     public function liveSearchConfig(): array;

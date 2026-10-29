@@ -9,7 +9,7 @@ use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Models\Vacancy;
 use CorporateAid\Recruit\Models\VacancyRequirement;
 
-final class VacancyRepository
+final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
     public function __construct(private Database $db) {}
 
@@ -355,5 +355,26 @@ final class VacancyRepository
                 $order++;
             }
         }
+    }
+
+    /**
+     * Live-search configuration for the reusable LiveSearch engine.
+     */
+    public function liveSearchConfig(): array
+    {
+        return [
+            'table'            => 'recruit_vacancies',
+            'alias'            => 'v',
+            'columns'          => ['v.title', 'v.code', 'v.city', 'v.department'],
+            'order'            => 'v.created_at DESC',
+            'permission'       => 'recruit.vacancies.view',
+            'baseFilters'      => ['v.`deleted_at` IS NULL'],
+            'joins'            => [
+                'INNER JOIN `recruit_client_organisations` o ON o.`id` = v.`organisation_id`',
+            ],
+            'rowView'          => 'vacancies/_row',
+            'extraColumns'     => ['o.name AS organisation_name', 'o.code AS organisation_code'],
+            'aggregateColumns' => [],
+        ];
     }
 }
