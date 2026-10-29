@@ -280,9 +280,10 @@ final class CandidateRepository implements \CorporateAid\Platform\LiveSearch\Liv
             $company = trim(Row::str($item, 'company'));
             if ($title === '' || $company === '') continue;
             $this->db->execute(
-                "INSERT INTO `recruit_candidate_experience` (`candidate_id`, `job_title`, `company`, `location`, `start_date`, `end_date`, `is_current`, `description`, `sort_order`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO `recruit_candidate_experience` (`candidate_id`, `job_title`, `company`, `company_type`, `location`, `start_date`, `end_date`, `is_current`, `description`, `sort_order`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 PDOParams::positional([
                     $candidateId, $title, $company,
+                    $item['company_type'] ?? null,
                     $item['location'] ?? null, $item['start_date'] ?? null, $item['end_date'] ?? null,
                     !empty($item['is_current']) ? 1 : 0, $item['description'] ?? null, $order++,
                 ])
@@ -311,10 +312,12 @@ final class CandidateRepository implements \CorporateAid\Platform\LiveSearch\Liv
             $institution = trim(Row::str($item, 'institution'));
             if ($institution === '') continue;
             $this->db->execute(
-                "INSERT INTO `recruit_candidate_education` (`candidate_id`, `institution`, `degree`, `field_of_study`, `start_year`, `end_year`, `grade`, `description`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO `recruit_candidate_education` (`candidate_id`, `institution`, `school_location`, `education_level_id`, `degree`, `field_of_study`, `minor`, `start_year`, `end_year`, `grade`, `description`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 PDOParams::positional([
                     $candidateId, $institution,
-                    $item['degree'] ?? null, $item['field_of_study'] ?? null,
+                    $item['school_location'] ?? null,
+                    Row::nullableInt($item, 'education_level_id'),
+                    $item['degree'] ?? null, $item['field_of_study'] ?? null, $item['minor'] ?? null,
                     $item['start_year'] ?? null, $item['end_year'] ?? null,
                     $item['grade'] ?? null, $item['description'] ?? null,
                 ])

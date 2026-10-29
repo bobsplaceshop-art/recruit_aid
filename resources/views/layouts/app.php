@@ -58,6 +58,7 @@ if (function_exists('flash')) {
         } catch (e) {}
     })();
     </script>
+<link rel="stylesheet" href="/assets/vendor/air-datepicker/air-datepicker.css">
 </head>
 <body>
     <div class="ra-shell">
@@ -84,5 +85,34 @@ if (function_exists('flash')) {
     <?php endforeach; ?>
     <script src="<?= asset('js/search.js') ?>?v=1"></script>
     <script src="<?= asset('js/live-search.js') ?>?v=1"></script>
+<script src="/assets/vendor/air-datepicker/air-datepicker.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Target both data-datepicker and text inputs that were originally dates
+    document.querySelectorAll('[data-datepicker], input[type="date"]').forEach(function(el) {
+        // Force type to text so the browser doesn't show the native picker
+        if (el.type === 'date') {
+            el.type = 'text';
+            el.setAttribute('placeholder', 'yyyy-mm-dd');
+        }
+        
+        new AirDatepicker(el, { 
+            dateFormat: 'yyyy-MM-dd', 
+            autoClose: true,
+            locale: {
+                days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                daysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                daysMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+                months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                today: 'Today',
+                clear: 'Clear',
+                dateFormat: 'yyyy-MM-dd',
+                firstDay: 0
+            }
+        });
+    });
+});
+</script>
 </body>
 </html>

@@ -10,8 +10,11 @@ final class CandidateEducation
     public int $id;
     public int $candidateId;
     public string $institution;
+    public ?string $schoolLocation;
+    public ?int $educationLevelId;
     public ?string $degree;
     public ?string $fieldOfStudy;
+    public ?string $minor;
     public ?int $startYear;
     public ?int $endYear;
     public ?string $grade;
@@ -24,8 +27,11 @@ final class CandidateEducation
         $e->id = Row::int($row, 'id');
         $e->candidateId = Row::int($row, 'candidate_id');
         $e->institution = Row::str($row, 'institution');
+        $e->schoolLocation = Row::nullableStr($row, 'school_location');
+        $e->educationLevelId = Row::nullableInt($row, 'education_level_id');
         $e->degree = Row::nullableStr($row, 'degree');
         $e->fieldOfStudy = Row::nullableStr($row, 'field_of_study');
+        $e->minor = Row::nullableStr($row, 'minor');
         $e->startYear = Row::nullableInt($row, 'start_year');
         $e->endYear = Row::nullableInt($row, 'end_year');
         $e->grade = Row::nullableStr($row, 'grade');
