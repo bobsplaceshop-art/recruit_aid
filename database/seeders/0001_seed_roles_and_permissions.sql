@@ -9,14 +9,16 @@
 -- ============================================================
 
 INSERT INTO `core_roles` (`name`, `slug`, `description`, `is_system`) VALUES
+  -- Only super_admin is a system role. All others are starting
+  -- templates that admins can rename, delete, or replace.
   ('Super Administrator', 'super_admin',   'Full system access', 1),
-  ('Administrator',       'admin',         'Operational administration', 1),
-  ('Recruitment Manager', 'recruitment_manager', 'Manages recruiters, clients and recruitment performance', 1),
-  ('Recruiter',           'recruiter',     'Manages assigned vacancies and candidates', 1),
-  ('Researcher',          'researcher',    'Sourcing and candidate research', 1),
-  ('Client Administrator','client_admin',  'Client-side organisation administrator', 1),
-  ('Client User',         'client_user',   'Client-side reviewer', 1)
-ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `description` = VALUES(`description`);
+  ('Administrator',       'admin',         'Operational administration', 0),
+  ('Recruitment Manager', 'recruitment_manager', 'Manages recruiters, clients and recruitment performance', 0),
+  ('Recruiter',           'recruiter',     'Manages assigned vacancies and candidates', 0),
+  ('Researcher',          'researcher',    'Sourcing and candidate research', 0),
+  ('Client Administrator','client_admin',  'Client-side organisation administrator', 0),
+  ('Client User',         'client_user',   'Client-side reviewer', 0)
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `description` = VALUES(`description`), `is_system` = VALUES(`is_system`);
 
 -- ============================================================
 -- Permissions
