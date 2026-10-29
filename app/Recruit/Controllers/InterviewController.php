@@ -43,16 +43,18 @@ final class InterviewController
         $user = $auth->user();
         if ($user === null) throw HttpException::forbidden();
 
-        // For super_admin, show all upcoming. Otherwise, only ones they're a participant in.
+        $status = trim($request->queryStringValue('status', ''));
+        $statusFilter = $status !== '' ? $status : null;
+
         if ($user->isSuperAdmin()) {
-            $upcoming = $repo->upcomingForUser(0, 50); // placeholder — we'll just show all via findall below
+            $interviews = $repo->allWithFilters($statusFilter, 200);
         } else {
-            $upcoming = $repo->upcomingForUser($user->id, 50);
+            $interviews = $repo->forUserWithFilters($user->id, $statusFilter, 200);
         }
 
         // Hydrate candidate + vacancy for each interview
         $rows = [];
-        foreach ($upcoming as $int) {
+        foreach ($interviews as $int) {
             $app = $apps->findById($int->applicationId);
             if ($app === null) continue;
             $cand = $cands->findById($app->candidateId);
@@ -61,13 +63,22 @@ final class InterviewController
             $rows[] = ['interview' => $int, 'application' => $app, 'candidate' => $cand, 'vacancy' => $vac];
         }
 
+        // Counts per status for the pill badges
+        $counts = ['all' => count($rows), 'scheduled' => 0, 'completed' => 0, 'cancelled' => 0, 'no_show' => 0];
+        foreach ($rows as $r) {
+            $s = $r['interview']->status;
+            if (isset($counts[$s])) $counts[$s]++;
+        }
+
         /** @var View $view */
         $view = $this->container->get(View::class);
 
         return Response::html($view->render('interviews/index', [
-            'title' => 'Interviews',
-            'user'  => $user,
-            'rows'  => $rows,
+            'title'   => 'Interviews',
+            'user'    => $user,
+            'rows'    => $rows,
+            'status'  => $status,
+            'counts'  => $counts,
         ], 'layouts/app'));
     }
 

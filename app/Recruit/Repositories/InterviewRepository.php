@@ -61,6 +61,70 @@ final class InterviewRepository
     }
 
     /** @param array<string, mixed> $data */
+    /**
+     * All interviews, optionally filtered by status. Used by the
+     * /interviews index page. Super admins see all; the controller
+     * filters by participant for regular users.
+     *
+     * @return Interview[]
+     */
+    public function allWithFilters(?string $status, int $limit = 100): array
+    {
+        $where = ["i.`deleted_at` IS NULL"];
+        $params = [];
+
+        if ($status !== null && $status !== '' && $status !== 'all') {
+            $where[] = "i.`status` = ?";
+            $params[] = $status;
+        }
+
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
+
+        $rows = $this->db->select(
+            "SELECT i.* FROM `recruit_interviews` i
+             $whereSql
+             ORDER BY
+                CASE WHEN i.`status` = 'scheduled' AND i.`scheduled_at` >= NOW() THEN 0 ELSE 1 END ASC,
+                i.`scheduled_at` ASC,
+                i.`id` DESC
+             LIMIT " . max(1, min(500, $limit)),
+            PDOParams::positional($params)
+        );
+        return array_map([Interview::class, 'fromRow'], $rows);
+    }
+
+    /**
+     * Interviews the user is a participant in, optionally filtered by status.
+     *
+     * @return Interview[]
+     */
+    public function forUserWithFilters(int $userId, ?string $status, int $limit = 100): array
+    {
+        $where = ["i.`deleted_at` IS NULL", "p.`user_id` = ?"];
+        $params = [$userId];
+
+        if ($status !== null && $status !== '' && $status !== 'all') {
+            $where[] = "i.`status` = ?";
+            $params[] = $status;
+        }
+
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
+
+        $rows = $this->db->select(
+            "SELECT i.* FROM `recruit_interviews` i
+             INNER JOIN `recruit_interview_participants` p ON p.`interview_id` = i.`id`
+             $whereSql
+             ORDER BY
+                CASE WHEN i.`status` = 'scheduled' AND i.`scheduled_at` >= NOW() THEN 0 ELSE 1 END ASC,
+                i.`scheduled_at` ASC,
+                i.`id` DESC
+             LIMIT " . max(1, min(500, $limit)),
+            PDOParams::positional($params)
+        );
+        return array_map([Interview::class, 'fromRow'], $rows);
+    }
+
+        /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
         return $this->db->insert(
