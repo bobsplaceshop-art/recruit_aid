@@ -27,6 +27,8 @@ final class Contact
     public bool $isFinance;
     public bool $isHr;
     public bool $isDecisionMaker;
+    /** @var string[] Role slugs from the pivot table (may include custom roles) */
+    public array $roles = [];
     public ?string $notes;
     public ?int $createdBy;
     public ?string $createdAt;
@@ -72,9 +74,35 @@ final class Contact
         return trim($this->firstName . ' ' . $this->lastName);
     }
 
-    /** @return string[] Human-readable role labels */
+    /**
+     * Human-readable role labels.
+     *
+     * If $roles is populated (from the pivot table), map each slug to
+     * its lookup label. Otherwise fall back to the boolean columns for
+     * backward compatibility with old data.
+     *
+     * @return string[]
+     */
     public function roleLabels(): array
     {
+        // New path: pivot-driven. Hydrated by ContactRepository::hydrateRoles().
+        if (!empty($this->roles)) {
+            try {
+                $lookups = \CorporateAid\Core\App::instance()
+                    ->container()
+                    ->get(\CorporateAid\Platform\Services\LookupService::class);
+                $all = $lookups->allFor('contact_role');
+                $out = [];
+                foreach ($this->roles as $slug) {
+                    $out[] = $all[$slug] ?? $slug;
+                }
+                return $out;
+            } catch (\Throwable) {
+                // Fall through to boolean path
+            }
+        }
+
+        // Legacy path: boolean columns
         $roles = [];
         if ($this->isPrimary) $roles[] = 'Primary';
         if ($this->isHiringManager) $roles[] = 'Hiring Manager';
@@ -82,5 +110,24 @@ final class Contact
         if ($this->isHr) $roles[] = 'HR';
         if ($this->isDecisionMaker) $roles[] = 'Decision Maker';
         return $roles;
+    }
+
+    /**
+     * Convenience: check if this contact has a specific role slug.
+     * Reads from $roles if populated, else falls back to boolean columns.
+     */
+    public function hasRole(string $slug): bool
+    {
+        if (!empty($this->roles)) {
+            return in_array($slug, $this->roles, true);
+        }
+        return match ($slug) {
+            'is_primary'        => $this->isPrimary,
+            'is_hiring_manager' => $this->isHiringManager,
+            'is_finance'        => $this->isFinance,
+            'is_hr'             => $this->isHr,
+            'is_decision_maker' => $this->isDecisionMaker,
+            default             => false,
+        };
     }
 }

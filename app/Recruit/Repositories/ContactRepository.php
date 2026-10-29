@@ -18,7 +18,7 @@ final class ContactRepository
             "SELECT * FROM `recruit_client_contacts` WHERE `id` = ? LIMIT 1",
             PDOParams::positional([$id])
         );
-        return $row ? Contact::fromRow($row) : null;
+        return $row ? $this->hydrateRoles(Contact::fromRow($row)) : null;
     }
 
     public function findByCode(string $code, bool $includeDeleted = false): ?Contact
@@ -30,7 +30,7 @@ final class ContactRepository
         $sql .= " LIMIT 1";
 
         $row = $this->db->selectOne($sql, PDOParams::positional([$code]));
-        return $row ? Contact::fromRow($row) : null;
+        return $row ? $this->hydrateRoles(Contact::fromRow($row)) : null;
     }
 
     public function findByEmail(string $email, ?int $excludeId = null): ?Contact
@@ -45,7 +45,100 @@ final class ContactRepository
         $sql .= " LIMIT 1";
 
         $row = $this->db->selectOne($sql, PDOParams::positional($params));
-        return $row === null ? null : Contact::fromRow($row);
+        return $row === null ? null : $this->hydrateRoles(Contact::fromRow($row));
+    }
+
+    /**
+     * Load pivot roles for a single contact.
+     * @return string[]
+     */
+    public function rolesForContact(int $contactId): array
+    {
+        $rows = $this->db->select(
+            "SELECT `role_slug` FROM `recruit_contact_roles` WHERE `contact_id` = ? ORDER BY `role_slug`",
+            PDOParams::positional([$contactId])
+        );
+        return array_map(fn(array $r) => Row::str($r, 'role_slug'), $rows);
+    }
+
+    /**
+     * Batch-load pivot roles for multiple contacts at once.
+     * @param int[] $contactIds
+     * @return array<int, string[]> [contactId => roleSlugs]
+     */
+    public function rolesForContacts(array $contactIds): array
+    {
+        if (empty($contactIds)) return [];
+        $placeholders = implode(',', array_fill(0, count($contactIds), '?'));
+        $rows = $this->db->select(
+            "SELECT `contact_id`, `role_slug` FROM `recruit_contact_roles`
+             WHERE `contact_id` IN ({$placeholders})
+             ORDER BY `contact_id`, `role_slug`",
+            PDOParams::positional($contactIds)
+        );
+        $out = [];
+        foreach ($rows as $r) {
+            $cid = Row::int($r, 'contact_id');
+            $out[$cid][] = Row::str($r, 'role_slug');
+        }
+        return $out;
+    }
+
+    /** Hydrate $contact->roles from the pivot table (mutates the model). */
+    private function hydrateRoles(Contact $contact): Contact
+    {
+        $contact->roles = $this->rolesForContact($contact->id);
+        return $contact;
+    }
+
+    /**
+     * Replace a contact's pivot roles with the given slugs.
+     * Also syncs the legacy boolean columns for backward compatibility.
+     * @param string[] $roleSlugs
+     */
+    public function syncRoles(int $contactId, array $roleSlugs): void
+    {
+        // Normalize: unique, lowercase, no empties
+        $clean = [];
+        foreach ($roleSlugs as $slug) {
+            $s = strtolower(trim($slug));
+            if ($s !== '') $clean[$s] = true;
+        }
+        $clean = array_keys($clean);
+
+        // 1. Replace pivot rows
+        $this->db->execute(
+            "DELETE FROM `recruit_contact_roles` WHERE `contact_id` = ?",
+            PDOParams::positional([$contactId])
+        );
+
+        if (!empty($clean)) {
+            $values = [];
+            $params = [];
+            foreach ($clean as $slug) {
+                $values[] = "(?, ?)";
+                $params[] = $contactId;
+                $params[] = $slug;
+            }
+            $this->db->execute(
+                "INSERT INTO `recruit_contact_roles` (`contact_id`, `role_slug`) VALUES " . implode(', ', $values),
+                PDOParams::positional($params)
+            );
+        }
+
+        // 2. Sync legacy booleans (denormalized mirror, kept for backward compat)
+        $legacy = ['is_primary', 'is_hiring_manager', 'is_finance', 'is_hr', 'is_decision_maker'];
+        $sets = [];
+        $bParams = [];
+        foreach ($legacy as $flag) {
+            $sets[] = "`{$flag}` = ?";
+            $bParams[] = in_array($flag, $clean, true) ? 1 : 0;
+        }
+        $bParams[] = $contactId;
+        $this->db->execute(
+            "UPDATE `recruit_client_contacts` SET " . implode(', ', $sets) . " WHERE `id` = ?",
+            PDOParams::positional($bParams)
+        );
     }
 
     /** @return Contact[] */
@@ -58,7 +151,15 @@ final class ContactRepository
         $sql .= " ORDER BY `is_primary` DESC, `last_name` ASC, `first_name` ASC";
 
         $rows = $this->db->select($sql, PDOParams::positional([$organisationId]));
-        return array_map([Contact::class, 'fromRow'], $rows);
+        $contacts = array_map([Contact::class, 'fromRow'], $rows);
+
+        // Batch-load pivot roles for all contacts
+        $ids = array_map(fn(Contact $c) => $c->id, $contacts);
+        $roleMap = $this->rolesForContacts($ids);
+        foreach ($contacts as $c) {
+            $c->roles = $roleMap[$c->id] ?? [];
+        }
+        return $contacts;
     }
 
     public function countForOrganisation(int $organisationId): int
@@ -238,7 +339,13 @@ final class ContactRepository
              WHERE `deleted_at` IS NULL
              ORDER BY `organisation_id`, `is_primary` DESC, `last_name` ASC, `first_name` ASC"
         );
-        return array_map([Contact::class, 'fromRow'], $rows);
+        $contacts = array_map([Contact::class, 'fromRow'], $rows);
+        $ids = array_map(fn(Contact $c) => $c->id, $contacts);
+        $roleMap = $this->rolesForContacts($ids);
+        foreach ($contacts as $c) {
+            $c->roles = $roleMap[$c->id] ?? [];
+        }
+        return $contacts;
     }
 
     /**
@@ -271,9 +378,19 @@ final class ContactRepository
         }
 
         $role = (string) ($filters['role'] ?? '');
-        $validRoles = ['is_primary', 'is_hiring_manager', 'is_finance', 'is_hr', 'is_decision_maker'];
-        if (in_array($role, $validRoles, true)) {
-            $where[] = "c.`{$role}` = 1";
+        if ($role !== '') {
+            // Whitelist: role slug must match a valid lookup value
+            // (prevents SQL injection via the fallback column name).
+            $legacyFlags = ['is_primary', 'is_hiring_manager', 'is_finance', 'is_hr', 'is_decision_maker'];
+            if (in_array($role, $legacyFlags, true)) {
+                // Legacy flag: pivot OR boolean column
+                $where[] = "(EXISTS (SELECT 1 FROM `recruit_contact_roles` r WHERE r.`contact_id` = c.`id` AND r.`role_slug` = ?) OR c.`{$role}` = 1)";
+                $params[] = $role;
+            } else {
+                // Custom role: pivot only
+                $where[] = "EXISTS (SELECT 1 FROM `recruit_contact_roles` r WHERE r.`contact_id` = c.`id` AND r.`role_slug` = ?)";
+                $params[] = $role;
+            }
         }
 
         $whereSql = 'WHERE ' . implode(' AND ', $where);
@@ -300,12 +417,20 @@ final class ContactRepository
         );
 
         $out = [];
+        $ids = [];
         foreach ($rows as $row) {
+            $contact = Contact::fromRow($row);
             $out[] = [
-                'contact'           => Contact::fromRow($row),
+                'contact'           => $contact,
                 'organisation_name' => Row::str($row, 'organisation_name'),
                 'organisation_code' => Row::str($row, 'organisation_code'),
             ];
+            $ids[] = $contact->id;
+        }
+        // Batch-hydrate pivot roles
+        $roleMap = $this->rolesForContacts($ids);
+        foreach ($out as $idx => $row) {
+            $out[$idx]['contact']->roles = $roleMap[$row['contact']->id] ?? [];
         }
 
         $totalPages = max(1, (int) ceil($total / $perPage));
