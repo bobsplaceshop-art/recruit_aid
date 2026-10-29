@@ -11,6 +11,7 @@ use CorporateAid\Core\Session;
 use CorporateAid\Core\View;
 use CorporateAid\Core\Row;
 use CorporateAid\Platform\Repositories\RoleRepository;
+use CorporateAid\Platform\Repositories\UserRepository;
 
 final class RoleController
 {
@@ -218,11 +219,16 @@ final class RoleController
             throw new \RuntimeException('Role not found.');
         }
 
+        /** @var UserRepository $userRepo */
+        $userRepo = $this->container->get(UserRepository::class);
+        $assignedUsers = $userRepo->findUsersByRoleId($id);
+
         $html = $view->render('admin/roles/form', [
-            'title'  => 'Edit Role: ' . Row::str($role, 'name'),
-            'user'   => $auth->user(),
-            'role'   => $role,
-            'errors' => [],
+            'title'         => 'Edit Role: ' . Row::str($role, 'name'),
+            'user'          => $auth->user(),
+            'role'          => $role,
+            'assignedUsers' => $assignedUsers,
+            'errors'        => [],
         ], 'layouts/app');
 
         return Response::html($html);
@@ -268,29 +274,77 @@ final class RoleController
         return Response::redirect('/admin/roles-perm/roles');
     }
 
+    /**
+     * Remove a user from a role.
+     * POST /admin/roles-perm/roles/{id}/users/{userId}/remove
+     */
+    /** @param array<string, string> $params */
+    public function removeUser(Request $request, array $params = []): Response
+    {
+        /** @var RoleRepository $roles */
+        $roles = $this->container->get(RoleRepository::class);
+        /** @var UserRepository $users */
+        $users = $this->container->get(UserRepository::class);
+        /** @var Session $session */
+        $session = $this->container->get(Session::class);
+
+        $roleId = (int) ($params['id'] ?? 0);
+        $userId = (int) ($params['userId'] ?? 0);
+
+        $role = $roles->findById($roleId);
+        $user = $users->findById($userId);
+
+        if ($role === null || $user === null) {
+            $session->flash('error', 'Role or user not found.');
+            return Response::redirect('/admin/roles-perm/roles');
+        }
+
+        // Remove just this role from the user's assignments (keep other roles)
+        $currentRoleIds = $users->roleIdsForUser($userId);
+        $newRoleIds = array_values(array_filter(
+            $currentRoleIds,
+            fn(int $rid) => $rid !== $roleId
+        ));
+        $users->syncRoles($userId, $newRoleIds);
+
+        $session->flash('success',
+            'Removed "' . $user->name . '" from role "' . Row::str($role, 'name') . '".'
+        );
+
+        return Response::redirect('/admin/roles-perm/roles/' . $roleId . '/edit');
+    }
+
     /** @param array<string, string> $params */
     public function destroy(Request $request, array $params = []): Response
     {
         /** @var RoleRepository $roles */
         $roles = $this->container->get(RoleRepository::class);
+        /** @var Session $session */
+        $session = $this->container->get(Session::class);
 
         $id = (int) ($params['id'] ?? 0);
         $role = $roles->findById($id);
         if ($role === null) {
-            throw new \RuntimeException('Role not found.');
+            $session->flash('error', 'Role not found.');
+            return Response::redirect('/admin/roles-perm/roles');
         }
         if (Row::bool($role, 'is_system')) {
-            throw new \RuntimeException('Cannot delete a system role.');
+            $session->flash('error', 'Cannot delete a system role.');
+            return Response::redirect('/admin/roles-perm/roles');
         }
-        if ($roles->userCountForRole($id) > 0) {
-            throw new \RuntimeException('Cannot delete a role that is assigned to users.');
+
+        $userCount = $roles->userCountForRole($id);
+        if ($userCount > 0) {
+            $session->flash('error',
+                'Cannot delete "' . Row::str($role, 'name') . '" — it is assigned to '
+                . $userCount . ' user' . ($userCount === 1 ? '' : 's')
+                . '. Remove it from those users first.'
+            );
+            return Response::redirect('/admin/roles-perm/roles');
         }
 
         $roleName = Row::str($role, 'name');
         $roles->delete($id);
-
-        /** @var Session $session */
-        $session = $this->container->get(Session::class);
         $session->flash('success', 'Role "' . $roleName . '" deleted.');
 
         return Response::redirect('/admin/roles-perm/roles');

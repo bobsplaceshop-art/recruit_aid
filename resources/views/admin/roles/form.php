@@ -48,11 +48,53 @@
 
     <div class="ra-alert ra-alert-info mb-3">
         <i class="bi bi-info-circle"></i>
-        To assign permissions to this role, go to the <a href="/admin/roles-perm/permissions">Permissions Matrix</a>.
+        To assign permissions to this role, go to the <a href="/admin/roles-perm/permissions?role_id=<?= $role ? (int) $role['id'] : '' ?>">Permissions Matrix</a>.
     </div>
 
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 mb-4">
         <button type="submit" class="ra-btn ra-btn-primary">Save Role</button>
         <a href="/admin/roles-perm/roles" class="ra-btn ra-btn-outline">Cancel</a>
     </div>
 </form>
+
+<?php if (isset($role) && $role): ?>
+<div class="ra-card mt-4">
+    <h2 class="h5 mb-3">Users with this role</h2>
+
+    <?php if (empty($assignedUsers)): ?>
+        <p class="muted small mb-0">No users are currently assigned to this role.</p>
+    <?php else: ?>
+        <p class="muted small mb-3"><?= count($assignedUsers) ?> user<?= count($assignedUsers) === 1 ? '' : 's' ?> assigned. Removing a user will revoke their role-specific permissions immediately on their next request.</p>
+
+        <div class="ra-table-card">
+            <table class="ra-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th style="width:120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($assignedUsers as $au): ?>
+                    <tr>
+                        <td><?= e($au['name']) ?></td>
+                        <td class="muted small"><?= e($au['email']) ?></td>
+                        <td>
+                            <form method="POST" action="/admin/roles-perm/roles/<?= (int) $role['id'] ?>/users/<?= (int) $au['id'] ?>/remove"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Remove <?= e($au['name']) ?> from this role?');">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="ra-btn ra-btn-outline" style="padding:.25rem .5rem;font-size:.85rem;color:var(--ra-error-fg);">
+                                    Remove
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+</div>
+<?php endif; ?>

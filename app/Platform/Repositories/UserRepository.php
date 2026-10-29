@@ -303,4 +303,27 @@ final class UserRepository
         );
         return array_map(fn($r) => Row::int($r, 'role_id'), $rows);
     }
+
+    /**
+     * Return all active users assigned to a role, with name/email.
+     * @return array<int, array{id:int, name:string, email:string}>
+     */
+    public function findUsersByRoleId(int $roleId): array
+    {
+        $rows = $this->db->select(
+            "SELECT u.`id`, u.`name`, u.`email`
+             FROM `core_users` u
+             JOIN `core_user_roles` ur ON ur.`user_id` = u.`id`
+             WHERE ur.`role_id` = ?
+               AND u.`deleted_at` IS NULL
+             ORDER BY u.`name` ASC",
+            PDOParams::positional([$roleId])
+        );
+
+        return array_map(static fn(array $r) => [
+            'id'    => Row::int($r, 'id'),
+            'name'  => Row::str($r, 'name'),
+            'email' => Row::str($r, 'email'),
+        ], $rows);
+    }
 }

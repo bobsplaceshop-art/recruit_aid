@@ -121,6 +121,7 @@ $router->post('/admin/roles-perm/roles',          [RoleController::class, 'store
 $router->get('/admin/roles-perm/roles/{id}/edit', [RoleController::class, 'edit'],    ['auth', 'permission:core.settings.manage']);
 $router->put('/admin/roles-perm/roles/{id}',      [RoleController::class, 'update'],  ['auth', 'permission:core.settings.manage', 'csrf']);
 $router->delete('/admin/roles-perm/roles/{id}',   [RoleController::class, 'destroy'], ['auth', 'permission:core.settings.manage', 'csrf']);
+$router->post('/admin/roles-perm/roles/{id}/users/{userId}/remove', [RoleController::class, 'removeUser'], ['auth', 'permission:core.settings.manage', 'csrf']);
 $router->get('/admin/roles-perm/permissions',     [RoleController::class, 'permissions'], ['auth', 'permission:core.settings.manage']);
 $router->post('/admin/roles-perm/permissions',    [RoleController::class, 'savePermissions'], ['auth', 'permission:core.settings.manage', 'csrf']);
 
