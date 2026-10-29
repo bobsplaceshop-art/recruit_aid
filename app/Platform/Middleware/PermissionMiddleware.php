@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Platform\Middleware;
 
 use CorporateAid\Core\Auth;
+use CorporateAid\Core\Exceptions\HttpException;
 use CorporateAid\Core\Request;
 use CorporateAid\Core\Response;
 
@@ -12,6 +13,11 @@ use CorporateAid\Core\Response;
  * Routed via: ['permission:vacancies.create']
  *
  * Middleware model migration 2026-09-24 — see AuthMiddleware for notes.
+ *
+ * When access is denied, throws HttpException::forbidden(). The App's
+ * existing exception handler (App::renderException) picks up the 403
+ * status and renders resources/views/errors/403.php with the branded
+ * "Access denied" page — no view code lives in this middleware.
  */
 final class PermissionMiddleware
 {
@@ -36,12 +42,10 @@ final class PermissionMiddleware
             return $next($request);
         }
 
-        // Logged in but lacks permission → 403
-        http_response_code(403);
-        return new Response(
-            '<h1>Forbidden</h1><p>You do not have permission to view this page.</p>',
-            403,
-            ['Content-Type' => 'text/html; charset=utf-8']
+        // Logged in but lacks permission → App::renderException() renders
+        // resources/views/errors/403.php with the message below.
+        throw HttpException::forbidden(
+            'You do not have permission to view this page.'
         );
     }
 }
