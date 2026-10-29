@@ -210,4 +210,97 @@ final class UserRepository
         );
         return array_map(fn ($r) => Row::int($r, 'id'), $rows);
     }
+
+    /**
+     * Return all non-deleted users with their role slugs.
+     * @return array<int, array{id:int, name:string, email:string, status:string, last_login_at:?string, roles: string[]}>
+     */
+    public function listAll(): array
+    {
+        $rows = $this->db->select(
+            "SELECT `id`, `name`, `email`, `status`, `last_login_at`
+             FROM `core_users`
+             WHERE `deleted_at` IS NULL
+             ORDER BY `name` ASC"
+        );
+
+        $users = [];
+        foreach ($rows as $row) {
+            $userId = Row::int($row, 'id');
+            $roleRows = $this->db->select(
+                "SELECT r.`slug`
+                 FROM `core_roles` r
+                 JOIN `core_user_roles` ur ON ur.`role_id` = r.`id`
+                 WHERE ur.`user_id` = ?
+                 ORDER BY r.`name` ASC",
+                PDOParams::positional([$userId])
+            );
+            $roles = array_map(fn($r) => Row::str($r, 'slug'), $roleRows);
+
+            $users[] = [
+                'id'            => $userId,
+                'name'          => Row::str($row, 'name'),
+                'email'         => Row::str($row, 'email'),
+                'status'        => Row::str($row, 'status'),
+                'last_login_at' => Row::nullableStr($row, 'last_login_at'),
+                'roles'         => $roles,
+            ];
+        }
+        return $users;
+    }
+
+    /**
+     * Update a user's profile fields (name, email, status).
+     * @param array<string, mixed> $data
+     */
+    public function update(int $id, array $data): void
+    {
+        $sql = "UPDATE `core_users` SET `name` = ?, `email` = ?, `status` = ? WHERE `id` = ?";
+        $this->db->execute($sql, PDOParams::positional([
+            Row::str($data, 'name'),
+            strtolower(trim(Row::str($data, 'email'))),
+            Row::str($data, 'status', 'active'),
+            $id,
+        ]));
+    }
+
+    /**
+     * Replace a user's role assignments with the given set.
+     * @param int[] $roleIds
+     */
+    public function syncRoles(int $userId, array $roleIds): void
+    {
+        $this->db->execute(
+            "DELETE FROM `core_user_roles` WHERE `user_id` = ?",
+            PDOParams::positional([$userId])
+        );
+
+        if (empty($roleIds)) {
+            return;
+        }
+
+        $values = [];
+        $params = [];
+        foreach ($roleIds as $rid) {
+            $values[] = "(?, ?)";
+            $params[] = $userId;
+            $params[] = $rid;
+        }
+
+        $sql = "INSERT INTO `core_user_roles` (`user_id`, `role_id`) VALUES " . implode(', ', $values);
+        $this->db->execute($sql, PDOParams::positional($params));
+    }
+
+    /**
+     * Return an array of role IDs currently assigned to a user.
+     * @return int[]
+     */
+    public function roleIdsForUser(int $userId): array
+    {
+        $rows = $this->db->select(
+            "SELECT `role_id` FROM `core_user_roles` WHERE `user_id` = ?",
+            PDOParams::positional([$userId])
+        );
+        return array_map(fn($r) => Row::int($r, 'role_id'), $rows);
+    }
 }

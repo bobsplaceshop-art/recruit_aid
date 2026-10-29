@@ -1,18 +1,19 @@
-<div class="ra-page-header">
-    <div>
-        <div class="ra-breadcrumbs">
-            <a href="/dashboard">Home</a>
-            <span>/</span>
-            <span>Administration</span>
-            <span>/</span>
-            <span>Users</span>
+<div class="ra-page-band">
+    <div class="ra-page-band-row">
+        <div>
+            <div class="ra-page-band-label">Administration · Users</div>
+            <h1 class="ra-page-band-title">Users</h1>
         </div>
-        <h1 class="ra-page-title">Users</h1>
-        <p class="ra-page-sub">All accounts with access to Recruit Aid.</p>
+        <div class="ra-page-band-actions">
+            <a href="/admin/users/create" class="ra-btn ra-btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                <span>Create User</span>
+            </a>
+        </div>
     </div>
 </div>
 
-<div class="ra-table-wrap">
+<div class="ra-table-card">
     <table class="ra-table">
         <thead>
             <tr>
@@ -21,12 +22,13 @@
                 <th>Status</th>
                 <th>Roles</th>
                 <th>Last login</th>
+                <th style="width:100px;">Actions</th>
             </tr>
         </thead>
         <tbody>
         <?php if (empty($users)): ?>
             <tr>
-                <td colspan="5" class="text-center muted" style="padding:2.5rem;">
+                <td colspan="6" class="text-center muted" style="padding:2.5rem;">
                     No users yet.
                 </td>
             </tr>
@@ -56,6 +58,9 @@
                         <?php endif; ?>
                     </td>
                     <td class="muted small"><?= e($u['last_login_at'] ?? 'Never') ?></td>
+                    <td>
+                        <a href="/admin/users/<?= (int) $u['id'] ?>/edit" class="ra-btn ra-btn-outline" style="padding:.25rem .5rem;font-size:.85rem;">Edit</a>
+                    </td>
                 </tr>
             <?php endforeach; ?>
         <?php endif; ?>
