@@ -102,15 +102,13 @@ $statuses = [
     'reference_check' => 'Reference Check', 'offer' => 'Offer', 'filled' => 'Filled',
     'on_hold' => 'On Hold', 'cancelled' => 'Cancelled', 'closed' => 'Closed',
 ];
-$workModes = ['onsite' => 'On-site', 'hybrid' => 'Hybrid', 'remote' => 'Remote'];
-$employmentTypes = [
-    'permanent' => 'Permanent', 'contract' => 'Contract', 'fixed_term' => 'Fixed Term',
-    'internship' => 'Internship', 'consultancy' => 'Consultancy',
-];
-$seniorities = [
-    'junior' => 'Junior', 'mid' => 'Mid', 'senior' => 'Senior', 'lead' => 'Lead',
-    'manager' => 'Manager', 'director' => 'Director', 'executive' => 'Executive',
-];
+// Load from lookups — admin-configurable, no hardcoding
+$lookupService = \CorporateAid\Core\App::instance()
+    ->container()
+    ->get(\CorporateAid\Platform\Services\LookupService::class);
+$workModes = $lookupService->allFor('work_mode');
+$employmentTypes = $lookupService->allFor('employment_type');
+$seniorities = $lookupService->allFor('seniority');
 
 $formAction = $isEdit ? '/vacancies/' . $vacancy->code : '/vacancies';
 ?>

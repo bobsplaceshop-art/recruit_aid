@@ -8,6 +8,8 @@ use CorporateAid\Recruit\Controllers\AccountController;
 use CorporateAid\Recruit\Controllers\Admin\AdminHomeController;
 use CorporateAid\Recruit\Controllers\Admin\CustomFieldController;
 use CorporateAid\Recruit\Controllers\Admin\RoleController;
+use CorporateAid\Recruit\Controllers\Admin\LookupController;
+use CorporateAid\Recruit\Controllers\Admin\BrandingController;
 use CorporateAid\Recruit\Controllers\Admin\AdminSettingsController;
 use CorporateAid\Recruit\Controllers\Admin\AdminNotificationRuleController;
 use CorporateAid\Recruit\Controllers\Admin\AdminUserController;
@@ -131,6 +133,13 @@ $router->get('/admin/roles', function (Request $req, array $params): Response {
 }, ['auth', 'permission:core.settings.manage']);
 
 // Custom fields (field builder)
+$router->get('/admin/lookups',                          [LookupController::class, 'index'],  ['auth', 'permission:core.settings.manage']);
+$router->get('/admin/lookups/{group}',                    [LookupController::class, 'show'],   ['auth', 'permission:core.settings.manage']);
+$router->get('/admin/lookups/{group}/create',             [LookupController::class, 'create'], ['auth', 'permission:core.settings.manage']);
+$router->post('/admin/lookups/{group}',                   [LookupController::class, 'store'],  ['auth', 'permission:core.settings.manage', 'csrf']);
+$router->get('/admin/lookups/{group}/{id}/edit',          [LookupController::class, 'edit'],   ['auth', 'permission:core.settings.manage']);
+$router->put('/admin/lookups/{group}/{id}',               [LookupController::class, 'update'], ['auth', 'permission:core.settings.manage', 'csrf']);
+$router->delete('/admin/lookups/{group}/{id}',            [LookupController::class, 'destroy'],['auth', 'permission:core.settings.manage', 'csrf']);
 $router->get('/admin/custom-fields',                      [CustomFieldController::class, 'index'],      ['auth', 'permission:core.settings.manage']);
 $router->get('/admin/custom-fields/{entity}',             [CustomFieldController::class, 'listFor'],    ['auth', 'permission:core.settings.manage']);
 $router->get('/admin/custom-fields/{entity}/create',      [CustomFieldController::class, 'showCreate'], ['auth', 'permission:core.settings.manage']);
@@ -148,6 +157,8 @@ $router->get('/admin/settings',                [AdminSettingsController::class, 
 $router->get('/admin/settings/security',       [AdminSettingsController::class, 'showSecurity'],    ['auth', 'permission:core.settings.manage']);
 $router->post('/admin/settings/security',      [AdminSettingsController::class, 'saveSecurity'],    ['auth', 'permission:core.settings.manage', 'csrf']);
 $router->post('/admin/settings/security/apply',[AdminSettingsController::class, 'applySecurity'],   ['auth', 'permission:core.settings.manage', 'csrf']);
+$router->get('/admin/settings/branding',        [BrandingController::class, 'show'],   ['auth', 'permission:core.settings.manage']);
+$router->post('/admin/settings/branding',       [BrandingController::class, 'update'], ['auth', 'permission:core.settings.manage', 'csrf']);
 
 $router->get('/admin/settings/notifications',                  [AdminNotificationRuleController::class, 'index'],   ['auth', 'permission:core.settings.manage']);
 $router->post('/admin/settings/notifications',                 [AdminNotificationRuleController::class, 'store'],   ['auth', 'permission:core.settings.manage', 'csrf']);

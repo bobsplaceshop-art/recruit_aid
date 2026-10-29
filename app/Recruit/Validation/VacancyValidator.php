@@ -4,12 +4,12 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Validation;
 
 use CorporateAid\Core\Row;
+use CorporateAid\Platform\Services\LookupService;
 
 final class VacancyValidator
 {
-    private const VALID_WORK_MODES = ['onsite', 'hybrid', 'remote'];
-    private const VALID_EMPLOYMENT_TYPES = ['permanent', 'contract', 'fixed_term', 'internship', 'consultancy'];
-    private const VALID_SENIORITIES = ['junior', 'mid', 'senior', 'lead', 'manager', 'director', 'executive'];
+    public function __construct(private LookupService $lookups) {}
+
     private const VALID_STATUSES = [
         'draft', 'pending_approval', 'open', 'sourcing', 'screening',
         'shortlisting', 'client_review', 'interviewing', 'reference_check',
@@ -47,15 +47,15 @@ final class VacancyValidator
         }
 
         $wm = Row::str($input, 'work_mode', 'onsite');
-        if (!in_array($wm, self::VALID_WORK_MODES, true)) {
+        if (!$this->lookups->isValid('work_mode', $wm)) {
             $errors['work_mode'][] = 'Invalid work mode.';
         }
         $et = Row::str($input, 'employment_type', 'permanent');
-        if (!in_array($et, self::VALID_EMPLOYMENT_TYPES, true)) {
+        if (!$this->lookups->isValid('employment_type', $et)) {
             $errors['employment_type'][] = 'Invalid employment type.';
         }
         $sen = Row::str($input, 'seniority', 'mid');
-        if (!in_array($sen, self::VALID_SENIORITIES, true)) {
+        if (!$this->lookups->isValid('seniority', $sen)) {
             $errors['seniority'][] = 'Invalid seniority.';
         }
         $status = Row::str($input, 'status', 'draft');

@@ -168,6 +168,10 @@ $isLoggedIn = isset($user) && $user;
                     <i class="bi bi-input-cursor-text"></i>
                     <span>Custom Fields</span>
                 </a>
+                <a href="/admin/lookups" class="ra-nav-item <?= $isActive('/admin/lookups') ?>">
+                    <i class="bi bi-list-ul"></i>
+                    <span>Lookups</span>
+                </a>
             <?php endif; ?>
             <?php if ($user->can('core.audit.view')): ?>
                 <a href="/admin/audit" class="ra-nav-item <?= $isActive('/admin/audit') ?>">

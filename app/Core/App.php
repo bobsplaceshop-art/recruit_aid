@@ -18,6 +18,8 @@ use CorporateAid\Platform\Repositories\EntityFileRepository;
 use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Recruit\Repositories\PipelineStageRepository;
 use CorporateAid\Platform\Repositories\RoleRepository;
+use CorporateAid\Platform\Repositories\LookupRepository;
+use CorporateAid\Platform\Services\LookupService;
 use CorporateAid\Platform\Repositories\UserRepository;
 use CorporateAid\Platform\Repositories\PasswordResetRepository;
 use CorporateAid\Platform\Repositories\RateLimitRepository;
@@ -180,6 +182,8 @@ final class App
         // ---------- Repositories ----------
         $c->singleton(UserRepository::class,              fn() => new UserRepository($c->get(Database::class)));
         $c->singleton(RoleRepository::class,              fn() => new RoleRepository($c->get(Database::class)));
+        $c->singleton(LookupRepository::class,            fn() => new LookupRepository($c->get(Database::class)));
+        $c->singleton(LookupService::class,               fn() => new LookupService($c->get(LookupRepository::class)));
         $c->singleton(PasswordResetRepository::class,     fn() => new PasswordResetRepository($c->get(Database::class)));
         $c->singleton(RateLimitRepository::class,         fn() => new RateLimitRepository($c->get(Database::class)));
         $c->singleton(NotificationRepository::class,      fn() => new NotificationRepository($c->get(Database::class)));
@@ -220,7 +224,7 @@ final class App
         $c->singleton(OrganisationValidator::class, fn() => new OrganisationValidator());
         $c->singleton(ContactValidator::class,      fn() => new ContactValidator());
         $c->singleton(EngagementValidator::class,   fn() => new EngagementValidator());
-        $c->singleton(VacancyValidator::class,      fn() => new VacancyValidator());
+        $c->singleton(VacancyValidator::class,      fn() => new VacancyValidator($c->get(LookupService::class)));
         $c->singleton(FileValidator::class,      fn() => new FileValidator());
 
         // ---------- Services ----------
