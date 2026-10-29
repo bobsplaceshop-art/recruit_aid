@@ -213,6 +213,7 @@ final class ContactController
             'user'         => $auth->user(),
             'organisation' => $org,
             'contact'      => $contact,
+            'returnTo'     => trim($request->queryStringValue('return_to', '')),
         ], 'layouts/app');
 
         return Response::html($html);
@@ -429,6 +430,38 @@ final class ContactController
         $cf = $request->input('cf', []);
         if (!is_array($cf)) $cf = [];
 
+        // Read roles[] array — comes from pivot-driven checkboxes.
+        // Fall back to legacy boolean field names for backward compatibility
+        // with any cached form still posting the old 5 checkboxes.
+        $rolesInput = $request->input('roles', []);
+        $roles = [];
+        if (is_array($rolesInput)) {
+            foreach ($rolesInput as $r) {
+                if (is_scalar($r)) {
+                    $slug = strtolower(trim((string) $r));
+                    if ($slug !== '') $roles[$slug] = true;
+                }
+            }
+        }
+        $roles = array_keys($roles);
+
+        // If roles[] was empty, check for legacy boolean fields and map
+        // them to slugs (covers cached forms posting the old shape).
+        if (empty($roles)) {
+            $legacyMap = [
+                'is_primary'        => 'is_primary',
+                'is_hiring_manager' => 'is_hiring_manager',
+                'is_finance'        => 'is_finance',
+                'is_hr'             => 'is_hr',
+                'is_decision_maker' => 'is_decision_maker',
+            ];
+            foreach ($legacyMap as $field => $slug) {
+                if ($request->inputBool($field, false)) {
+                    $roles[] = $slug;
+                }
+            }
+        }
+
         return [
             'first_name'              => trim($request->inputString('first_name', '')),
             'last_name'               => trim($request->inputString('last_name', '')),
@@ -439,11 +472,12 @@ final class ContactController
             'alt_phone'               => trim($request->inputString('alt_phone', '')),
             'country_code'            => trim($request->inputString('country_code', '')),
             'preferred_communication' => trim($request->inputString('preferred_communication', 'email')),
-            'is_primary'              => $request->inputBool('is_primary', false),
-            'is_hiring_manager'       => $request->inputBool('is_hiring_manager', false),
-            'is_finance'              => $request->inputBool('is_finance', false),
-            'is_hr'                   => $request->inputBool('is_hr', false),
-            'is_decision_maker'       => $request->inputBool('is_decision_maker', false),
+            'roles'                   => $roles,
+            'is_primary'              => in_array('is_primary', $roles, true),
+            'is_hiring_manager'       => in_array('is_hiring_manager', $roles, true),
+            'is_finance'              => in_array('is_finance', $roles, true),
+            'is_hr'                   => in_array('is_hr', $roles, true),
+            'is_decision_maker'       => in_array('is_decision_maker', $roles, true),
             'notes'                   => trim($request->inputString('notes', '')),
             'cf'                      => $cf,
         ];
