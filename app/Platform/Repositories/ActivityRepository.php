@@ -55,7 +55,49 @@ final class ActivityRepository
         );
     }
 
-    public function countForEntity(string $entityType, int $entityId): int
+    /**
+     * Paginated fetch for the "all activity" page.
+     *
+     * @return array<int, array{
+     *   id: int,
+     *   user_id: ?int,
+     *   user_name: string,
+     *   action: string,
+     *   description: string,
+     *   created_at: string
+     * }>
+     */
+    public function forEntityPaginated(string $entityType, int $entityId, int $offset, int $limit = 30): array
+    {
+        $limit = max(1, min(100, $limit));
+        $offset = max(0, $offset);
+
+        $rows = $this->db->select(
+            "SELECT a.`id`, a.`user_id`, a.`action`, a.`description`, a.`created_at`,
+                    u.`name` AS `user_name`
+             FROM `core_activities` a
+             LEFT JOIN `core_users` u ON u.`id` = a.`user_id`
+             WHERE a.`subject_type` = ?
+               AND a.`subject_id` = ?
+             ORDER BY a.`created_at` DESC, a.`id` DESC
+             LIMIT " . $limit . " OFFSET " . $offset,
+            PDOParams::positional([$entityType, $entityId])
+        );
+
+        return array_map(
+            static fn(array $r) => [
+                'id'          => Row::int($r, 'id'),
+                'user_id'     => Row::nullableInt($r, 'user_id'),
+                'user_name'   => Row::str($r, 'user_name', 'System'),
+                'action'      => Row::str($r, 'action'),
+                'description' => Row::str($r, 'description'),
+                'created_at'  => Row::str($r, 'created_at'),
+            ],
+            $rows
+        );
+    }
+
+        public function countForEntity(string $entityType, int $entityId): int
     {
         return $this->db->scalarInt(
             "SELECT COUNT(*) FROM `core_activities`

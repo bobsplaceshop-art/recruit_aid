@@ -21,18 +21,24 @@ final class ActivityTimelineService
     /**
      * @param string $entityType e.g. 'organisation', 'contact', 'engagement', 'vacancy'
      * @param int    $entityId
-     * @param int    $limit
+     * @param int    $limit      Number of activities to preview (5 default)
      * @return string Rendered HTML, or '' if there are no activities
      */
-    public function render(string $entityType, int $entityId, int $limit = 20): string
+    public function render(string $entityType, int $entityId, int $limit = 5): string
     {
         $activities = $this->activities->forEntity($entityType, $entityId, $limit);
         if (empty($activities)) {
             return '';
         }
 
+        $totalCount = $this->activities->countForEntity($entityType, $entityId);
+
         return $this->view->render('activity/_timeline', [
             'activities' => $activities,
+            'entityType' => $entityType,
+            'entityId'   => $entityId,
+            'totalCount' => $totalCount,
+            'limit'      => $limit,
         ]);
     }
 }

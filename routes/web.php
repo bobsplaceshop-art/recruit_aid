@@ -18,6 +18,7 @@ use CorporateAid\Recruit\Controllers\HomeController;
 use CorporateAid\Recruit\Controllers\NotificationController;
 use CorporateAid\Recruit\Controllers\OrganisationController;
 use CorporateAid\Recruit\Controllers\ContactController;
+use CorporateAid\Recruit\Controllers\ActivityController;
 use CorporateAid\Recruit\Controllers\GlobalSearchController;
 use CorporateAid\Recruit\Controllers\LiveSearchController;
 use CorporateAid\Recruit\Controllers\ComingSoonController;
@@ -206,6 +207,7 @@ $router->get('/admin/email-templates', function (Request $req, array $params): R
 // Notifications
 // ---------------------------------------------------------------------
 $router->get('/notifications',            [NotificationController::class, 'index'],       ['auth']);
+$router->get('/activity/{type}/{id}', [ActivityController::class, 'show'], ['auth']);
 $router->get('/api/live-search', [LiveSearchController::class, 'search'], ['auth']);
 $router->get('/api/search', [GlobalSearchController::class, 'api'], ['auth']);
 $router->get('/api/notifications',        [NotificationController::class, 'api'],         ['auth']);

@@ -175,4 +175,43 @@ if (!function_exists('human_time')) {
     }
 }
 
+if (!function_exists('activity_summary')) {
+    /**
+     * Make an activity description user-friendly.
+     *
+     * Current descriptions from ActivityLogger look like:
+     *   "Updated organisation Test Org XYZ (ORG-000004): country_code: "(empty)" → "KE", address: "..." → "...", phone: "..." → "...", email: "..." → "..."
+     *
+     * We trim down to "Updated organisation Test Org XYZ (ORG-000004) — 4 changes"
+     * and truncate anything without the "change:" pattern.
+     */
+    function activity_summary(string $description, int $maxLen = 140): string
+    {
+        $description = trim($description);
+        if ($description === '') return '';
+
+        // Detect "X: change1, change2, change3" pattern
+        if (preg_match('/^(.+?):\s+.*→.*$/', $description, $m)) {
+            $prefix = $m[1];
+            $changeCount = substr_count($description, '→');
+            if ($changeCount > 1) {
+                $prefix .= ' — ' . $changeCount . ' changes';
+            } elseif ($changeCount === 1) {
+                // Single change: show prefix + the single diff
+                // Just trim overall
+                if (mb_strlen($description) > $maxLen) {
+                    $prefix .= ' — 1 change';
+                } else {
+                    return $description;
+                }
+            }
+            return $prefix;
+        }
+
+        return mb_strlen($description) > $maxLen
+            ? mb_substr($description, 0, $maxLen) . '…'
+            : $description;
+    }
+}
+
 }
