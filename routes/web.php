@@ -10,7 +10,7 @@ use CorporateAid\Recruit\Controllers\Admin\CustomFieldController;
 use CorporateAid\Recruit\Controllers\Admin\RoleController;
 use CorporateAid\Recruit\Controllers\Admin\AdminSettingsController;
 use CorporateAid\Recruit\Controllers\Admin\AdminNotificationRuleController;
-use CorporateAid\Recruit\Controllers\Admin\UserController as AdminUserController;
+use CorporateAid\Recruit\Controllers\Admin\AdminUserController;
 use CorporateAid\Recruit\Controllers\DashboardController;
 use CorporateAid\Recruit\Controllers\HomeController;
 use CorporateAid\Recruit\Controllers\NotificationController;
@@ -107,7 +107,11 @@ $router->get('/files/{uuid}', [FileController::class, 'serve'], ['auth']);
 $router->get('/admin', [AdminHomeController::class, 'index'], ['auth']);
 
 // User accounts
-$router->get('/admin/users', [AdminUserController::class, 'index'], ['auth', 'permission:core.users.view']);
+$router->get('/admin/users',              [AdminUserController::class, 'index'],  ['auth', 'permission:core.users.view']);
+$router->get('/admin/users/create',       [AdminUserController::class, 'create'], ['auth', 'permission:core.users.create']);
+$router->post('/admin/users',             [AdminUserController::class, 'store'],  ['auth', 'permission:core.users.create', 'csrf']);
+$router->get('/admin/users/{id}/edit',    [AdminUserController::class, 'edit'],   ['auth', 'permission:core.users.edit']);
+$router->put('/admin/users/{id}',         [AdminUserController::class, 'update'], ['auth', 'permission:core.users.edit', 'csrf']);
 
 // Roles & permissions
 $router->get('/admin/roles-perm',                 [RoleController::class, 'home'],    ['auth', 'permission:core.settings.manage']);
