@@ -38,7 +38,6 @@ $router->get('/health', [HomeController::class, 'health']);
 // These render a branded "Coming Soon" page instead of a 404.
 // When a feature ships, replace the route with the real controller.
 
-$router->get('/applications', [ComingSoonController::class, 'applications'], ['auth']);
 $router->get('/interviews',   [ComingSoonController::class, 'interviews'],   ['auth']);
 $router->get('/offers',       [ComingSoonController::class, 'offers'],       ['auth']);
 $router->get('/tasks',        [ComingSoonController::class, 'tasks'],        ['auth']);
@@ -120,6 +119,8 @@ $router->get('/vacancies/{code}/delete-info',     [VacancyController::class, 'de
 // ---------------------------------------------------------------------
 // Applications (pipeline)
 // ---------------------------------------------------------------------
+$router->get('/applications',                    [ApplicationController::class, 'index'],            ['auth', 'permission:recruit.vacancies.view']);
+
 $router->get('/vacancies/{code}/add-candidate',  [ApplicationController::class, 'addCandidateForm'], ['auth', 'permission:recruit.vacancies.edit']);
 $router->post('/vacancies/{code}/add-candidate', [ApplicationController::class, 'addCandidate'],     ['auth', 'permission:recruit.vacancies.edit', 'csrf']);
 $router->post('/applications/{code}/move',       [ApplicationController::class, 'move'],             ['auth', 'permission:recruit.vacancies.edit', 'csrf']);

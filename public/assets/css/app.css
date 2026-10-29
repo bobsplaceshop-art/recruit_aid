@@ -1199,16 +1199,40 @@ html[data-theme="light"] .ra-table-wrap {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    font-weight: 600;
-    font-size: 0.78rem;
-    letter-spacing: 0.02em;
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
-    padding: 0.3rem 0.7rem;
+    padding: 0.35rem 0.8rem;
     border-radius: 999px;
+    /* Default fallback if no stage color is passed */
     background: var(--ra-surface-3);
     color: var(--ra-text-strong);
-    border: 1px solid transparent;
+    border: 1px solid var(--ra-border);
     white-space: nowrap;
+}
+
+/* When a stage color is provided via inline style (--stage-pill-color) */
+.ra-pipeline-column-title-pill[style*="--stage-pill-color"] {
+    /* Blend 15% of the stage color into the surface for the background */
+    background: color-mix(in srgb, var(--stage-pill-color) 15%, var(--ra-surface));
+    /* Blend 40% of the stage color into black for the text to ensure contrast */
+    color: color-mix(in srgb, var(--stage-pill-color) 40%, var(--ra-text-strong));
+    border-color: color-mix(in srgb, var(--stage-pill-color) 30%, var(--ra-border));
+}
+
+/* In dark mode, we can be a bit brighter */
+html[data-theme="dark"] .ra-pipeline-column-title-pill[style*="--stage-pill-color"] {
+    background: color-mix(in srgb, var(--stage-pill-color) 25%, var(--ra-surface));
+    color: color-mix(in srgb, var(--stage-pill-color) 80%, var(--ra-text-strong));
+    border-color: color-mix(in srgb, var(--stage-pill-color) 50%, var(--ra-border));
+}
+@media (prefers-color-scheme: dark) {
+    html[data-theme="system"] .ra-pipeline-column-title-pill[style*="--stage-pill-color"] {
+        background: color-mix(in srgb, var(--stage-pill-color) 25%, var(--ra-surface));
+        color: color-mix(in srgb, var(--stage-pill-color) 80%, var(--ra-text-strong));
+        border-color: color-mix(in srgb, var(--stage-pill-color) 50%, var(--ra-border));
+    }
 }
 
 .ra-pipeline-column-count {

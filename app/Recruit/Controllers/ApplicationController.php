@@ -6,6 +6,8 @@ namespace CorporateAid\Recruit\Controllers;
 use CorporateAid\Core\Auth;
 use CorporateAid\Core\Container;
 use CorporateAid\Core\Exceptions\HttpException;
+use CorporateAid\Core\Database;
+use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Request;
 use CorporateAid\Core\Response;
 use CorporateAid\Core\Session;
@@ -18,6 +20,63 @@ use CorporateAid\Recruit\Services\ApplicationService;
 final class ApplicationController
 {
     public function __construct(private Container $container) {}
+
+    /** @param array<string, string> $params */
+    public function index(Request $request, array $params = []): Response
+    {
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+        /** @var ApplicationRepository $apps */
+        $apps = $this->container->get(ApplicationRepository::class);
+        /** @var CandidateRepository $candidates */
+        $candidates = $this->container->get(CandidateRepository::class);
+        /** @var VacancyRepository $vacancies */
+        $vacancies = $this->container->get(VacancyRepository::class);
+
+        $q = trim($request->queryStringValue('q', ''));
+        $page = max(1, $request->queryInt('page', 1));
+
+        // We'll use the ApplicationRepository's forVacancy or a new global method?
+        // For now, let's just fetch all applications using a direct query (or add a method later).
+        $db = $this->container->get(Database::class);
+        $where = ["a.`deleted_at` IS NULL"];
+        $paramsSql = [];
+        if ($q !== '') {
+            $where[] = "(c.`first_name` LIKE ? OR c.`last_name` LIKE ? OR v.`title` LIKE ? OR a.`code` LIKE ?)";
+            $term = '%' . $q . '%';
+            $paramsSql[] = $term; $paramsSql[] = $term; $paramsSql[] = $term; $paramsSql[] = $term;
+        }
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
+
+        $total = $db->scalarInt("SELECT COUNT(*) FROM `recruit_applications` a JOIN `recruit_candidates` c ON c.`id` = a.`candidate_id` JOIN `recruit_vacancies` v ON v.`id` = a.`vacancy_id` $whereSql", PDOParams::positional($paramsSql));
+
+        $perPage = 25;
+        $totalPages = max(1, (int) ceil($total / $perPage));
+        $page = min($page, $totalPages);
+        $offset = ($page - 1) * $perPage;
+
+        $rows = $db->select("
+            SELECT a.*, c.first_name, c.last_name, c.code AS cand_code, v.title AS vac_title, v.code AS vac_code
+            FROM `recruit_applications` a
+            JOIN `recruit_candidates` c ON c.`id` = a.`candidate_id`
+            JOIN `recruit_vacancies` v ON v.`id` = a.`vacancy_id`
+            $whereSql
+            ORDER BY a.`applied_at` DESC
+            LIMIT $perPage OFFSET $offset
+        ", PDOParams::positional($paramsSql));
+
+        return Response::html($view->render('applications/index', [
+            'title'       => 'Applications',
+            'user'        => $auth->user(),
+            'rows'        => $rows,
+            'total'       => $total,
+            'page'        => $page,
+            'totalPages'  => $totalPages,
+            'q'           => $q,
+        ], 'layouts/app'));
+    }
 
     /**
      * GET /vacancies/{code}/add-candidate

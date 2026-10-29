@@ -150,8 +150,7 @@ foreach ($requirements as $r) {
                         ?>
                         <div class="ra-pipeline-column">
                             <div class="ra-pipeline-column-header">
-                                <span class="ra-pipeline-column-title-pill"
-                                      style="background: <?= e($s->color ?? 'var(--ra-surface-3)') ?>22; color: <?= e($s->color ?? 'var(--ra-text-strong)') ?>; border-color: <?= e($s->color ?? 'transparent') ?>44;">
+                                <span class="ra-pipeline-column-title-pill" style="--stage-pill-color: <?= e($s->color ?? 'var(--ra-primary)') ?>;">
                                     <?= e($s->label) ?>
                                 </span>
                                 <span class="ra-pipeline-column-count"><?= (int) $count ?></span>
