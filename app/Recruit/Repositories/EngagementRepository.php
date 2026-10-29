@@ -175,7 +175,7 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
             'package_id', 'name', 'service_type', 'status',
             'start_date', 'end_date', 'agreed_active_role_capacity',
             'reporting_frequency', 'countries', 'scope_description',
-            'stages_included', 'notes',
+            'stages_included', 'notes', 'pipeline_mode',
         ];
 
         $sets = [];
@@ -195,6 +195,7 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
                 'reporting_frequency'         => 'reportingFrequency',
                 'scope_description'           => 'scopeDescription',
                 'stages_included'             => 'stagesIncluded',
+                'pipeline_mode'               => 'pipelineMode',
                 default                       => $col,
             };
             $oldVal = $existing->$prop ?? null;

@@ -12,6 +12,7 @@ use CorporateAid\Recruit\Repositories\ContactRepository;
 use CorporateAid\Recruit\Repositories\EngagementRepository;
 use CorporateAid\Recruit\Repositories\EngagementAssignmentRepository;
 use CorporateAid\Recruit\Repositories\VacancyRepository;
+use CorporateAid\Recruit\Repositories\ApplicationRepository;
 use CorporateAid\Recruit\Repositories\CandidateRepository;
 use CorporateAid\Recruit\Repositories\VacancyStageRepository;
 use CorporateAid\Platform\Repositories\FileRepository;
@@ -37,6 +38,8 @@ use CorporateAid\Recruit\Services\OrganisationService;
 use CorporateAid\Recruit\Services\ContactService;
 use CorporateAid\Recruit\Services\EngagementService;
 use CorporateAid\Recruit\Services\VacancyService;
+use CorporateAid\Recruit\Services\CandidateService;
+use CorporateAid\Recruit\Services\ApplicationService;
 use CorporateAid\Platform\Services\SystemSettingService;
 use CorporateAid\Platform\Services\FileService;
 use CorporateAid\Platform\Services\NotificationService;
@@ -55,6 +58,7 @@ use CorporateAid\Recruit\Validation\OrganisationValidator;
 use CorporateAid\Recruit\Validation\ContactValidator;
 use CorporateAid\Recruit\Validation\EngagementValidator;
 use CorporateAid\Recruit\Validation\VacancyValidator;
+use CorporateAid\Recruit\Validation\CandidateValidator;
 use CorporateAid\Platform\Validation\FileValidator;
 use Throwable;
 
@@ -215,6 +219,7 @@ final class App
         $c->singleton(VacancyRepository::class,           fn() => new VacancyRepository($c->get(Database::class)));
         $c->singleton(CandidateRepository::class,         fn() => new CandidateRepository($c->get(Database::class)));
         $c->singleton(VacancyStageRepository::class,      fn() => new VacancyStageRepository($c->get(Database::class)));
+        $c->singleton(ApplicationRepository::class,        fn() => new ApplicationRepository($c->get(Database::class)));
         $c->singleton(FileRepository::class,           fn() => new FileRepository($c->get(Database::class)));
         $c->singleton(EntityFileRepository::class,     fn() => new EntityFileRepository($c->get(Database::class)));
 
@@ -310,6 +315,23 @@ final class App
             $c->get(DeletionService::class),
             $c->get(ActivityLogger::class),
             $c->get(Database::class),
+            $c->get(Auth::class)
+        ));
+
+        $c->singleton(CandidateService::class, fn() => new CandidateService(
+            $c->get(CandidateRepository::class),
+            $c->get(CandidateValidator::class),
+            $c->get(ActivityLogger::class),
+            $c->get(Auth::class)
+        ));
+
+        $c->singleton(ApplicationService::class, fn() => new ApplicationService(
+            $c->get(ApplicationRepository::class),
+            $c->get(VacancyRepository::class),
+            $c->get(VacancyStageRepository::class),
+            $c->get(EngagementRepository::class),
+            $c->get(SystemSettingService::class),
+            $c->get(ActivityLogger::class),
             $c->get(Auth::class)
         ));
 

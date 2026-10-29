@@ -28,6 +28,7 @@ final class Engagement
     public array $stagesIncluded;
 
     public ?string $notes;
+    public ?string $pipelineMode;
     public ?int $createdBy;
     public ?string $createdAt;
     public ?string $updatedAt;
@@ -54,6 +55,7 @@ final class Engagement
 
         $e->scopeDescription = Row::nullableStr($row, 'scope_description');
         $e->notes = Row::nullableStr($row, 'notes');
+        $e->pipelineMode = Row::nullableStr($row, 'pipeline_mode');
         $e->createdBy = Row::nullableInt($row, 'created_by');
         $e->createdAt = Row::nullableStr($row, 'created_at');
         $e->updatedAt = Row::nullableStr($row, 'updated_at');
