@@ -7,7 +7,9 @@ use CorporateAid\Core\Auth;
 use CorporateAid\Core\Container;
 use CorporateAid\Core\Request;
 use CorporateAid\Core\Response;
+use CorporateAid\Core\Session;
 use CorporateAid\Core\View;
+use CorporateAid\Core\Row;
 use CorporateAid\Platform\Repositories\RoleRepository;
 
 final class RoleController
@@ -19,9 +21,6 @@ final class RoleController
         $this->container = $container;
     }
 
-    /**
-     * /admin/roles-perm — landing page with shortcut tiles.
-     */
     /** @param array<string, string> $params */
     public function home(Request $request, array $params = []): Response
     {
@@ -50,9 +49,6 @@ final class RoleController
         return Response::html($html);
     }
 
-    /**
-     * /admin/roles-perm/roles — list of roles.
-     */
     /** @param array<string, string> $params */
     public function index(Request $request, array $params = []): Response
     {
@@ -63,20 +59,18 @@ final class RoleController
         /** @var RoleRepository $roles */
         $roles = $this->container->get(RoleRepository::class);
 
-        $allRoles = $roles->all();
-
         $html = $view->render('admin/roles/index', [
             'title' => 'Roles',
             'user'  => $auth->user(),
-            'roles' => $allRoles,
+            'roles' => $roles->all(),
         ], 'layouts/app');
 
         return Response::html($html);
     }
 
     /**
-     * /admin/roles-perm/permissions — permission matrix.
-     * Placeholder for now; real matrix in a later chunk.
+     * GET /admin/roles-perm/permissions
+     * GET /admin/roles-perm/permissions?role_id=X
      */
     /** @param array<string, string> $params */
     public function permissions(Request $request, array $params = []): Response
@@ -89,15 +83,216 @@ final class RoleController
         $roles = $this->container->get(RoleRepository::class);
 
         $allRoles = $roles->all();
-        $permissions = $roles->permissionsGroupedByModule();
+        $roleIdRaw = $request->query('role_id', 0);
+        $selectedRoleId = is_numeric($roleIdRaw) ? (int) $roleIdRaw : 0;
+
+        // Default to first role if none selected
+        if ($selectedRoleId === 0 && !empty($allRoles)) {
+            $selectedRoleId = Row::int($allRoles[0], 'id');
+        }
+
+        $selectedPermissions = [];
+        if ($selectedRoleId > 0) {
+            $selectedPermissions = $roles->permissionIdsForRole($selectedRoleId);
+        }
 
         $html = $view->render('admin/roles/permissions', [
-            'title'       => 'Permissions',
-            'user'        => $auth->user(),
-            'roles'       => $allRoles,
-            'permissions' => $permissions,
+            'title'               => 'Permissions Matrix',
+            'user'                => $auth->user(),
+            'roles'               => $allRoles,
+            'selectedRoleId'      => $selectedRoleId,
+            'selectedPermissions' => $selectedPermissions,
+            'permissions'         => $roles->permissionsGroupedByModule(),
         ], 'layouts/app');
 
         return Response::html($html);
+    }
+
+    /**
+     * POST /admin/roles-perm/permissions
+     */
+    /** @param array<string, string> $params */
+    public function savePermissions(Request $request, array $params = []): Response
+    {
+        /** @var RoleRepository $roles */
+        $roles = $this->container->get(RoleRepository::class);
+
+        $roleId = $request->inputInt('role_id', 0);
+        if ($roleId === 0) {
+            throw new \RuntimeException('Role ID is required.');
+        }
+
+        /** @var int[] $permissionIds */
+        $permissionIds = [];
+        foreach ((array) ($request->input('permissions') ?? []) as $v) {
+            if (is_scalar($v) && (int) $v > 0) {
+                $permissionIds[] = (int) $v;
+            }
+        }
+
+        $roles->syncPermissions($roleId, $permissionIds);
+
+        /** @var Session $session */
+        $session = $this->container->get(Session::class);
+        $role = $roles->findById($roleId);
+        $roleName = $role !== null ? Row::str($role, 'name') : 'role';
+        $session->flash('success', 'Permissions saved for "' . $roleName . '".');
+
+        return Response::redirect('/admin/roles-perm/permissions?role_id=' . $roleId);
+    }
+
+    /** @param array<string, string> $params */
+    public function create(Request $request, array $params = []): Response
+    {
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+
+        $html = $view->render('admin/roles/form', [
+            'title'  => 'Create Role',
+            'user'   => $auth->user(),
+            'role'   => null,
+            'errors' => [],
+        ], 'layouts/app');
+
+        return Response::html($html);
+    }
+
+    /** @param array<string, string> $params */
+    public function store(Request $request, array $params = []): Response
+    {
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+        /** @var RoleRepository $roles */
+        $roles = $this->container->get(RoleRepository::class);
+
+        $name = trim($request->inputString('name'));
+        $slug = preg_replace('/[^a-z0-9_]+/', '_', strtolower($name)) ?? '';
+        $description = trim($request->inputString('description'));
+
+        $errors = [];
+        if ($name === '') $errors[] = 'Name is required.';
+        if ($slug === '') $errors[] = 'Name must produce a valid slug.';
+        if ($slug !== '' && $roles->findBySlug($slug) !== null) {
+            $errors[] = 'A role with a similar name already exists.';
+        }
+
+        if (!empty($errors)) {
+            return Response::html($view->render('admin/roles/form', [
+                'title'  => 'Create Role',
+                'user'   => $auth->user(),
+                'role'   => null,
+                'errors' => $errors,
+            ], 'layouts/app'))->withHeader('X-Form-Error', '1');
+        }
+
+        $roles->create([
+            'name'        => $name,
+            'slug'        => $slug,
+            'description' => $description,
+        ]);
+
+        /** @var Session $session */
+        $session = $this->container->get(Session::class);
+        $session->flash('success', 'Role "' . $name . '" created.');
+
+        return Response::redirect('/admin/roles-perm/roles');
+    }
+
+    /** @param array<string, string> $params */
+    public function edit(Request $request, array $params = []): Response
+    {
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+        /** @var RoleRepository $roles */
+        $roles = $this->container->get(RoleRepository::class);
+
+        $id = (int) ($params['id'] ?? 0);
+        $role = $roles->findById($id);
+        if ($role === null) {
+            throw new \RuntimeException('Role not found.');
+        }
+
+        $html = $view->render('admin/roles/form', [
+            'title'  => 'Edit Role: ' . Row::str($role, 'name'),
+            'user'   => $auth->user(),
+            'role'   => $role,
+            'errors' => [],
+        ], 'layouts/app');
+
+        return Response::html($html);
+    }
+
+    /** @param array<string, string> $params */
+    public function update(Request $request, array $params = []): Response
+    {
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+        /** @var RoleRepository $roles */
+        $roles = $this->container->get(RoleRepository::class);
+
+        $id = (int) ($params['id'] ?? 0);
+        $role = $roles->findById($id);
+        if ($role === null) {
+            throw new \RuntimeException('Role not found.');
+        }
+
+        $name = trim($request->inputString('name'));
+        $description = trim($request->inputString('description'));
+
+        $errors = [];
+        if ($name === '') $errors[] = 'Name is required.';
+
+        if (!empty($errors)) {
+            return Response::html($view->render('admin/roles/form', [
+                'title'  => 'Edit Role: ' . Row::str($role, 'name'),
+                'user'   => $auth->user(),
+                'role'   => array_merge($role, ['name' => $name, 'description' => $description]),
+                'errors' => $errors,
+            ], 'layouts/app'))->withHeader('X-Form-Error', '1');
+        }
+
+        $roles->update($id, ['name' => $name, 'description' => $description]);
+
+        /** @var Session $session */
+        $session = $this->container->get(Session::class);
+        $session->flash('success', 'Role "' . $name . '" updated.');
+
+        return Response::redirect('/admin/roles-perm/roles');
+    }
+
+    /** @param array<string, string> $params */
+    public function destroy(Request $request, array $params = []): Response
+    {
+        /** @var RoleRepository $roles */
+        $roles = $this->container->get(RoleRepository::class);
+
+        $id = (int) ($params['id'] ?? 0);
+        $role = $roles->findById($id);
+        if ($role === null) {
+            throw new \RuntimeException('Role not found.');
+        }
+        if (Row::bool($role, 'is_system')) {
+            throw new \RuntimeException('Cannot delete a system role.');
+        }
+        if ($roles->userCountForRole($id) > 0) {
+            throw new \RuntimeException('Cannot delete a role that is assigned to users.');
+        }
+
+        $roleName = Row::str($role, 'name');
+        $roles->delete($id);
+
+        /** @var Session $session */
+        $session = $this->container->get(Session::class);
+        $session->flash('success', 'Role "' . $roleName . '" deleted.');
+
+        return Response::redirect('/admin/roles-perm/roles');
     }
 }

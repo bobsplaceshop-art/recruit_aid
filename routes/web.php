@@ -110,9 +110,15 @@ $router->get('/admin', [AdminHomeController::class, 'index'], ['auth']);
 $router->get('/admin/users', [AdminUserController::class, 'index'], ['auth', 'permission:core.users.view']);
 
 // Roles & permissions
-$router->get('/admin/roles-perm',              [RoleController::class, 'home'],        ['auth', 'permission:core.settings.manage']);
-$router->get('/admin/roles-perm/roles',        [RoleController::class, 'index'],       ['auth', 'permission:core.settings.manage']);
-$router->get('/admin/roles-perm/permissions',  [RoleController::class, 'permissions'], ['auth', 'permission:core.settings.manage']);
+$router->get('/admin/roles-perm',                 [RoleController::class, 'home'],    ['auth', 'permission:core.settings.manage']);
+$router->get('/admin/roles-perm/roles',           [RoleController::class, 'index'],   ['auth', 'permission:core.settings.manage']);
+$router->get('/admin/roles-perm/roles/create',    [RoleController::class, 'create'],  ['auth', 'permission:core.settings.manage']);
+$router->post('/admin/roles-perm/roles',          [RoleController::class, 'store'],   ['auth', 'permission:core.settings.manage', 'csrf']);
+$router->get('/admin/roles-perm/roles/{id}/edit', [RoleController::class, 'edit'],    ['auth', 'permission:core.settings.manage']);
+$router->put('/admin/roles-perm/roles/{id}',      [RoleController::class, 'update'],  ['auth', 'permission:core.settings.manage', 'csrf']);
+$router->delete('/admin/roles-perm/roles/{id}',   [RoleController::class, 'destroy'], ['auth', 'permission:core.settings.manage', 'csrf']);
+$router->get('/admin/roles-perm/permissions',     [RoleController::class, 'permissions'], ['auth', 'permission:core.settings.manage']);
+$router->post('/admin/roles-perm/permissions',    [RoleController::class, 'savePermissions'], ['auth', 'permission:core.settings.manage', 'csrf']);
 
 // Legacy redirect
 $router->get('/admin/roles', function (Request $req, array $params): Response {

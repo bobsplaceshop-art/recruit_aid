@@ -5,6 +5,10 @@
             <h1 class="ra-page-band-title">Roles</h1>
         </div>
         <div class="ra-page-band-actions">
+            <a href="/admin/roles-perm/roles/create" class="ra-btn ra-btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                <span>Create Role</span>
+            </a>
             <a href="/admin/roles-perm" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
@@ -14,19 +18,6 @@
 </div>
 
 <div class="ra-table-card">
-    <div class="ra-table-toolbar">
-        <div class="ra-table-toolbar-left">
-            <span class="ra-table-toolbar-label">Show</span>
-            <select class="ra-select" disabled>
-                <option>50</option>
-            </select>
-            <span class="ra-table-toolbar-label">entries</span>
-        </div>
-        <div class="ra-table-toolbar-right">
-            <input type="text" class="ra-input" placeholder="Search…" style="width:200px;" disabled>
-        </div>
-    </div>
-
     <table class="ra-table">
         <thead>
             <tr>
@@ -35,16 +26,16 @@
                 <th>Slug</th>
                 <th>Description</th>
                 <th style="width:100px;">Type</th>
-                <th style="width:120px;">Actions</th>
+                <th style="width:160px;">Actions</th>
             </tr>
         </thead>
         <tbody>
         <?php foreach ($roles as $i => $role): ?>
             <tr>
                 <td class="muted"><?= e((string) ($i + 1)) ?></td>
-                <td><?= e($role['name']) ?></td>
-                <td><code style="color:var(--ra-muted);font-size:.85rem;"><?= e($role['slug']) ?></code></td>
-                <td class="muted small"><?= e($role['description'] ?? '—') ?></td>
+                <td><?= e((string) $role['name']) ?></td>
+                <td><code style="color:var(--ra-muted);font-size:.85rem;"><?= e((string) $role['slug']) ?></code></td>
+                <td class="muted small"><?= e((string) ($role['description'] ?? '—')) ?></td>
                 <td>
                     <?php if (!empty($role['is_system'])): ?>
                         <span class="ra-badge">system</span>
@@ -53,9 +44,14 @@
                     <?php endif; ?>
                 </td>
                 <td>
-                    <button type="button" class="ra-row-actions" disabled>
-                        Actions <i class="bi bi-chevron-down"></i>
-                    </button>
+                    <a href="/admin/roles-perm/roles/<?= (int) $role['id'] ?>/edit" class="ra-btn ra-btn-outline" style="padding:.25rem .5rem;font-size:.85rem;">Edit</a>
+                    <?php if (empty($role['is_system'])): ?>
+                        <form method="POST" action="/admin/roles-perm/roles/<?= (int) $role['id'] ?>" style="display:inline;" onsubmit="return confirm('Delete this role?');">
+                            <?= csrf_field() ?>
+                            <?= method_field('DELETE') ?>
+                            <button type="submit" class="ra-btn ra-btn-outline" style="padding:.25rem .5rem;font-size:.85rem;color:var(--ra-error-fg);">Delete</button>
+                        </form>
+                    <?php endif; ?>
                 </td>
             </tr>
         <?php endforeach; ?>
