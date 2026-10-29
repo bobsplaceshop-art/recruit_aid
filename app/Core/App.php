@@ -18,6 +18,8 @@ use CorporateAid\Platform\Repositories\EntityFileRepository;
 use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Recruit\Repositories\PipelineStageRepository;
 use CorporateAid\Platform\Repositories\RoleRepository;
+use CorporateAid\Platform\Repositories\ActivityRepository;
+use CorporateAid\Platform\Services\ActivityTimelineService;
 use CorporateAid\Platform\Repositories\LookupRepository;
 use CorporateAid\Platform\Services\LookupService;
 use CorporateAid\Platform\Services\GlobalSearchService;
@@ -230,6 +232,8 @@ final class App
             return new EmailService($mailConfig, new Logger());
         });
         $c->singleton(ActivityLogger::class, fn() => new ActivityLogger($c->get(Database::class), $c->get(Auth::class)));
+        $c->singleton(ActivityRepository::class, fn() => new ActivityRepository($c->get(Database::class)));
+        $c->singleton(ActivityTimelineService::class, fn() => new ActivityTimelineService($c->get(ActivityRepository::class), $c->get(View::class)));
 
         // ---------- Validation ----------
         $c->singleton(CustomFieldValidator::class, fn() => new CustomFieldValidator());

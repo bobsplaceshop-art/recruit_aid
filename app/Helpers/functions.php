@@ -108,4 +108,71 @@ if (!function_exists('view_partial')) {
             return '';
         }
     }
+if (!function_exists('app_setting')) {
+    /**
+     * Read a system setting from the cached service. Returns the default
+     * if the setting doesn't exist or the container isn't ready.
+     */
+    function app_setting(string $key, mixed $default = null): mixed
+    {
+        static $service = null;
+        if ($service === null) {
+            try {
+                $service = \CorporateAid\Core\App::instance()
+                    ->container()
+                    ->get(\CorporateAid\Platform\Services\SystemSettingService::class);
+            } catch (\Throwable) {
+                return $default;
+            }
+        }
+        try {
+            return $service->get($key, $default);
+        } catch (\Throwable) {
+            return $default;
+        }
+    }
+}
+
+if (!function_exists('human_time')) {
+    /**
+     * Format a timestamp as a human-readable relative time.
+     * "just now", "3 minutes ago", "2 hours ago", "5 days ago",
+     * then absolute date for anything older than 30 days.
+     */
+    function human_time(?string $datetime): string
+    {
+        if ($datetime === null || $datetime === '') {
+            return '';
+        }
+
+        $ts = strtotime($datetime);
+        if ($ts === false) {
+            return $datetime;
+        }
+
+        $diff = time() - $ts;
+
+        if ($diff < 0) {
+            return 'just now';
+        }
+        if ($diff < 60) {
+            return 'just now';
+        }
+        if ($diff < 3600) {
+            $m = (int) floor($diff / 60);
+            return $m . ' minute' . ($m === 1 ? '' : 's') . ' ago';
+        }
+        if ($diff < 86400) {
+            $h = (int) floor($diff / 3600);
+            return $h . ' hour' . ($h === 1 ? '' : 's') . ' ago';
+        }
+        if ($diff < 2592000) {
+            $d = (int) floor($diff / 86400);
+            return $d . ' day' . ($d === 1 ? '' : 's') . ' ago';
+        }
+
+        return date('M j, Y', $ts);
+    }
+}
+
 }
