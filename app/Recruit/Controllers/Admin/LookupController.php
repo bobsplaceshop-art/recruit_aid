@@ -103,6 +103,10 @@ final class LookupController
         $label       = trim($request->inputString('label'));
         $description = trim($request->inputString('description'));
         $sortOrder   = $request->inputInt('sort_order', 0);
+        // Auto-assign sequential sort_order when blank/0
+        if ($sortOrder <= 0) {
+            $sortOrder = $repo->nextSortOrder($group);
+        }
         $isActive    = $request->inputBool('is_active', true);
 
         $errors = [];

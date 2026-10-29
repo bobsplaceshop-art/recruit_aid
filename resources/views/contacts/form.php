@@ -43,11 +43,42 @@ $phone       = (string) $get('phone');
 $altPhone    = (string) $get('alt_phone');
 $countryCode = (string) $get('country_code');
 $preferredComm = (string) $get('preferred_communication', 'email');
-$isPrimary       = (bool) $get('is_primary', false);
-$isHiringManager = (bool) $get('is_hiring_manager', false);
-$isFinance       = (bool) $get('is_finance', false);
-$isHr            = (bool) $get('is_hr', false);
-$isDecisionMaker = (bool) $get('is_decision_maker', false);
+// Build current roles[] from submitted data (old input) or from the contact's
+// pivot roles if hydrated, falling back to boolean flags for backward compat.
+$currentRoles = [];
+if (!empty($old) && isset($old['roles']) && is_array($old['roles'])) {
+    $currentRoles = $old['roles'];
+} elseif ($contact !== null && !empty($contact->roles)) {
+    $currentRoles = $contact->roles;
+} else {
+    // Backward compat: build from booleans
+    if ($contact !== null) {
+        if ($contact->isPrimary) $currentRoles[] = 'is_primary';
+        if ($contact->isHiringManager) $currentRoles[] = 'is_hiring_manager';
+        if ($contact->isFinance) $currentRoles[] = 'is_finance';
+        if ($contact->isHr) $currentRoles[] = 'is_hr';
+        if ($contact->isDecisionMaker) $currentRoles[] = 'is_decision_maker';
+    }
+}
+
+// Load all roles from lookups
+$allRoles = [];
+try {
+    $lookups = \CorporateAid\Core\App::instance()
+        ->container()
+        ->get(\CorporateAid\Platform\Services\LookupService::class);
+    $allRoles = $lookups->allFor('contact_role');
+} catch (\Throwable) {
+    // Fallback to legacy hardcoded roles if LookupService fails
+    $allRoles = [
+        'is_primary'        => 'Primary Contact',
+        'is_hiring_manager' => 'Hiring Manager',
+        'is_finance'        => 'Finance',
+        'is_hr'             => 'HR',
+        'is_decision_maker' => 'Decision Maker',
+    ];
+}
+
 $notes           = (string) $get('notes');
 
 $submittedCf = $old['cf'] ?? [];
@@ -175,36 +206,18 @@ $commOptions = [
         <p class="muted small mb-3">Tick any that apply. Roles help the team know who to contact for what.</p>
 
         <div class="row g-3">
-            <div class="col-md-6">
-                <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                    <input type="checkbox" name="is_primary" value="1" <?= $isPrimary ? 'checked' : '' ?>>
-                    <span>Primary contact</span>
-                </label>
-            </div>
-            <div class="col-md-6">
-                <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                    <input type="checkbox" name="is_hiring_manager" value="1" <?= $isHiringManager ? 'checked' : '' ?>>
-                    <span>Hiring manager</span>
-                </label>
-            </div>
-            <div class="col-md-6">
-                <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                    <input type="checkbox" name="is_finance" value="1" <?= $isFinance ? 'checked' : '' ?>>
-                    <span>Finance contact</span>
-                </label>
-            </div>
-            <div class="col-md-6">
-                <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                    <input type="checkbox" name="is_hr" value="1" <?= $isHr ? 'checked' : '' ?>>
-                    <span>HR contact</span>
-                </label>
-            </div>
-            <div class="col-md-6">
-                <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
-                    <input type="checkbox" name="is_decision_maker" value="1" <?= $isDecisionMaker ? 'checked' : '' ?>>
-                    <span>Decision maker</span>
-                </label>
-            </div>
+            <?php if (empty($allRoles)): ?>
+                <div class="col-12 muted small">No roles defined. Add roles in Admin → Lookups.</div>
+            <?php else: ?>
+                <?php foreach ($allRoles as $slug => $label): ?>
+                    <div class="col-md-6">
+                        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                            <input type="checkbox" name="roles[]" value="<?= e($slug) ?>" <?= in_array($slug, $currentRoles, true) ? 'checked' : '' ?>>
+                            <span><?= e($label) ?></span>
+                        </label>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
 

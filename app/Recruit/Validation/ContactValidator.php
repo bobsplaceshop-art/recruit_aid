@@ -98,7 +98,37 @@ final class ContactValidator
             'is_finance'              => Row::bool($input, 'is_finance'),
             'is_hr'                   => Row::bool($input, 'is_hr'),
             'is_decision_maker'       => Row::bool($input, 'is_decision_maker'),
+            // NEW: roles[] array from the pivot-driven form. When present,
+            // this supersedes the boolean flags (service will call syncRoles).
+            'roles'                   => $this->normalizeRoles($input),
             'notes'                   => trim(Row::str($input, 'notes')) ?: null,
         ];
+    }
+
+    /**
+     * Normalize a roles[] array from form input.
+     * Accepts array of slugs (from checkboxes) or CSV string.
+     * Returns unique, lowercased, non-empty slugs.
+     *
+     * @param array<string, mixed> $input
+     * @return string[]
+     */
+    private function normalizeRoles(array $input): array
+    {
+        $raw = $input['roles'] ?? [];
+        if (is_string($raw)) {
+            $raw = array_map('trim', explode(',', $raw));
+        }
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($raw as $v) {
+            if (!is_scalar($v)) continue;
+            $slug = strtolower(trim((string) $v));
+            if ($slug !== '') $out[$slug] = true;
+        }
+        return array_keys($out);
     }
 }

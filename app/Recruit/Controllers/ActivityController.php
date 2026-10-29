@@ -16,8 +16,8 @@ use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Recruit\Repositories\VacancyRepository;
 
 /**
- * Dedicated "all activity" page for any entity.
- * Route: GET /activity/{type}/{id}?page=N
+ * Dedicated "all activity" page for a specific entity.
+ * Route: GET /activity/{type}/{id}?page=N&return_to=...
  */
 final class ActivityController
 {
@@ -29,6 +29,7 @@ final class ActivityController
         $entityType = (string) ($params['type'] ?? '');
         $entityId   = (int) ($params['id'] ?? 0);
         $page       = max(1, $request->queryInt('page', 1));
+        $returnTo   = trim($request->queryStringValue('return_to', ''));
         $perPage    = 30;
 
         $validTypes = ['organisation', 'contact', 'engagement', 'vacancy'];
@@ -39,6 +40,11 @@ final class ActivityController
         $entity = $this->loadEntity($entityType, $entityId);
         if ($entity === null) {
             throw HttpException::notFound();
+        }
+
+        // Override back URL if returning to a global list
+        if ($returnTo === 'contacts') {
+            $entity['backUrl'] = '/contacts';
         }
 
         /** @var ActivityRepository $repo */
@@ -65,6 +71,7 @@ final class ActivityController
             'page'       => $page,
             'perPage'    => $perPage,
             'totalPages' => $totalPages,
+            'returnTo'   => $returnTo,
         ], 'layouts/app'));
     }
 
@@ -88,10 +95,14 @@ final class ActivityController
                 $repo = $this->container->get(ContactRepository::class);
                 $e = $repo->findById($id);
                 if ($e === null) return null;
+                /** @var OrganisationRepository $orgRepo */
+                $orgRepo = $this->container->get(OrganisationRepository::class);
+                $org = $orgRepo->findById($e->organisationId);
+                $orgCode = $org ? $org->code : (string) $e->organisationId;
                 return [
                     'label'   => $e->fullName(),
                     'code'    => $e->code,
-                    'backUrl' => '/organisations/' . $e->organisationId . '/contacts/' . $e->code,
+                    'backUrl' => '/organisations/' . $orgCode . '/contacts/' . $e->code,
                 ];
 
             case 'engagement':

@@ -131,7 +131,7 @@ $pageUrl = function (int $p) use ($q, $orgId, $role): string {
                 ?>
                 <tr>
                     <td>
-                        <a href="/organisations/<?= e($orgCode) ?>/contacts/<?= e($c->code) ?>" class="text-decoration-none">
+                        <a href="/organisations/<?= e($orgCode) ?>/contacts/<?= e($c->code) ?>?return_to=contacts" class="text-decoration-none">
                             <strong><?= e($c->fullName()) ?></strong>
                         </a>
                         <?php if ($c->department): ?>
@@ -158,7 +158,7 @@ $pageUrl = function (int $p) use ($q, $orgId, $role): string {
                         <?php endforeach; ?>
                     </td>
                     <td>
-                        <a href="/organisations/<?= e($orgCode) ?>/contacts/<?= e($c->code) ?>" class="ra-row-actions" title="View">
+                        <a href="/organisations/<?= e($orgCode) ?>/contacts/<?= e($c->code) ?>?return_to=contacts" class="ra-row-actions" title="View">
                             <i class="bi bi-eye"></i>
                         </a>
                         <?php if ($user->can('recruit.contacts.edit')): ?>

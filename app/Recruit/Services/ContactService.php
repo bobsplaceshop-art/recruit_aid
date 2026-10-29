@@ -63,12 +63,20 @@ final class ContactService
         }
 
         $normalized = $this->validator->normalize($input);
-        /** @var array{organisation_id: int, code: string, first_name: string, last_name: string, position?: string|null, department?: string|null, email?: string|null, phone?: string|null, alt_phone?: string|null, country_code?: string|null, preferred_communication?: string, is_primary?: bool, is_hiring_manager?: bool, is_finance?: bool, is_hr?: bool, is_decision_maker?: bool, notes?: string|null, created_by?: int|null} $normalized */
+        /** @var array{organisation_id: int, code: string, first_name: string, last_name: string, position?: string|null, department?: string|null, email?: string|null, phone?: string|null, alt_phone?: string|null, country_code?: string|null, preferred_communication?: string, is_primary?: bool, is_hiring_manager?: bool, is_finance?: bool, is_hr?: bool, is_decision_maker?: bool, roles?: string[], notes?: string|null, created_by?: int|null} $normalized */
         $normalized['organisation_id'] = $organisationId;
         $normalized['code'] = $this->contacts->nextCode();
         $normalized['created_by'] = $this->auth?->user()?->id;
 
         $id = $this->contacts->create($normalized);
+
+        // Sync roles to the pivot table (also updates legacy boolean columns
+        // so existing code paths that still read them continue to work).
+        /** @var string[] $roles */
+        $roles = $normalized['roles'] ?? [];
+        if (!empty($roles)) {
+            $this->contacts->syncRoles($id, $roles);
+        }
 
         if (!empty($cfValues)) {
             $this->cfSaver->save('contact', $id, $cfValues);
@@ -127,6 +135,11 @@ final class ContactService
 
         $normalized = $this->validator->normalize($input);
         $changes = $this->contacts->update($id, $normalized);
+
+        // Sync roles to the pivot table (also updates legacy boolean columns).
+        /** @var string[] $roles */
+        $roles = $normalized['roles'] ?? [];
+        $this->contacts->syncRoles($id, $roles);
 
         if (!empty($cfValues)) {
             $this->cfSaver->save('contact', $id, $cfValues);

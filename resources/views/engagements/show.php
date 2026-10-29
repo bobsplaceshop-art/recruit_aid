@@ -14,6 +14,7 @@ $renderer = App::instance()
     ->get(\CorporateAid\Platform\CustomFields\CustomFieldRenderer::class);
 
 $customFieldsHtml = $renderer->renderDetail('engagement', $engagement->id);
+$activityHtml = \CorporateAid\Core\App::instance()->container()->get(\CorporateAid\Platform\Services\ActivityTimelineService::class)->render('engagement', $engagement->id);
 
 $delBase = '/engagements/' . $engagement->code;
 
@@ -149,6 +150,8 @@ $pct = $capacity['capacity'] > 0
         </div>
 
         <?php if ($customFieldsHtml): ?><?= $customFieldsHtml ?><?php endif; ?>
+
+        <?= $activityHtml ?>
 
         <?php if ($engagement->notes): ?>
             <div class="ra-card mt-3">

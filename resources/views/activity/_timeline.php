@@ -12,12 +12,19 @@
  * $limit      — how many are shown here
  */
 $showViewAll = $totalCount > $limit;
+
+// Context-aware return parameter for the "View all" page
+$currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$returnTo = '';
+if ($entityType === 'contact' && rtrim($currentPath, '/') === '/contacts') {
+    $returnTo = '?return_to=contacts';
+}
 ?>
 <div class="ra-card mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="h5 mb-0">Activity</h2>
         <?php if ($showViewAll): ?>
-            <a href="/activity/<?= e($entityType) ?>/<?= (int) $entityId ?>"
+            <a href="/activity/<?= e($entityType) ?>/<?= (int) $entityId ?><?= $returnTo ?>"
                class="small text-decoration-none"
                style="color: var(--ra-primary);">
                 View all <?= (int) $totalCount ?> →

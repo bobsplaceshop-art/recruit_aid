@@ -7,7 +7,7 @@
     </div>
 </div>
 
-<p class="muted mb-4">Manage what each type of user can do within Recruit Aid.</p>
+<p class="muted mb-4">Manage what each type of user can do within <?= e(app_setting('branding.app_name', 'Recruit Aid')) ?>.</p>
 
 <div class="ra-tiles">
     <a href="/admin/roles-perm/roles" class="ra-tile">

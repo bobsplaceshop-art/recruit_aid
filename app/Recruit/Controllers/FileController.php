@@ -43,6 +43,14 @@ final class FileController
         'vacancy'      => 'recruit.vacancies.view',
     ];
 
+    /**
+     * Entity types whose files are publicly readable (no auth required).
+     * Used for branding files that appear on login/error pages.
+     */
+    private const PUBLIC_ENTITY_TYPES = [
+        'branding',
+    ];
+
     public function __construct(private Container $container) {}
 
     /** @param array<string, string> $params */
@@ -77,6 +85,11 @@ final class FileController
 
         $allowed = false;
         foreach ($entityLinks as $link) {
+            // Public entity types (branding) are readable without auth
+            if (in_array($link->entityType, self::PUBLIC_ENTITY_TYPES, true)) {
+                $allowed = true;
+                break;
+            }
             $perm = self::ENTITY_VIEW_PERMISSION[$link->entityType] ?? null;
             if ($perm !== null && $auth->can($perm)) {
                 $allowed = true;

@@ -162,4 +162,17 @@ final class LookupRepository
             'is_system'   => Row::bool($row, 'is_system'),
         ];
     }
+
+    /**
+     * Return the next available sort_order for a group.
+     * @return int MAX(sort_order) + 1, or 1 if the group is empty
+     */
+    public function nextSortOrder(string $groupSlug): int
+    {
+        return $this->db->scalarInt(
+            "SELECT COALESCE(MAX(`sort_order`), 0) + 1 FROM `core_lookups`
+             WHERE `group_slug` = ? AND `deleted_at` IS NULL",
+            PDOParams::positional([$groupSlug])
+        );
+    }
 }

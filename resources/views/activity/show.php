@@ -46,8 +46,12 @@
 
 <?php if ($totalPages > 1): ?>
     <?php
-        $pageUrl = function (int $p) use ($entityType, $entityId): string {
-            return '/activity/' . rawurlencode($entityType) . '/' . $entityId . '?page=' . $p;
+        $pageUrl = function (int $p) use ($entityType, $entityId, $returnTo): string {
+            $url = '/activity/' . rawurlencode($entityType) . '/' . $entityId . '?page=' . $p;
+            if ($returnTo !== '') {
+                $url .= '&return_to=' . rawurlencode($returnTo);
+            }
+            return $url;
         };
     ?>
     <div class="d-flex justify-content-between align-items-center mt-3">

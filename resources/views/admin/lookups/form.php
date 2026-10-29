@@ -53,8 +53,9 @@
             <div class="col-md-6">
                 <label class="ra-label" for="lk-sort">Sort Order</label>
                 <input type="number" id="lk-sort" name="sort_order" class="ra-input"
-                       value="<?= e((string) ($item['sort_order'] ?? 0)) ?>">
-                <div class="muted small mt-1">Lower numbers appear first in dropdowns.</div>
+                       value="<?= e((string) ($item['sort_order'] ?? 0)) ?>"
+                       placeholder="Auto-assign if blank">
+                <div class="muted small mt-1">Lower numbers appear first. Leave at 0 to auto-assign the next available number.</div>
             </div>
             <div class="col-md-6">
                 <label class="ra-label" for="lk-active">Active</label>

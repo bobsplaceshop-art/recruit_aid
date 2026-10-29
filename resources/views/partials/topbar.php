@@ -20,7 +20,15 @@
     </div>
 
     <div class="d-flex align-items-center gap-2">
-        <input type="text" class="ra-search" placeholder="Search (coming soon)" disabled>
+        <div class="ra-search-wrap">
+            <form method="GET" action="/search" style="margin:0;display:flex;">
+                <input type="text" name="q" class="ra-search" placeholder="Search…"
+                       value="<?= e($_GET['q'] ?? '') ?>"
+                       autocomplete="off"
+                       aria-autocomplete="list">
+            </form>
+            <div class="ra-search-dropdown" hidden></div>
+        </div>
 
         <button type="button" class="ra-icon-btn" data-ra-theme-toggle title="Theme">
             <i class="bi bi-sun-fill" style="display:none;" data-ra-icon-light></i>

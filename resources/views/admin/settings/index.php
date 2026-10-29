@@ -1,71 +1,33 @@
 <div class="ra-page-band">
     <div class="ra-page-band-row">
         <div>
-            <div class="ra-page-band-label">Administration</div>
-            <h1 class="ra-page-band-title">System Settings</h1>
-            <p class="ra-page-sub">Configure how Recruit Aid behaves for your organisation.</p>
-        </div>
-        <div class="ra-page-band-actions">
-            <a href="/admin" class="ra-btn ra-btn-outline">
-                <i class="bi bi-arrow-left"></i><span>Back to admin</span>
-            </a>
+            <div class="ra-page-band-label">Administration · Settings</div>
+            <h1 class="ra-page-band-title">Settings</h1>
+            <p class="ra-page-sub">Configure how <?= e(app_setting('branding.app_name', 'Recruit Aid')) ?> behaves for your organisation.</p>
         </div>
     </div>
 </div>
 
-<div class="ra-alert ra-alert-warn">
-    <i class="bi bi-shield-lock me-1"></i>
-    <strong>Only super administrators can change these settings.</strong>
-    Changes take effect immediately and are logged.
-</div>
-
-<div class="ra-tiles">
-    <a href="/admin/settings/security" class="ra-tile">
-        <div class="ra-tile-icon ra-tile-icon--sky">
-            <i class="bi bi-shield-lock-fill"></i>
-        </div>
-        <div class="ra-tile-label">Security</div>
-    </a>
-
-    <a href="/admin/settings/notifications" class="ra-tile">
-        <div class="ra-tile-icon ra-tile-icon--clay">
-            <i class="bi bi-bell-fill"></i>
-        </div>
-        <div class="ra-tile-label">Notifications</div>
-    </a>
-
-    <a href="#" class="ra-tile" onclick="return false;" style="opacity:.5;cursor:not-allowed;">
-        <div class="ra-tile-icon ra-tile-icon--mint">
-            <i class="bi bi-envelope-fill"></i>
-        </div>
-        <div class="ra-tile-label">Email &amp; SMTP<br><span class="muted small">Coming soon</span></div>
-    </a>
-
-    <a href="#" class="ra-tile" onclick="return false;" style="opacity:.5;cursor:not-allowed;">
-        <div class="ra-tile-icon ra-tile-icon--plum">
-            <i class="bi bi-palette-fill"></i>
-        </div>
-        <div class="ra-tile-label">Branding<br><span class="muted small">Coming soon</span></div>
-    </a>
-
-    <a href="#" class="ra-tile" onclick="return false;" style="opacity:.5;cursor:not-allowed;">
-        <div class="ra-tile-icon ra-tile-icon--amber">
-            <i class="bi bi-globe2"></i>
-        </div>
-        <div class="ra-tile-label">Localisation<br><span class="muted small">Coming soon</span></div>
-    </a>
-
-    <a href="#" class="ra-tile" onclick="return false;" style="opacity:.5;cursor:not-allowed;">
-        <div class="ra-tile-icon ra-tile-icon--clay">
-            <i class="bi bi-plug-fill"></i>
-        </div>
-        <div class="ra-tile-label">API &amp; Webhooks<br><span class="muted small">Coming soon</span></div>
-    </a>
-
-    <a href="#" class="ra-tile" onclick="return false;" style="opacity:.5;cursor:not-allowed;">
-        <div class="ra-tile-icon ra-tile-icon--sage">
-            <i class="bi bi-shield-check"></i>
-        </div>
-        <div class="ra-tile-label">Data &amp; Privacy<br><span class="muted small">Coming soon</span></div>
-    </a>
+<div class="row g-3">
+    <div class="col-md-6 col-lg-4">
+        <a href="/admin/settings/branding" class="ra-card text-decoration-none d-block h-100" style="color:inherit;">
+            <div style="font-size:2rem;color:var(--ra-accent);"><i class="bi bi-palette"></i></div>
+            <h3 class="h5 mt-2 mb-1">Branding</h3>
+            <p class="muted small mb-0">App name, logo, favicon, primary color, and your organisation details.</p>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <a href="/admin/roles-perm" class="ra-card text-decoration-none d-block h-100" style="color:inherit;">
+            <div style="font-size:2rem;color:var(--ra-accent);"><i class="bi bi-shield-lock"></i></div>
+            <h3 class="h5 mt-2 mb-1">Roles &amp; Permissions</h3>
+            <p class="muted small mb-0">Manage roles, assign permissions, and see who has what.</p>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <a href="/admin/custom-fields" class="ra-card text-decoration-none d-block h-100" style="color:inherit;">
+            <div style="font-size:2rem;color:var(--ra-accent);"><i class="bi bi-input-cursor-text"></i></div>
+            <h3 class="h5 mt-2 mb-1">Custom Fields</h3>
+            <p class="muted small mb-0">Add fields to organisations, contacts, engagements, and vacancies.</p>
+        </a>
+    </div>
 </div>

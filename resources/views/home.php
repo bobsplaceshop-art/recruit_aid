@@ -18,7 +18,7 @@
 <body>
     <div class="wrap">
         <span class="badge-soft">Foundation online</span>
-        <h1 class="mt-3">Recruit Aid</h1>
+        <h1 class="mt-3"><?= e(app_setting('branding.app_name', 'Recruit Aid')) ?></h1>
         <p class="muted mb-4">Recruitment Operations Platform — the application skeleton is working.</p>
 
         <div class="row-item"><span>App version</span><strong><?= htmlspecialchars($appVersion, ENT_QUOTES, 'UTF-8') ?></strong></div>

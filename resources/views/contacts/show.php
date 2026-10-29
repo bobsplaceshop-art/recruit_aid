@@ -12,7 +12,14 @@ $renderer = App::instance()
     ->get(\CorporateAid\Platform\CustomFields\CustomFieldRenderer::class);
 
 $customFieldsHtml = $renderer->renderDetail('contact', $contact->id);
+$activityHtml = \CorporateAid\Core\App::instance()->container()->get(\CorporateAid\Platform\Services\ActivityTimelineService::class)->render('contact', $contact->id);
 $contactDeleteUrl = '/organisations/' . $organisation->code . '/contacts/' . $contact->code;
+
+// Context-aware back URL
+$returnTo = $returnTo ?? '';
+$backUrl = ($returnTo === 'contacts') 
+    ? '/contacts' 
+    : '/organisations/' . $organisation->code . '/contacts';
 ?>
 <div class="ra-page-band">
     <div class="ra-page-band-row">
@@ -37,7 +44,7 @@ $contactDeleteUrl = '/organisations/' . $organisation->code . '/contacts/' . $co
             </div>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/organisations/<?= e($organisation->code) ?>/contacts" class="ra-btn ra-btn-outline">
+            <a href="<?= e($backUrl) ?>" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
@@ -105,6 +112,8 @@ $contactDeleteUrl = '/organisations/' . $organisation->code . '/contacts/' . $co
         <?php if ($customFieldsHtml): ?>
             <?= $customFieldsHtml ?>
         <?php endif; ?>
+
+        <?= $activityHtml ?>
 
         <?php if ($contact->notes): ?>
             <div class="ra-card mt-3">
