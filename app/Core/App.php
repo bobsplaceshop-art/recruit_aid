@@ -20,6 +20,10 @@ use CorporateAid\Recruit\Repositories\PipelineStageRepository;
 use CorporateAid\Platform\Repositories\RoleRepository;
 use CorporateAid\Platform\Repositories\LookupRepository;
 use CorporateAid\Platform\Services\LookupService;
+use CorporateAid\Platform\Services\GlobalSearchService;
+use CorporateAid\Platform\LiveSearch\LiveSearchRegistry;
+use CorporateAid\Platform\LiveSearch\LiveSearchService;
+use CorporateAid\Platform\LiveSearch\LiveSearchable;
 use CorporateAid\Platform\Repositories\UserRepository;
 use CorporateAid\Platform\Repositories\PasswordResetRepository;
 use CorporateAid\Platform\Repositories\RateLimitRepository;
@@ -116,6 +120,7 @@ final class App
             }
             $this->renderException($e);
         });
+        
     }
 
     private function loadConfig(): void
@@ -183,6 +188,8 @@ final class App
         $c->singleton(UserRepository::class,              fn() => new UserRepository($c->get(Database::class)));
         $c->singleton(RoleRepository::class,              fn() => new RoleRepository($c->get(Database::class)));
         $c->singleton(LookupRepository::class,            fn() => new LookupRepository($c->get(Database::class)));
+        $c->singleton(LiveSearchService::class, fn() => new LiveSearchService($c->get(Database::class), $c->get(View::class), $c->get(Auth::class)));
+        $c->singleton(GlobalSearchService::class, fn() => new GlobalSearchService($c->get(Database::class), $c->get(Auth::class)));
         $c->singleton(LookupService::class,               fn() => new LookupService($c->get(LookupRepository::class)));
         $c->singleton(PasswordResetRepository::class,     fn() => new PasswordResetRepository($c->get(Database::class)));
         $c->singleton(RateLimitRepository::class,         fn() => new RateLimitRepository($c->get(Database::class)));

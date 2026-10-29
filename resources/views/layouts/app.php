@@ -82,5 +82,7 @@ if (function_exists('flash')) {
     <?php foreach ($pageScripts as $script): ?>
         <script src="<?= asset($script) ?>"></script>
     <?php endforeach; ?>
+    <script src="<?= asset('js/search.js') ?>?v=1"></script>
+    <script src="<?= asset('js/live-search.js') ?>?v=1"></script>
 </body>
 </html>

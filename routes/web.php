@@ -18,6 +18,8 @@ use CorporateAid\Recruit\Controllers\HomeController;
 use CorporateAid\Recruit\Controllers\NotificationController;
 use CorporateAid\Recruit\Controllers\OrganisationController;
 use CorporateAid\Recruit\Controllers\ContactController;
+use CorporateAid\Recruit\Controllers\GlobalSearchController;
+use CorporateAid\Recruit\Controllers\LiveSearchController;
 use CorporateAid\Recruit\Controllers\ComingSoonController;
 use CorporateAid\Recruit\Controllers\EngagementController;
 use CorporateAid\Recruit\Controllers\FileController;
@@ -42,6 +44,8 @@ $router->get('/activity',     [ComingSoonController::class, 'activity'],     ['a
 $router->get('/reports',      [ComingSoonController::class, 'reports'],      ['auth']);
 $router->get('/documents',    [ComingSoonController::class, 'documents'],    ['auth']);
 $router->get('/admin/audit',  [ComingSoonController::class, 'audit'],        ['auth', 'permission:core.settings.manage']);
+
+$router->get('/search', [GlobalSearchController::class, 'index'], ['auth']);
 
 $router->get('/dashboard', [DashboardController::class, 'index'], ['auth']);
 
@@ -202,6 +206,8 @@ $router->get('/admin/email-templates', function (Request $req, array $params): R
 // Notifications
 // ---------------------------------------------------------------------
 $router->get('/notifications',            [NotificationController::class, 'index'],       ['auth']);
+$router->get('/api/live-search', [LiveSearchController::class, 'search'], ['auth']);
+$router->get('/api/search', [GlobalSearchController::class, 'api'], ['auth']);
 $router->get('/api/notifications',        [NotificationController::class, 'api'],         ['auth']);
 $router->post('/notifications/{id}/read', [NotificationController::class, 'markRead'],    ['auth', 'csrf']);
 $router->post('/notifications/read-all',  [NotificationController::class, 'markAllRead'], ['auth', 'csrf']);
