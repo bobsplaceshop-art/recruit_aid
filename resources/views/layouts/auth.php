@@ -32,7 +32,12 @@
     <?php if ($fav !== ''): ?>
         <link rel="icon" href="/files/<?= e($fav) ?>">
     <?php endif; ?>
-    <style>:root { --ra-primary: <?= e($primaryColor) ?>; }</style>
+    <style>
+        /* Override theme defaults — higher specificity than :root or [data-theme] */
+        html[data-theme], html {
+            --ra-primary: <?= e($primaryColor) ?> !important;
+        }
+    </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
