@@ -156,11 +156,24 @@ $activityHtml = App::instance()->container()->get(\CorporateAid\Platform\Service
                                     <span class="muted">·</span>
                                     <span class="ra-badge"><?= e($a->statusLabel()) ?></span>
                                 </div>
-                                <div class="ra-timeline-time muted small d-flex gap-2 align-items-center">
+                                <div class="ra-timeline-time muted small d-flex gap-2 align-items-center flex-wrap">
                                     <span>Applied <?= e(human_time($a->appliedAt)) ?> · <code style="font-size:.7rem;"><?= e($a->code) ?></code></span>
                                     <?php if ($user->can('recruit.interviews.create')): ?>
                                         <a href="/applications/<?= e($a->code) ?>/schedule-interview" class="ra-btn ra-btn-outline ra-btn-sm" style="font-size:.7rem;padding:.15rem .45rem;">
                                             <i class="bi bi-calendar-plus"></i> Schedule interview
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php
+                                        $offerRepo = \CorporateAid\Core\App::instance()->container()->get(\CorporateAid\Recruit\Repositories\OfferRepository::class);
+                                        $activeOffer = $offerRepo->findByApplication($a->id);
+                                    ?>
+                                    <?php if ($activeOffer !== null): ?>
+                                        <a href="/offers/<?= e($activeOffer->code) ?>" class="ra-btn ra-btn-outline ra-btn-sm" style="font-size:.7rem;padding:.15rem .45rem;">
+                                            <i class="bi bi-file-earmark-text"></i> Offer: <?= e($activeOffer->statusLabel()) ?>
+                                        </a>
+                                    <?php elseif ($user->can('recruit.offers.create')): ?>
+                                        <a href="/applications/<?= e($a->code) ?>/make-offer" class="ra-btn ra-btn-outline ra-btn-sm" style="font-size:.7rem;padding:.15rem .45rem;">
+                                            <i class="bi bi-file-earmark-plus"></i> Make offer
                                         </a>
                                     <?php endif; ?>
                                 </div>

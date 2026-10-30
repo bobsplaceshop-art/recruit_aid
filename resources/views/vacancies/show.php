@@ -133,7 +133,7 @@ foreach ($requirements as $r) {
         <div class="ra-card mt-3">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="h5 mb-0">Pipeline</h2>
-                <?php if ($user->can('recruit.vacancies.edit')): ?>
+                <?php if ($user->can('recruit.pipeline.advance')): ?>
                     <a href="/vacancies/<?= e($vacancy->code) ?>/add-candidate" class="ra-btn ra-btn-primary ra-btn-sm">
                         <i class="bi bi-plus-lg"></i> Add candidate
                     </a>
@@ -194,7 +194,7 @@ foreach ($requirements as $r) {
                                                     <i class="bi bi-clock"></i>
                                                     <?= e(human_time($entry['stage_since'] ?? $a->appliedAt)) ?>
                                                 </span>
-                                                <?php if ($user->can('recruit.vacancies.edit')): ?>
+                                                <?php if ($user->can('recruit.pipeline.advance')): ?>
                                                     <div class="dropdown">
                                                         <button class="ra-pipeline-card-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                             <i class="bi bi-three-dots"></i>

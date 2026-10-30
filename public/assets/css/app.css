@@ -1530,3 +1530,16 @@ html[data-theme="dark"] .ra-pipeline-column-title-pill[style*="--stage-pill-colo
 .ra-participant-email {
     font-size: 0.72rem;
 }
+
+/* Invalid state on a required chip picker */
+.ra-chip-picker--invalid .ra-participant-picker .ra-input {
+    border-color: var(--ra-error-bd);
+    box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.15);
+}
+.ra-chip-picker--invalid::after {
+    content: 'Please pick at least one item.';
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--ra-error-fg);
+}

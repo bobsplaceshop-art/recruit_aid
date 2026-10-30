@@ -7,10 +7,14 @@
 --
 -- Password hashes use Argon2id, generated with
 -- CorporateAid\Platform\Support\Hasher::hash().
+--
+-- tenant_id = 1 (Default Tenant) — every user belongs to exactly
+-- one tenant. This matches core_tenants seeded in migration 0039.
 -- ============================================================
 
-INSERT INTO `core_users` (`name`, `email`, `password_hash`, `status`, `timezone`, `locale`, `is_client_user`) VALUES
+INSERT INTO `core_users` (`tenant_id`, `name`, `email`, `password_hash`, `status`, `timezone`, `locale`, `is_client_user`) VALUES
     (
+        1,
         'Admin User',
         'admin@recruitaid.test',
         '$argon2id$v=19$m=65536,t=4,p=1$OTRWNDZLTFUwblE1bVN5RQ$9HCVBMd48qYxB7pEuUBTIm9DCLP8tf9HPMp5e5QlAck',
@@ -20,6 +24,7 @@ INSERT INTO `core_users` (`name`, `email`, `password_hash`, `status`, `timezone`
         0
     ),
     (
+        1,
         'Test Researcher',
         'researcher@recruitaid.test',
         '$argon2id$v=19$m=65536,t=4,p=1$eGNNeUQucTAxMUpGdGhmLw$wmrXBC4INVRD7kj5ulSS2yNjkLQRgY6XjFL/LN3mA7g',

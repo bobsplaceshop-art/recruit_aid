@@ -80,6 +80,12 @@ $statusPills = [
                 <?php endif; ?>
             </span>
         </div>
+        <div class="ra-table-toolbar-right">
+            <?= view_partial('partials/export-button', [
+                'entity'  => 'candidates',
+                'filters' => ['q' => $search, 'status' => $status],
+            ]) ?>
+        </div>
     </div>
 
     <?php if (empty($rows)): ?>

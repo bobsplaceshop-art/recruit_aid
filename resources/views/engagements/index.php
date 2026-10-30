@@ -78,6 +78,12 @@ $statusPills = [
                 <?php if ($search !== ''): ?> matching "<?= e($search) ?>"<?php endif; ?>
             </span>
         </div>
+        <div class="ra-table-toolbar-right">
+            <?= view_partial('partials/export-button', [
+                'entity'  => 'engagements',
+                'filters' => ['q' => $search, 'status' => $status],
+            ]) ?>
+        </div>
     </div>
 
     <?php if (empty($engagements)): ?>
@@ -113,7 +119,7 @@ $statusPills = [
             </thead>
             <tbody data-live-results>
             <?php foreach ($engagements as $e): ?>
-                <?php $org = $orgMap[$e->organisationId] ?? null; ?>
+                <?php $org = $orgMap[$e->clientOrganisationId] ?? null; ?>
                 <tr>
                     <td><a href="/engagements/<?= e($e->code) ?>" class="text-decoration-none"><code><?= e($e->code) ?></code></a></td>
                     <td><a href="/engagements/<?= e($e->code) ?>" class="text-decoration-none"><strong><?= e($e->name) ?></strong></a></td>
