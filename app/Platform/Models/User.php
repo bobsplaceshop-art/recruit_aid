@@ -11,6 +11,7 @@ use CorporateAid\Core\Row;
 final class User
 {
     public int $id;
+    public int $tenantId;
     public string $name;
     public string $email;
     public string $passwordHash;
@@ -40,6 +41,7 @@ final class User
     {
         $u = new self();
         $u->id = Row::int($row, 'id');
+        $u->tenantId = Row::int($row, 'tenant_id', 1);
         $u->name = Row::str($row, 'name');
         $u->email = Row::str($row, 'email');
         $u->passwordHash = Row::str($row, 'password_hash');

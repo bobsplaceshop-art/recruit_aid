@@ -211,6 +211,9 @@ final class App
             return new Session($sessionConfig);
         });
         $c->singleton(Csrf::class,     fn() => new Csrf($c->get(Session::class)));
+        $c->singleton(TenantContext::class, function () use ($c) {
+            return new TenantContext($c->get(Session::class), $c->get(Auth::class));
+        });
 
         // ---------- Repositories ----------
         $c->singleton(UserRepository::class,              fn() => new UserRepository($c->get(Database::class)));
