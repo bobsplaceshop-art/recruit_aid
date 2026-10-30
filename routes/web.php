@@ -32,6 +32,7 @@ use CorporateAid\Recruit\Controllers\InterviewController;
 use CorporateAid\Recruit\Controllers\ScorecardController;
 use CorporateAid\Recruit\Controllers\OfferController;
 use CorporateAid\Recruit\Controllers\ReportController;
+use CorporateAid\Recruit\Controllers\ExportController;
 
 /** @var Router $router */
 
@@ -124,7 +125,7 @@ $router->get('/applications',                    [ApplicationController::class, 
 
 $router->get('/vacancies/{code}/add-candidate',  [ApplicationController::class, 'addCandidateForm'], ['auth', 'permission:recruit.vacancies.edit']);
 $router->post('/vacancies/{code}/add-candidate', [ApplicationController::class, 'addCandidate'],     ['auth', 'permission:recruit.vacancies.edit', 'csrf']);
-$router->post('/applications/{code}/move',       [ApplicationController::class, 'move'],             ['auth', 'permission:recruit.vacancies.edit', 'csrf']);
+$router->post('/applications/{code}/move',       [ApplicationController::class, 'move'],             ['auth', 'permission:recruit.pipeline.advance', 'csrf']);
 
 // ---------------------------------------------------------------------
 // Interviews & Scorecards
@@ -158,6 +159,12 @@ $router->get('/reports/funnel',                [ReportController::class, 'funnel
 $router->get('/reports/time-to-hire',          [ReportController::class, 'timeToHire'],  ['auth', 'permission:recruit.reports.view']);
 $router->get('/reports/productivity',          [ReportController::class, 'productivity'],['auth', 'permission:recruit.reports.view']);
 $router->get('/reports/time-to-hire.csv',      [ReportController::class, 'exportTimeToHire'], ['auth', 'permission:recruit.reports.view']);
+
+// ---------------------------------------------------------------------
+// Universal list export
+// ---------------------------------------------------------------------
+$router->get('/{entity}/export.csv', [ExportController::class, 'export'], ['auth']);
+
 
 
 

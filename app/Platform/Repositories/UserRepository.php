@@ -6,6 +6,7 @@ namespace CorporateAid\Platform\Repositories;
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Platform\Models\User;
 use CorporateAid\Platform\Support\Hasher;
 
@@ -15,13 +16,18 @@ use CorporateAid\Platform\Support\Hasher;
  */
 final class UserRepository
 {
-    public function __construct(private Database $db) {}
+    public function __construct(
+        private Database $db,
+        private TenantContext $tenant
+    ) {}
 
     public function findById(int $id): ?User
     {
         $row = $this->db->selectOne(
-            "SELECT * FROM `core_users` WHERE `id` = ? AND `deleted_at` IS NULL LIMIT 1",
-            PDOParams::positional([$id])
+            "SELECT * FROM `core_users`
+             WHERE `id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL
+             LIMIT 1",
+            PDOParams::positional([$id, $this->tenant->id()])
         );
         return $row ? User::fromRow($row) : null;
     }
@@ -29,26 +35,28 @@ final class UserRepository
     public function findByEmail(string $email): ?User
     {
         $row = $this->db->selectOne(
-            "SELECT * FROM `core_users` WHERE `email` = ? AND `deleted_at` IS NULL LIMIT 1",
-            PDOParams::positional([strtolower(trim($email))])
+            "SELECT * FROM `core_users`
+             WHERE `email` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL
+             LIMIT 1",
+            PDOParams::positional([strtolower(trim($email)), $this->tenant->id()])
         );
         return $row ? User::fromRow($row) : null;
     }
 
     /**
-     * @param array{name:string,email:string,password:string,status?:string,is_client_user?:bool,organisation_id?:?int,phone?:?string,timezone?:string} $data
+     * @param array<string, mixed> $data
      */
-    /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
         $sql = "INSERT INTO `core_users`
-                (`name`, `email`, `password_hash`, `phone`, `timezone`, `status`, `is_client_user`, `organisation_id`)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                (`tenant_id`, `name`, `email`, `password_hash`, `phone`, `timezone`, `status`, `is_client_user`, `client_organisation_id`)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $email = Row::str($data, 'email');
         $plain = Row::str($data, 'password');
 
         return $this->db->insert($sql, PDOParams::positional([
+            $this->tenant->id(),
             Row::str($data, 'name'),
             strtolower(trim($email)),
             Hasher::hash($plain),
@@ -56,41 +64,41 @@ final class UserRepository
             $data['timezone'] ?? 'Africa/Nairobi',
             $data['status'] ?? 'active',
             !empty($data['is_client_user']) ? 1 : 0,
-            $data['organisation_id'] ?? null,
+            $data['client_organisation_id'] ?? null,
         ]));
     }
 
     public function updatePassword(int $userId, string $newPassword): void
     {
         $this->db->execute(
-            "UPDATE `core_users` SET `password_hash` = ? WHERE `id` = ?",
-            PDOParams::positional([Hasher::hash($newPassword), $userId])
+            "UPDATE `core_users` SET `password_hash` = ? WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([Hasher::hash($newPassword), $userId, $this->tenant->id()])
         );
     }
 
     public function updateLastLogin(int $userId): void
     {
         $this->db->execute(
-            "UPDATE `core_users` SET `last_login_at` = NOW(), `failed_logins` = 0, `locked_until` = NULL WHERE `id` = ?",
-            PDOParams::positional([$userId])
+            "UPDATE `core_users` SET `last_login_at` = NOW(), `failed_logins` = 0, `locked_until` = NULL WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$userId, $this->tenant->id()])
         );
     }
 
     public function incrementFailedLogins(int $userId, int $lockThreshold = 5, int $lockMinutes = 15): void
     {
         $this->db->execute(
-            "UPDATE `core_users` SET `failed_logins` = `failed_logins` + 1 WHERE `id` = ?",
-            PDOParams::positional([$userId])
+            "UPDATE `core_users` SET `failed_logins` = `failed_logins` + 1 WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$userId, $this->tenant->id()])
         );
 
         $failed = $this->db->scalarInt(
-            "SELECT `failed_logins` FROM `core_users` WHERE `id` = ?",
-            PDOParams::positional([$userId])
+            "SELECT `failed_logins` FROM `core_users` WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$userId, $this->tenant->id()])
         );
         if ($failed >= $lockThreshold) {
             $this->db->execute(
-                "UPDATE `core_users` SET `locked_until` = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE `id` = ?",
-                PDOParams::positional([$lockMinutes, $userId])
+                "UPDATE `core_users` SET `locked_until` = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE `id` = ? AND `tenant_id` = ?",
+                PDOParams::positional([$lockMinutes, $userId, $this->tenant->id()])
             );
         }
     }
@@ -98,14 +106,11 @@ final class UserRepository
     public function setStatus(int $userId, string $status): void
     {
         $this->db->execute(
-            "UPDATE `core_users` SET `status` = ? WHERE `id` = ?",
-            PDOParams::positional([$status, $userId])
+            "UPDATE `core_users` SET `status` = ? WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$status, $userId, $this->tenant->id()])
         );
     }
 
-    /**
-     * Attach a role to a user by role slug. Idempotent.
-     */
     public function attachRoleBySlug(int $userId, string $roleSlug): void
     {
         $this->db->execute(
@@ -115,9 +120,6 @@ final class UserRepository
         );
     }
 
-    /**
-     * Load a user's role slugs into ->roleSlugs (mutates the passed object).
-     */
     public function loadRoles(User $user): User
     {
         $rows = $this->db->select(
@@ -131,9 +133,6 @@ final class UserRepository
         return $user;
     }
 
-    /**
-     * Load a user's permission slugs into ->permissionSlugs (mutates the passed object).
-     */
     public function loadPermissions(User $user): User
     {
         $rows = $this->db->select(
@@ -150,7 +149,10 @@ final class UserRepository
 
     public function count(): int
     {
-        return $this->db->scalarInt("SELECT COUNT(*) FROM `core_users` WHERE `deleted_at` IS NULL");
+        return $this->db->scalarInt(
+            "SELECT COUNT(*) FROM `core_users` WHERE `tenant_id` = ? AND `deleted_at` IS NULL",
+            PDOParams::positional([$this->tenant->id()])
+        );
     }
 
     /**
@@ -167,10 +169,12 @@ final class UserRepository
              LEFT JOIN `core_user_roles` ur ON ur.`user_id` = u.`id`
              LEFT JOIN `core_roles` r ON r.`id` = ur.`role_id`
              WHERE u.`deleted_at` IS NULL
+               AND u.`tenant_id` = ?
                AND u.`status` = 'active'
                AND u.`is_client_user` = 0
              GROUP BY u.`id`
-             ORDER BY u.`name` ASC"
+             ORDER BY u.`name` ASC",
+            PDOParams::positional([$this->tenant->id()])
         );
     }
 
@@ -186,9 +190,11 @@ final class UserRepository
              JOIN `core_user_roles` ur ON ur.`user_id` = u.`id`
              JOIN `core_role_permissions` rp ON rp.`role_id` = ur.`role_id`
              JOIN `core_permissions` p ON p.`id` = rp.`permission_id`
-             WHERE u.`deleted_at` IS NULL AND u.`status` = 'active'
+             WHERE u.`deleted_at` IS NULL
+               AND u.`tenant_id` = ?
+               AND u.`status` = 'active'
                AND p.`slug` = ?",
-            PDOParams::positional([$permissionSlug])
+            PDOParams::positional([$this->tenant->id(), $permissionSlug])
         );
         return array_map(fn ($r) => Row::int($r, 'id'), $rows);
     }
@@ -204,9 +210,11 @@ final class UserRepository
              FROM `core_users` u
              JOIN `core_user_roles` ur ON ur.`user_id` = u.`id`
              JOIN `core_roles` r ON r.`id` = ur.`role_id`
-             WHERE u.`deleted_at` IS NULL AND u.`status` = 'active'
+             WHERE u.`deleted_at` IS NULL
+               AND u.`tenant_id` = ?
+               AND u.`status` = 'active'
                AND r.`slug` = ?",
-            PDOParams::positional([$roleSlug])
+            PDOParams::positional([$this->tenant->id(), $roleSlug])
         );
         return array_map(fn ($r) => Row::int($r, 'id'), $rows);
     }
@@ -220,8 +228,9 @@ final class UserRepository
         $rows = $this->db->select(
             "SELECT `id`, `name`, `email`, `status`, `last_login_at`
              FROM `core_users`
-             WHERE `deleted_at` IS NULL
-             ORDER BY `name` ASC"
+             WHERE `tenant_id` = ? AND `deleted_at` IS NULL
+             ORDER BY `name` ASC",
+            PDOParams::positional([$this->tenant->id()])
         );
 
         $users = [];
@@ -255,12 +264,13 @@ final class UserRepository
      */
     public function update(int $id, array $data): void
     {
-        $sql = "UPDATE `core_users` SET `name` = ?, `email` = ?, `status` = ? WHERE `id` = ?";
+        $sql = "UPDATE `core_users` SET `name` = ?, `email` = ?, `status` = ? WHERE `id` = ? AND `tenant_id` = ?";
         $this->db->execute($sql, PDOParams::positional([
             Row::str($data, 'name'),
             strtolower(trim(Row::str($data, 'email'))),
             Row::str($data, 'status', 'active'),
             $id,
+            $this->tenant->id(),
         ]));
     }
 
@@ -315,9 +325,10 @@ final class UserRepository
              FROM `core_users` u
              JOIN `core_user_roles` ur ON ur.`user_id` = u.`id`
              WHERE ur.`role_id` = ?
+               AND u.`tenant_id` = ?
                AND u.`deleted_at` IS NULL
              ORDER BY u.`name` ASC",
-            PDOParams::positional([$roleId])
+            PDOParams::positional([$roleId, $this->tenant->id()])
         );
 
         return array_map(static fn(array $r) => [

@@ -28,8 +28,7 @@ final class EmailLayout
         if ($logoUrl === '') {
             $logoPath = $this->safeStr(app_setting('branding.logo_path', ''), '');
             if ($logoPath !== '') {
-                $appUrl  = rtrim($this->safeStr(app_setting('app.url', 'http://localhost:8080'), 'http://localhost:8080'), '/');
-                $logoUrl = $appUrl . '/files/' . $logoPath;
+                $logoUrl = app_url('/files/' . $logoPath);
             }
         }
 

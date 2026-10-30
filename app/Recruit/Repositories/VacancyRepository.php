@@ -6,40 +6,44 @@ namespace CorporateAid\Recruit\Repositories;
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Recruit\Models\Vacancy;
 use CorporateAid\Recruit\Models\VacancyRequirement;
 
 final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
-    public function __construct(private Database $db) {}
+    public function __construct(
+        private Database $db,
+        private TenantContext $tenant
+    ) {}
 
     public function findById(int $id): ?Vacancy
     {
         $row = $this->db->selectOne(
-            "SELECT * FROM `recruit_vacancies` WHERE `id` = ? LIMIT 1",
-            PDOParams::positional([$id])
+            "SELECT * FROM `recruit_vacancies` WHERE `id` = ? AND `tenant_id` = ? LIMIT 1",
+            PDOParams::positional([$id, $this->tenant->id()])
         );
         return $row ? Vacancy::fromRow($row) : null;
     }
 
     public function findByCode(string $code, bool $includeDeleted = false): ?Vacancy
     {
-        $sql = "SELECT * FROM `recruit_vacancies` WHERE `code` = ?";
+        $sql = "SELECT * FROM `recruit_vacancies` WHERE `code` = ? AND `tenant_id` = ?";
         if (!$includeDeleted) $sql .= " AND `deleted_at` IS NULL";
         $sql .= " LIMIT 1";
 
-        $row = $this->db->selectOne($sql, PDOParams::positional([$code]));
+        $row = $this->db->selectOne($sql, PDOParams::positional([$code, $this->tenant->id()]));
         return $row ? Vacancy::fromRow($row) : null;
     }
 
     /**
-     * @param array{search?:string,status?:string,include_deleted?:bool,organisation_id?:int,engagement_id?:int,recruiter_id?:int} $filters
+     * @param array{search?:string,status?:string,include_deleted?:bool,client_organisation_id?:int,engagement_id?:int,recruiter_id?:int} $filters
      * @return array{rows:Vacancy[], total:int, page:int, per_page:int, total_pages:int}
      */
     public function paginate(array $filters = [], int $page = 1, int $perPage = 25): array
     {
-        $where = [];
-        $params = [];
+        $where = ['`tenant_id` = ?'];
+        $params = [$this->tenant->id()];
 
         if (empty($filters['include_deleted'])) {
             $where[] = "`deleted_at` IS NULL";
@@ -58,9 +62,9 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             $params[] = $filters['status'];
         }
 
-        if (!empty($filters['organisation_id'])) {
-            $where[] = "`organisation_id` = ?";
-            $params[] = (int) $filters['organisation_id'];
+        if (!empty($filters['client_organisation_id'])) {
+            $where[] = "`client_organisation_id` = ?";
+            $params[] = (int) $filters['client_organisation_id'];
         }
 
         if (!empty($filters['engagement_id'])) {
@@ -73,7 +77,7 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             $params[] = (int) $filters['recruiter_id'];
         }
 
-        $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
         $paramObj = PDOParams::positional($params);
 
         $total = $this->db->scalarInt(
@@ -104,13 +108,13 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     }
 
     /** @return Vacancy[] */
-    public function forOrganisation(int $organisationId, bool $includeDeleted = false): array
+    public function forOrganisation(int $clientOrganisationId, bool $includeDeleted = false): array
     {
-        $sql = "SELECT * FROM `recruit_vacancies` WHERE `organisation_id` = ?";
+        $sql = "SELECT * FROM `recruit_vacancies` WHERE `client_organisation_id` = ? AND `tenant_id` = ?";
         if (!$includeDeleted) $sql .= " AND `deleted_at` IS NULL";
         $sql .= " ORDER BY `created_at` DESC";
 
-        $rows = $this->db->select($sql, PDOParams::positional([$organisationId]));
+        $rows = $this->db->select($sql, PDOParams::positional([$clientOrganisationId, $this->tenant->id()]));
         return array_map([Vacancy::class, 'fromRow'], $rows);
     }
 
@@ -119,9 +123,9 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     {
         $rows = $this->db->select(
             "SELECT * FROM `recruit_vacancies`
-             WHERE `engagement_id` = ? AND `deleted_at` IS NULL
+             WHERE `engagement_id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL
              ORDER BY `created_at` DESC",
-            PDOParams::positional([$engagementId])
+            PDOParams::positional([$engagementId, $this->tenant->id()])
         );
         return array_map([Vacancy::class, 'fromRow'], $rows);
     }
@@ -131,9 +135,10 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         return $this->db->scalarInt(
             "SELECT COUNT(*) FROM `recruit_vacancies`
              WHERE `engagement_id` = ?
+               AND `tenant_id` = ?
                AND `status` NOT IN ('draft','cancelled','closed')
                AND `deleted_at` IS NULL",
-            PDOParams::positional([$engagementId])
+            PDOParams::positional([$engagementId, $this->tenant->id()])
         );
     }
 
@@ -142,8 +147,9 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     {
         $rows = $this->db->select(
             "SELECT `status`, COUNT(*) AS n FROM `recruit_vacancies`
-             WHERE `deleted_at` IS NULL
-             GROUP BY `status`"
+             WHERE `tenant_id` = ? AND `deleted_at` IS NULL
+             GROUP BY `status`",
+            PDOParams::positional([$this->tenant->id()])
         );
         $counts = [
             'all' => 0, 'draft' => 0, 'pending_approval' => 0, 'open' => 0,
@@ -164,7 +170,7 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     public function create(array $data): int
     {
         $sql = "INSERT INTO `recruit_vacancies`
-            (`code`, `organisation_id`, `engagement_id`, `title`, `department`,
+            (`tenant_id`, `code`, `client_organisation_id`, `engagement_id`, `title`, `department`,
              `country_code`, `city`, `work_mode`, `employment_type`, `seniority`,
              `positions_count`, `opening_date`, `target_hire_date`,
              `recruiter_id`, `hiring_manager_contact_id`,
@@ -173,13 +179,14 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
              `skills`, `languages`, `assessment_criteria`,
              `internal_notes`, `client_notes`, `status`,
              `is_public`, `created_by`)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         return $this->db->insert($sql, PDOParams::positional([
+            $this->tenant->id(),
             $data['code'],
-            $data['organisation_id'],
+            $data['client_organisation_id'],
             $data['engagement_id'] ?? null,
             $data['title'],
             $data['department'] ?? null,
@@ -281,8 +288,9 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         if (empty($sets)) return [];
 
         $params[] = $id;
+        $params[] = $this->tenant->id();
         $this->db->execute(
-            "UPDATE `recruit_vacancies` SET " . implode(', ', $sets) . " WHERE `id` = ?",
+            "UPDATE `recruit_vacancies` SET " . implode(', ', $sets) . " WHERE `id` = ? AND `tenant_id` = ?",
             PDOParams::positional($params)
         );
 
@@ -292,16 +300,16 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     public function softDelete(int $id): void
     {
         $this->db->execute(
-            "UPDATE `recruit_vacancies` SET `deleted_at` = NOW() WHERE `id` = ?",
-            PDOParams::positional([$id])
+            "UPDATE `recruit_vacancies` SET `deleted_at` = NOW() WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$id, $this->tenant->id()])
         );
     }
 
     public function restore(int $id): void
     {
         $this->db->execute(
-            "UPDATE `recruit_vacancies` SET `deleted_at` = NULL WHERE `id` = ?",
-            PDOParams::positional([$id])
+            "UPDATE `recruit_vacancies` SET `deleted_at` = NULL WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$id, $this->tenant->id()])
         );
     }
 
@@ -319,8 +327,8 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     /** @return VacancyRequirement[] */
     public function requirementsFor(int $vacancyId, ?string $type = null): array
     {
-        $sql = "SELECT * FROM `recruit_vacancy_requirements` WHERE `vacancy_id` = ?";
-        $params = [$vacancyId];
+        $sql = "SELECT * FROM `recruit_vacancy_requirements` WHERE `vacancy_id` = ? AND `tenant_id` = ?";
+        $params = [$vacancyId, $this->tenant->id()];
         if ($type !== null) {
             $sql .= " AND `type` = ?";
             $params[] = $type;
@@ -337,8 +345,8 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         $validTypes = ['responsibility','requirement','preferred','skill','language'];
 
         $this->db->execute(
-            "DELETE FROM `recruit_vacancy_requirements` WHERE `vacancy_id` = ?",
-            PDOParams::positional([$vacancyId])
+            "DELETE FROM `recruit_vacancy_requirements` WHERE `vacancy_id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$vacancyId, $this->tenant->id()])
         );
 
         $order = 0;
@@ -348,18 +356,15 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
                 $valueStr = is_scalar($value) ? trim((string) $value) : '';
                 if ($valueStr === '') continue;
                 $this->db->execute(
-                    "INSERT INTO `recruit_vacancy_requirements` (`vacancy_id`, `type`, `value`, `sort_order`)
-                     VALUES (?, ?, ?, ?)",
-                    PDOParams::positional([$vacancyId, $type, $valueStr, $order])
+                    "INSERT INTO `recruit_vacancy_requirements` (`tenant_id`, `vacancy_id`, `type`, `value`, `sort_order`)
+                     VALUES (?, ?, ?, ?, ?)",
+                    PDOParams::positional([$this->tenant->id(), $vacancyId, $type, $valueStr, $order])
                 );
                 $order++;
             }
         }
     }
 
-    /**
-     * Live-search configuration for the reusable LiveSearch engine.
-     */
     public function liveSearchConfig(): array
     {
         return [
@@ -368,9 +373,10 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             'columns'          => ['v.title', 'v.code', 'v.city', 'v.department'],
             'order'            => 'v.created_at DESC',
             'permission'       => 'recruit.vacancies.view',
-            'baseFilters'      => ['v.`deleted_at` IS NULL'],
+            'baseFilters'      => ['v.`deleted_at` IS NULL', 'v.`tenant_id` = ?'],
+            'baseFilterParams' => [$this->tenant->id()],
             'joins'            => [
-                'INNER JOIN `recruit_client_organisations` o ON o.`id` = v.`organisation_id`',
+                'INNER JOIN `recruit_client_organisations` o ON o.`id` = v.`client_organisation_id`',
             ],
             'rowView'          => 'vacancies/_row',
             'extraColumns'     => ['o.name AS organisation_name', 'o.code AS organisation_code'],

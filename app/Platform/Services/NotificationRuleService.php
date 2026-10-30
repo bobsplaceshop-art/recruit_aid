@@ -7,6 +7,7 @@ use CorporateAid\Core\Auth;
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Recruit\Repositories\EngagementAssignmentRepository;
 
 final class NotificationRuleService
@@ -14,6 +15,7 @@ final class NotificationRuleService
     public function __construct(
         private Database $db,
         private EngagementAssignmentRepository $engagementAssignments,
+        private TenantContext $tenant,
         private ?Auth $auth = null
     ) {
     }
@@ -153,8 +155,8 @@ final class NotificationRuleService
         if ($vacancyId === 0) return [];
 
         $recruiterId = $this->db->scalarInt(
-            "SELECT `recruiter_id` FROM `recruit_vacancies` WHERE `id` = ?",
-            PDOParams::positional([$vacancyId])
+            "SELECT `recruiter_id` FROM `recruit_vacancies` WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$vacancyId, $this->tenant->id()])
         );
         return $recruiterId > 0 ? [$recruiterId] : [];
     }
@@ -176,7 +178,7 @@ final class NotificationRuleService
      */
     private function organisationClientUsers(array $context, array $roleSlugs): array
     {
-        $orgId = Row::int($context, 'organisation_id');
+        $orgId = Row::int($context, 'organisation_id'); // Tenant org ID for core_users
         if ($orgId === 0) return [];
 
         $placeholders = implode(',', array_fill(0, count($roleSlugs), '?'));
@@ -205,8 +207,8 @@ final class NotificationRuleService
         if ($contactId === 0) return [];
 
         $contact = $this->db->selectOne(
-            "SELECT `email` FROM `recruit_client_contacts` WHERE `id` = ?",
-            PDOParams::positional([$contactId])
+            "SELECT `email` FROM `recruit_client_contacts` WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$contactId, $this->tenant->id()])
         );
         if ($contact === null) return [];
 

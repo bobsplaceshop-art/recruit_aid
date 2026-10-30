@@ -8,7 +8,7 @@ use CorporateAid\Core\Row;
 final class PipelineStage
 {
     public int $id;
-    public ?int $organisationId;
+    public ?int $clientOrganisationId;
     public string $keySlug;
     public string $label;
     public int $sortOrder;
@@ -25,7 +25,7 @@ final class PipelineStage
     {
         $s = new self();
         $s->id = Row::int($row, 'id');
-        $s->organisationId = Row::nullableInt($row, 'organisation_id');
+        $s->clientOrganisationId = Row::nullableInt($row, 'client_organisation_id');
         $s->keySlug = Row::str($row, 'key_slug');
         $s->label = Row::str($row, 'label');
         $s->sortOrder = Row::int($row, 'sort_order');

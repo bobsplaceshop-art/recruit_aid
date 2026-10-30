@@ -36,7 +36,7 @@ final class OrganisationEntity implements DeletableEntity
     {
         $dependents = [];
 
-        $contactCount = $this->safeCount('organisation_contacts', 'organisation_id');
+        $contactCount = $this->safeCount('recruit_client_contacts', 'client_organisation_id');
         if ($contactCount > 0) {
             $dependents[] = [
                 'label' => $contactCount === 1 ? 'Contact' : 'Contacts',
@@ -45,7 +45,7 @@ final class OrganisationEntity implements DeletableEntity
             ];
         }
 
-        $engagementCount = $this->safeCount('engagements', 'organisation_id');
+        $engagementCount = $this->safeCount('recruit_engagements', 'client_organisation_id');
         if ($engagementCount > 0) {
             $dependents[] = [
                 'label' => $engagementCount === 1 ? 'Engagement' : 'Engagements',
@@ -54,7 +54,7 @@ final class OrganisationEntity implements DeletableEntity
             ];
         }
 
-        $vacancyCount = $this->safeCount('vacancies', 'organisation_id');
+        $vacancyCount = $this->safeCount('recruit_vacancies', 'client_organisation_id');
         if ($vacancyCount > 0) {
             $dependents[] = [
                 'label' => $vacancyCount === 1 ? 'Vacancy' : 'Vacancies',
@@ -63,7 +63,7 @@ final class OrganisationEntity implements DeletableEntity
             ];
         }
 
-        $customValueCount = $this->safeCountEntity('custom_field_values', 'organisation');
+        $customValueCount = $this->safeCountEntity('core_custom_field_values', 'organisation');
         if ($customValueCount > 0) {
             $dependents[] = [
                 'label' => 'Custom field value' . ($customValueCount === 1 ? '' : 's'),

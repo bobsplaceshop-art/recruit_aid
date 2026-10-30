@@ -11,7 +11,7 @@ use CorporateAid\Core\Row;
 final class Contact
 {
     public int $id;
-    public int $organisationId;
+    public int $clientOrganisationId;
     public string $code;
     public string $firstName;
     public string $lastName;
@@ -40,7 +40,7 @@ final class Contact
     {
         $c = new self();
         $c->id = Row::int($row, 'id');
-        $c->organisationId = Row::int($row, 'organisation_id');
+        $c->clientOrganisationId = Row::int($row, 'client_organisation_id');
         $c->code = Row::str($row, 'code');
         $c->firstName = Row::str($row, 'first_name');
         $c->lastName = Row::str($row, 'last_name');

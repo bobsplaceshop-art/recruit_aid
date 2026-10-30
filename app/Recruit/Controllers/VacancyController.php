@@ -46,8 +46,8 @@ final class VacancyController
         $orgs = $this->container->get(OrganisationRepository::class);
         $orgMap = [];
         foreach ($result['rows'] as $v) {
-            if (!isset($orgMap[$v->organisationId])) {
-                $orgMap[$v->organisationId] = $orgs->findById($v->organisationId);
+            if (!isset($orgMap[$v->clientOrganisationId])) {
+                $orgMap[$v->clientOrganisationId] = $orgs->findById($v->clientOrganisationId);
             }
         }
 
@@ -95,7 +95,7 @@ final class VacancyController
         if ($engCode !== '') {
             $preselectedEngagement = $engagements->findByCode($engCode);
             if (!$preselectedOrg && $preselectedEngagement) {
-                $preselectedOrg = $orgs->findById($preselectedEngagement->organisationId);
+                $preselectedOrg = $orgs->findById($preselectedEngagement->clientOrganisationId);
             }
         }
 
@@ -211,7 +211,7 @@ final class VacancyController
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
-        $org = $orgs->findById($vacancy->organisationId);
+        $org = $orgs->findById($vacancy->clientOrganisationId);
 
         $engagement = null;
         if ($vacancy->engagementId) {
@@ -327,7 +327,7 @@ final class VacancyController
             'user'                  => $auth->user(),
             'vacancy'               => $vacancy,
             'organisations'         => $orgs->paginate([], 1, 500)['rows'],
-            'preselectedOrg'        => $orgs->findById($vacancy->organisationId),
+            'preselectedOrg'        => $orgs->findById($vacancy->clientOrganisationId),
             'preselectedEngagement' => $vacancy->engagementId ? $engagements->findById($vacancy->engagementId) : null,
             'staffUsers'            => $users->listForAssignment(),
             'engagementsByOrg'      => $engagementsByOrg,
@@ -381,7 +381,7 @@ final class VacancyController
                 'user'           => $auth->user(),
                 'vacancy'        => $vacancy,
                 'organisations'  => $orgs->paginate([], 1, 500)['rows'],
-                'preselectedOrg' => $orgs->findById($vacancy->organisationId),
+                'preselectedOrg' => $orgs->findById($vacancy->clientOrganisationId),
                 'preselectedEngagement' => $vacancy->engagementId ? $engagements->findById($vacancy->engagementId) : null,
                 'staffUsers'     => $users->listForAssignment(),
                 'engagementsByOrg' => $engagementsByOrg,
@@ -588,7 +588,7 @@ final class VacancyController
         $all = $engagements->paginate([], 1, 1000)['rows'];
         $out = [];
         foreach ($all as $e) {
-            $out[$e->organisationId][] = [
+            $out[$e->clientOrganisationId][] = [
                 'id'   => $e->id,
                 'code' => $e->code,
                 'name' => $e->name,
@@ -608,7 +608,7 @@ final class VacancyController
         $allContacts = $contactRepo->allActive();
         $out = [];
         foreach ($allContacts as $c) {
-            $out[$c->organisationId][] = [
+            $out[$c->clientOrganisationId][] = [
                 'id'       => $c->id,
                 'code'     => $c->code,
                 'name'     => $c->fullName(),

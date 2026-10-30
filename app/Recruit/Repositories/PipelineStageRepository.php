@@ -6,27 +6,26 @@ namespace CorporateAid\Recruit\Repositories;
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Recruit\Models\PipelineStage;
 
 final class PipelineStageRepository
 {
-    public function __construct(private Database $db) {}
+    public function __construct(
+        private Database $db,
+        private TenantContext $tenant
+    ) {}
 
-    /**
-     * Returns stages for an organisation merged with system defaults.
-     * Organisation-specific stages override defaults with the same key_slug.
-     * Soft-deleted stages are always excluded.
-     *
-     * @return PipelineStage[]
-     */
+    /** @return PipelineStage[] */
     public function forOrganisation(?int $organisationId): array
     {
         $rows = $this->db->select(
             "SELECT * FROM `recruit_pipeline_stages`
-             WHERE `deleted_at` IS NULL
+             WHERE `tenant_id` = ?
+               AND `deleted_at` IS NULL
                AND (`organisation_id` IS NULL OR `organisation_id` = ?)
              ORDER BY `sort_order` ASC, `id` ASC",
-            PDOParams::positional([$organisationId])
+            PDOParams::positional([$this->tenant->id(), $organisationId])
         );
 
         $byKey = [];
@@ -47,9 +46,9 @@ final class PipelineStageRepository
     {
         $row = $this->db->selectOne(
             "SELECT * FROM `recruit_pipeline_stages`
-             WHERE `id` = ? AND `deleted_at` IS NULL
+             WHERE `id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL
              LIMIT 1",
-            PDOParams::positional([$id])
+            PDOParams::positional([$id, $this->tenant->id()])
         );
         return $row ? PipelineStage::fromRow($row) : null;
     }

@@ -9,7 +9,7 @@ final class Vacancy
 {
     public int $id;
     public string $code;
-    public int $organisationId;
+    public int $clientOrganisationId;
     public ?int $engagementId;
     public string $title;
     public ?string $department;
@@ -54,7 +54,7 @@ final class Vacancy
         $v = new self();
         $v->id = Row::int($row, 'id');
         $v->code = Row::str($row, 'code');
-        $v->organisationId = Row::int($row, 'organisation_id');
+        $v->clientOrganisationId = Row::int($row, 'client_organisation_id');
         $v->engagementId = Row::nullableInt($row, 'engagement_id');
         $v->title = Row::str($row, 'title');
         $v->department = Row::nullableStr($row, 'department');

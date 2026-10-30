@@ -133,6 +133,46 @@ if (!function_exists('app_setting')) {
     }
 }
 
+if (!function_exists('app_setting_string')) {
+    /**
+     * Read a system setting as a string. Guards against mixed values
+     * so PHPStan Level 9 can accept the cast at call sites.
+     */
+    function app_setting_string(string $key, string $default = ''): string
+    {
+        $v = app_setting($key, $default);
+        return is_scalar($v) ? (string) $v : $default;
+    }
+}
+
+if (!function_exists('app_url')) {
+    /**
+     * Build an absolute URL from a path. Prefers the current request's
+     * host so the URL always matches whatever port/host the app is
+     * being served on. Falls back to config('app.url') when running
+     * outside an HTTP request (CLI, cron).
+     */
+    function app_url(string $path = ''): string
+    {
+        // If the app is running inside a request, use the request host.
+        if (!empty($_SERVER['HTTP_HOST'])) {
+            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            $hostRaw = $_SERVER['HTTP_HOST'];
+            $host = is_scalar($hostRaw) ? (string) $hostRaw : 'localhost';
+            $base = $scheme . '://' . $host;
+        } else {
+            $rawUrl = config('app.url', '');
+            $base = rtrim(is_scalar($rawUrl) ? (string) $rawUrl : '', '/');
+            if ($base === '') {
+                $base = 'http://localhost:8080';
+            }
+        }
+
+        $path = ltrim($path, '/');
+        return $path === '' ? $base : $base . '/' . $path;
+    }
+}
+
 if (!function_exists('human_time')) {
     /**
      * Format a timestamp as a human-readable relative time.

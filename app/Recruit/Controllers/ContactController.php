@@ -199,7 +199,7 @@ final class ContactController
         $contacts = $this->container->get(ContactRepository::class);
         $contact = $contacts->findByCode($contactCode);
 
-        if (!$contact || $contact->organisationId !== $org->id) {
+        if (!$contact || $contact->clientOrganisationId !== $org->id) {
             throw HttpException::notFound('That contact does not exist, or has been archived.');
         }
 
@@ -239,7 +239,7 @@ final class ContactController
         $contacts = $this->container->get(ContactRepository::class);
         $contact = $contacts->findByCode($contactCode);
 
-        if (!$contact || $contact->organisationId !== $org->id) {
+        if (!$contact || $contact->clientOrganisationId !== $org->id) {
             throw HttpException::notFound('That contact does not exist, or has been archived.');
         }
 
@@ -280,7 +280,7 @@ final class ContactController
         $contacts = $this->container->get(ContactRepository::class);
         $contact = $contacts->findByCode($contactCode);
 
-        if (!$contact || $contact->organisationId !== $org->id) {
+        if (!$contact || $contact->clientOrganisationId !== $org->id) {
             throw HttpException::notFound('That contact does not exist, or has been archived.');
         }
 
@@ -417,7 +417,7 @@ final class ContactController
         $contacts = $this->container->get(ContactRepository::class);
         $contact = $contacts->findByCode($contactCode, $includeDeleted);
 
-        if (!$contact || $contact->organisationId !== $org->id) {
+        if (!$contact || $contact->clientOrganisationId !== $org->id) {
             throw HttpException::notFound('That contact does not exist, or has been archived.');
         }
 

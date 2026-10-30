@@ -46,7 +46,7 @@ final class EngagementService
         }
 
         $normalized = $this->validator->normalize($input);
-        $normalized['organisation_id'] = $organisationId;
+        $normalized['client_organisation_id'] = $organisationId;
         $normalized['code'] = $this->engagements->nextCode();
         $normalized['created_by'] = $this->auth?->user()?->id;
 

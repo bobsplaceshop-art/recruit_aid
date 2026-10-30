@@ -9,9 +9,11 @@ use CorporateAid\Platform\Support\ActivityLogger;
 use CorporateAid\Recruit\Models\Application;
 use CorporateAid\Recruit\Models\VacancyStage;
 use CorporateAid\Recruit\Repositories\ApplicationRepository;
+use CorporateAid\Recruit\Repositories\EngagementAssignmentRepository;
 use CorporateAid\Recruit\Repositories\EngagementRepository;
 use CorporateAid\Recruit\Repositories\VacancyRepository;
 use CorporateAid\Recruit\Repositories\VacancyStageRepository;
+use CorporateAid\Recruit\Repositories\VacancyRecruiterRepository;
 
 final class ApplicationService
 {
@@ -27,6 +29,8 @@ final class ApplicationService
         private VacancyRepository $vacancies,
         private VacancyStageRepository $stages,
         private EngagementRepository $engagements,
+        private EngagementAssignmentRepository $assignments,
+        private VacancyRecruiterRepository $vacancyRecruiters,
         private SystemSettingService $settings,
         private ActivityLogger $activity,
         private ?Auth $auth = null
@@ -114,9 +118,11 @@ final class ApplicationService
     /**
      * Move an application to a new stage.
      *
-     * Open mode: any forward stage. Skipped stages are recorded in
-     * history as 'passed through' so funnel reports stay accurate.
-     * Straight mode: only the immediately-next stage (or a terminal).
+     * Authorization:
+     *   1. User must have `recruit.pipeline.advance` permission.
+     *   2. If the vacancy belongs to an engagement, user must be assigned
+     *      to that engagement (super_admin and admin bypass this check).
+     *   3. If no engagement, fall back to the vacancy's recruiter_id.
      *
      * @return array{success:bool, error:?string, passed_through:int[]}
      */
@@ -128,6 +134,14 @@ final class ApplicationService
         }
         if ($application->status !== 'active') {
             return ['success' => false, 'error' => 'Only active applications can be moved.', 'passed_through' => []];
+        }
+
+        if (!$this->isAuthorizedToAdvance($application->vacancyId)) {
+            return [
+                'success' => false,
+                'error'   => 'You are not assigned to this engagement or vacancy, and cannot advance candidates here.',
+                'passed_through' => [],
+            ];
         }
 
         $stages = $this->stages->forVacancy($application->vacancyId);
@@ -163,7 +177,6 @@ final class ApplicationService
             }
         }
 
-        // Compute stages skipped over (only meaningful in open mode).
         $passedThroughIds = [];
         if (
             $mode === 'open'
@@ -172,7 +185,7 @@ final class ApplicationService
         ) {
             for ($i = $currentIndex + 1; $i < $targetIndex; $i++) {
                 $skipped = $ordered[$i];
-                if ($skipped->isTerminal) continue; // don't count terminal stages as "passed through"
+                if ($skipped->isTerminal) continue;
                 $passedThroughIds[] = $skipped->id;
             }
         }
@@ -181,7 +194,6 @@ final class ApplicationService
         $this->applications->updateStage($applicationId, $newStageId);
         $this->applications->recordStageMove($applicationId, $fromStageId, $newStageId, $this->auth?->user()?->id, $notes);
 
-        // Record passed-through stages for reporting
         foreach ($passedThroughIds as $skippedId) {
             $this->applications->recordStageMove(
                 $applicationId,
@@ -230,5 +242,39 @@ final class ApplicationService
         }
         $global = $this->settings->getString('recruit.pipeline_mode', 'open');
         return in_array($global, ['open', 'straight'], true) ? $global : 'open';
+    }
+
+    /**
+     * Authorization check for advancing a candidate on a vacancy.
+     *
+     * - User must have `recruit.pipeline.advance`.
+     * - super_admin and admin bypass the scope check.
+     * - Otherwise, user must be assigned to the vacancy's engagement
+     *   (via EngagementAssignmentRepository::resolveUserIds).
+     * - If the vacancy has no engagement, fall back to the vacancy's
+     *   recruiter_id.
+     */
+    private function isAuthorizedToAdvance(int $vacancyId): bool
+    {
+        $user = $this->auth?->user();
+        if ($user === null) return false;
+
+        if (!$user->can('recruit.pipeline.advance')) return false;
+
+        if ($user->isSuperAdmin()) return true;
+
+        $vacancy = $this->vacancies->findById($vacancyId);
+        if ($vacancy === null) return false;
+
+        // Fallback: vacancy-owned recruiter (lead or any assigned recruiter)
+        if ($vacancy->engagementId === null) {
+            if ($vacancy->recruiterId !== null && $vacancy->recruiterId === $user->id) {
+                return true;
+            }
+            return $this->vacancyRecruiters->userIsAssigned($vacancyId, $user->id);
+        }
+
+        $assignedUserIds = $this->assignments->resolveUserIds($vacancy->engagementId);
+        return in_array($user->id, $assignedUserIds, true);
     }
 }

@@ -2,42 +2,46 @@
 declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Repositories;
-use CorporateAid\Core\Row;
 
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
+use CorporateAid\Core\Row;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Recruit\Models\Contact;
 
 final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
-    public function __construct(private Database $db) {}
+    public function __construct(
+        private Database $db,
+        private TenantContext $tenant
+    ) {}
 
     public function findById(int $id): ?Contact
     {
         $row = $this->db->selectOne(
-            "SELECT * FROM `recruit_client_contacts` WHERE `id` = ? LIMIT 1",
-            PDOParams::positional([$id])
+            "SELECT * FROM `recruit_client_contacts` WHERE `id` = ? AND `tenant_id` = ? LIMIT 1",
+            PDOParams::positional([$id, $this->tenant->id()])
         );
         return $row ? $this->hydrateRoles(Contact::fromRow($row)) : null;
     }
 
     public function findByCode(string $code, bool $includeDeleted = false): ?Contact
     {
-        $sql = "SELECT * FROM `recruit_client_contacts` WHERE `code` = ?";
+        $sql = "SELECT * FROM `recruit_client_contacts` WHERE `code` = ? AND `tenant_id` = ?";
         if (!$includeDeleted) {
             $sql .= " AND `deleted_at` IS NULL";
         }
         $sql .= " LIMIT 1";
 
-        $row = $this->db->selectOne($sql, PDOParams::positional([$code]));
+        $row = $this->db->selectOne($sql, PDOParams::positional([$code, $this->tenant->id()]));
         return $row ? $this->hydrateRoles(Contact::fromRow($row)) : null;
     }
 
     public function findByEmail(string $email, ?int $excludeId = null): ?Contact
     {
         $sql = "SELECT * FROM `recruit_client_contacts`
-                WHERE LOWER(`email`) = LOWER(?) AND `deleted_at` IS NULL";
-        $params = [$email];
+                WHERE LOWER(`email`) = LOWER(?) AND `tenant_id` = ? AND `deleted_at` IS NULL";
+        $params = [$email, $this->tenant->id()];
         if ($excludeId !== null) {
             $sql .= " AND `id` != ?";
             $params[] = $excludeId;
@@ -48,10 +52,7 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         return $row === null ? null : $this->hydrateRoles(Contact::fromRow($row));
     }
 
-    /**
-     * Load pivot roles for a single contact.
-     * @return string[]
-     */
+    /** @return string[] */
     public function rolesForContact(int $contactId): array
     {
         $rows = $this->db->select(
@@ -62,9 +63,8 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     }
 
     /**
-     * Batch-load pivot roles for multiple contacts at once.
      * @param int[] $contactIds
-     * @return array<int, string[]> [contactId => roleSlugs]
+     * @return array<int, string[]>
      */
     public function rolesForContacts(array $contactIds): array
     {
@@ -84,7 +84,6 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         return $out;
     }
 
-    /** Hydrate $contact->roles from the pivot table (mutates the model). */
     private function hydrateRoles(Contact $contact): Contact
     {
         $contact->roles = $this->rolesForContact($contact->id);
@@ -92,13 +91,10 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     }
 
     /**
-     * Replace a contact's pivot roles with the given slugs.
-     * Also syncs the legacy boolean columns for backward compatibility.
      * @param string[] $roleSlugs
      */
     public function syncRoles(int $contactId, array $roleSlugs): void
     {
-        // Normalize: unique, lowercase, no empties
         $clean = [];
         foreach ($roleSlugs as $slug) {
             $s = strtolower(trim($slug));
@@ -106,27 +102,26 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         }
         $clean = array_keys($clean);
 
-        // 1. Replace pivot rows
         $this->db->execute(
-            "DELETE FROM `recruit_contact_roles` WHERE `contact_id` = ?",
-            PDOParams::positional([$contactId])
+            "DELETE FROM `recruit_contact_roles` WHERE `contact_id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$contactId, $this->tenant->id()])
         );
 
         if (!empty($clean)) {
             $values = [];
             $params = [];
             foreach ($clean as $slug) {
-                $values[] = "(?, ?)";
+                $values[] = "(?, ?, ?)";
+                $params[] = $this->tenant->id();
                 $params[] = $contactId;
                 $params[] = $slug;
             }
             $this->db->execute(
-                "INSERT INTO `recruit_contact_roles` (`contact_id`, `role_slug`) VALUES " . implode(', ', $values),
+                "INSERT INTO `recruit_contact_roles` (`tenant_id`, `contact_id`, `role_slug`) VALUES " . implode(', ', $values),
                 PDOParams::positional($params)
             );
         }
 
-        // 2. Sync legacy booleans (denormalized mirror, kept for backward compat)
         $legacy = ['is_primary', 'is_hiring_manager', 'is_finance', 'is_hr', 'is_decision_maker'];
         $sets = [];
         $bParams = [];
@@ -135,8 +130,9 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             $bParams[] = in_array($flag, $clean, true) ? 1 : 0;
         }
         $bParams[] = $contactId;
+        $bParams[] = $this->tenant->id();
         $this->db->execute(
-            "UPDATE `recruit_client_contacts` SET " . implode(', ', $sets) . " WHERE `id` = ?",
+            "UPDATE `recruit_client_contacts` SET " . implode(', ', $sets) . " WHERE `id` = ? AND `tenant_id` = ?",
             PDOParams::positional($bParams)
         );
     }
@@ -144,16 +140,16 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     /** @return Contact[] */
     public function forOrganisation(int $organisationId, bool $includeDeleted = false): array
     {
-        $sql = "SELECT * FROM `recruit_client_contacts` WHERE `organisation_id` = ?";
+        $sql = "SELECT * FROM `recruit_client_contacts` WHERE `client_organisation_id` = ? AND `tenant_id` = ?";
+        $params = [$organisationId, $this->tenant->id()];
         if (!$includeDeleted) {
             $sql .= " AND `deleted_at` IS NULL";
         }
         $sql .= " ORDER BY `is_primary` DESC, `last_name` ASC, `first_name` ASC";
 
-        $rows = $this->db->select($sql, PDOParams::positional([$organisationId]));
+        $rows = $this->db->select($sql, PDOParams::positional($params));
         $contacts = array_map([Contact::class, 'fromRow'], $rows);
 
-        // Batch-load pivot roles for all contacts
         $ids = array_map(fn(Contact $c) => $c->id, $contacts);
         $roleMap = $this->rolesForContacts($ids);
         foreach ($contacts as $c) {
@@ -166,16 +162,16 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     {
         return $this->db->scalarInt(
             "SELECT COUNT(*) FROM `recruit_client_contacts`
-             WHERE `organisation_id` = ? AND `deleted_at` IS NULL",
-            PDOParams::positional([$organisationId])
+             WHERE `client_organisation_id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL",
+            PDOParams::positional([$organisationId, $this->tenant->id()])
         );
     }
 
     public function codeExists(string $code): bool
     {
         return $this->db->scalarInt(
-            "SELECT COUNT(*) FROM `recruit_client_contacts` WHERE `code` = ?",
-            PDOParams::positional([$code])
+            "SELECT COUNT(*) FROM `recruit_client_contacts` WHERE `code` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$code, $this->tenant->id()])
         ) > 0;
     }
 
@@ -191,40 +187,20 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         return 'CNT-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * @param array{
-     *   organisation_id: int,
-     *   code: string,
-     *   first_name: string,
-     *   last_name: string,
-     *   position?: ?string,
-     *   department?: ?string,
-     *   email?: ?string,
-     *   phone?: ?string,
-     *   alt_phone?: ?string,
-     *   country_code?: ?string,
-     *   preferred_communication?: string,
-     *   is_primary?: bool,
-     *   is_hiring_manager?: bool,
-     *   is_finance?: bool,
-     *   is_hr?: bool,
-     *   is_decision_maker?: bool,
-     *   notes?: ?string,
-     *   created_by?: ?int
-     * } $data
-     */
+    /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
         $sql = "INSERT INTO `recruit_client_contacts`
-            (`organisation_id`, `code`, `first_name`, `last_name`,
+            (`tenant_id`, `client_organisation_id`, `code`, `first_name`, `last_name`,
              `position`, `department`, `email`, `phone`, `alt_phone`,
              `country_code`, `preferred_communication`,
              `is_primary`, `is_hiring_manager`, `is_finance`, `is_hr`, `is_decision_maker`,
              `notes`, `created_by`)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         return $this->db->insert($sql, PDOParams::positional([
-            $data['organisation_id'],
+            $this->tenant->id(),
+            $data['client_organisation_id'],
             $data['code'],
             $data['first_name'],
             $data['last_name'],
@@ -307,8 +283,9 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         if (empty($sets)) return [];
 
         $params[] = $id;
+        $params[] = $this->tenant->id();
         $this->db->execute(
-            "UPDATE `recruit_client_contacts` SET " . implode(', ', $sets) . " WHERE `id` = ?",
+            "UPDATE `recruit_client_contacts` SET " . implode(', ', $sets) . " WHERE `id` = ? AND `tenant_id` = ?",
             PDOParams::positional($params)
         );
 
@@ -318,16 +295,16 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     public function softDelete(int $id): void
     {
         $this->db->execute(
-            "UPDATE `recruit_client_contacts` SET `deleted_at` = NOW() WHERE `id` = ?",
-            PDOParams::positional([$id])
+            "UPDATE `recruit_client_contacts` SET `deleted_at` = NOW() WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$id, $this->tenant->id()])
         );
     }
 
     public function restore(int $id): void
     {
         $this->db->execute(
-            "UPDATE `recruit_client_contacts` SET `deleted_at` = NULL WHERE `id` = ?",
-            PDOParams::positional([$id])
+            "UPDATE `recruit_client_contacts` SET `deleted_at` = NULL WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$id, $this->tenant->id()])
         );
     }
 
@@ -336,8 +313,9 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     {
         $rows = $this->db->select(
             "SELECT * FROM `recruit_client_contacts`
-             WHERE `deleted_at` IS NULL
-             ORDER BY `organisation_id`, `is_primary` DESC, `last_name` ASC, `first_name` ASC"
+             WHERE `tenant_id` = ? AND `deleted_at` IS NULL
+             ORDER BY `client_organisation_id`, `is_primary` DESC, `last_name` ASC, `first_name` ASC",
+            PDOParams::positional([$this->tenant->id()])
         );
         $contacts = array_map([Contact::class, 'fromRow'], $rows);
         $ids = array_map(fn(Contact $c) => $c->id, $contacts);
@@ -349,8 +327,6 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     }
 
     /**
-     * Paginate active contacts across all organisations with filters.
-     *
      * @param array{q?: string, org_id?: int, role?: string} $filters
      * @return array{rows: array<int, array{contact: Contact, organisation_name: string, organisation_code: string}>, total: int, page: int, per_page: int, total_pages: int}
      */
@@ -360,9 +336,8 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         $perPage = max(1, min($perPage, 100));
         $offset = ($page - 1) * $perPage;
 
-        // Build WHERE clauses
-        $where = ['c.`deleted_at` IS NULL', 'o.`deleted_at` IS NULL'];
-        $params = [];
+        $where = ['c.`deleted_at` IS NULL', 'o.`deleted_at` IS NULL', 'c.`tenant_id` = ?', 'o.`tenant_id` = ?'];
+        $params = [$this->tenant->id(), $this->tenant->id()];
 
         $q = trim((string) ($filters['q'] ?? ''));
         if ($q !== '') {
@@ -373,21 +348,17 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
 
         $orgId = (int) ($filters['org_id'] ?? 0);
         if ($orgId > 0) {
-            $where[] = 'c.`organisation_id` = ?';
+            $where[] = 'c.`client_organisation_id` = ?';
             $params[] = $orgId;
         }
 
         $role = (string) ($filters['role'] ?? '');
         if ($role !== '') {
-            // Whitelist: role slug must match a valid lookup value
-            // (prevents SQL injection via the fallback column name).
             $legacyFlags = ['is_primary', 'is_hiring_manager', 'is_finance', 'is_hr', 'is_decision_maker'];
             if (in_array($role, $legacyFlags, true)) {
-                // Legacy flag: pivot OR boolean column
                 $where[] = "(EXISTS (SELECT 1 FROM `recruit_contact_roles` r WHERE r.`contact_id` = c.`id` AND r.`role_slug` = ?) OR c.`{$role}` = 1)";
                 $params[] = $role;
             } else {
-                // Custom role: pivot only
                 $where[] = "EXISTS (SELECT 1 FROM `recruit_contact_roles` r WHERE r.`contact_id` = c.`id` AND r.`role_slug` = ?)";
                 $params[] = $role;
             }
@@ -395,21 +366,19 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
 
         $whereSql = 'WHERE ' . implode(' AND ', $where);
 
-        // Total count using the same WHERE
         $total = $this->db->scalarInt(
             "SELECT COUNT(*) FROM `recruit_client_contacts` c
-             INNER JOIN `recruit_client_organisations` o ON o.`id` = c.`organisation_id`
+             INNER JOIN `recruit_client_organisations` o ON o.`id` = c.`client_organisation_id`
              {$whereSql}",
             PDOParams::positional($params)
         );
 
-        // Paginated rows. LIMIT/OFFSET inlined as ints (see Doctrine #47).
         $rows = $this->db->select(
             "SELECT c.*,
                     o.`name` AS `organisation_name`,
                     o.`code` AS `organisation_code`
              FROM `recruit_client_contacts` c
-             INNER JOIN `recruit_client_organisations` o ON o.`id` = c.`organisation_id`
+             INNER JOIN `recruit_client_organisations` o ON o.`id` = c.`client_organisation_id`
              {$whereSql}
              ORDER BY o.`name` ASC, c.`is_primary` DESC, c.`last_name` ASC, c.`first_name` ASC
              LIMIT " . $perPage . " OFFSET " . $offset,
@@ -427,7 +396,6 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             ];
             $ids[] = $contact->id;
         }
-        // Batch-hydrate pivot roles
         $roleMap = $this->rolesForContacts($ids);
         foreach ($out as $idx => $row) {
             $out[$idx]['contact']->roles = $roleMap[$row['contact']->id] ?? [];
@@ -444,9 +412,6 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         ];
     }
 
-    /**
-     * Live-search configuration for the reusable LiveSearch engine.
-     */
     public function liveSearchConfig(): array
     {
         return [
@@ -455,9 +420,10 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             'columns'          => ['c.first_name', 'c.last_name', 'c.email', 'c.position'],
             'order'            => 'c.last_name ASC, c.first_name ASC',
             'permission'       => 'recruit.contacts.view',
-            'baseFilters'      => ['c.`deleted_at` IS NULL'],
+            'baseFilters'      => ['c.`deleted_at` IS NULL', 'c.`tenant_id` = ?'],
+            'baseFilterParams' => [$this->tenant->id()],
             'joins'            => [
-                'INNER JOIN `recruit_client_organisations` o ON o.`id` = c.`organisation_id`',
+                'INNER JOIN `recruit_client_organisations` o ON o.`id` = c.`client_organisation_id`',
                 'LEFT JOIN `recruit_contact_roles` cr ON cr.`contact_id` = c.`id`',
             ],
             'rowView'          => 'contacts/_row',

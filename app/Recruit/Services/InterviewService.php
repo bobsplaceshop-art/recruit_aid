@@ -182,6 +182,10 @@ final class InterviewService
     {
         if ($application->status !== 'active') return;
 
+        // Auto-advance only fires for users who can advance the pipeline.
+        $user = $this->auth?->user();
+        if ($user === null || !$user->can('recruit.pipeline.advance')) return;
+
         $stages = $this->stages->forVacancy($application->vacancyId);
         if (empty($stages)) return;
 

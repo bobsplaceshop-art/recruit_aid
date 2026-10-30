@@ -53,7 +53,7 @@ final class VacancyService
         }
 
         $normalized = $this->validator->normalize($input);
-        $normalized['organisation_id'] = $organisationId;
+        $normalized['client_organisation_id'] = $organisationId;
         $normalized['code'] = $this->vacancies->nextCode();
         $normalized['created_by'] = $this->auth?->user()?->id;
 

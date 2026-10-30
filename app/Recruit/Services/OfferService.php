@@ -5,9 +5,12 @@ namespace CorporateAid\Recruit\Services;
 
 use CorporateAid\Core\Auth;
 use CorporateAid\Platform\Support\ActivityLogger;
+use CorporateAid\Platform\Support\EmailService;
 use CorporateAid\Recruit\Models\Offer;
 use CorporateAid\Recruit\Repositories\ApplicationRepository;
 use CorporateAid\Recruit\Repositories\OfferRepository;
+use CorporateAid\Recruit\Repositories\CandidateRepository;
+use CorporateAid\Recruit\Repositories\VacancyRepository;
 use CorporateAid\Recruit\Repositories\VacancyStageRepository;
 
 final class OfferService
@@ -16,7 +19,10 @@ final class OfferService
         private OfferRepository $offers,
         private ApplicationRepository $applications,
         private VacancyStageRepository $stages,
+        private CandidateRepository $candidates,
+        private VacancyRepository $vacancies,
         private ActivityLogger $activity,
+        private EmailService $mailer,
         private ?Auth $auth = null
     ) {}
 
@@ -124,6 +130,33 @@ final class OfferService
             $offerId
         );
 
+        // Fire the offer email (best-effort: status change already committed)
+        $application = $this->applications->findById($offer->applicationId);
+        if ($application !== null) {
+            $candidate = $this->candidates->findById($application->candidateId);
+            $vacancy = $this->vacancies->findById($application->vacancyId);
+            if ($candidate !== null && $vacancy !== null && $candidate->email !== '') {
+                $appUrl = app_url();
+                $authUser = $this->auth?->user();
+                $senderName = $authUser !== null ? $authUser->name : 'The team';
+                $this->mailer->sendDbTemplate(
+                    $candidate->email,
+                    'offer.sent',
+                    [
+                        'candidate_first_name' => $candidate->firstName,
+                        'vacancy_title'        => $vacancy->title,
+                        'client_name'          => app_setting_string('branding.app_name', 'Recruit Aid'),
+                        'salary'               => $offer->salaryFormatted(),
+                        'start_date'           => $offer->startDate,
+                        'expires_at'           => $offer->expiresAt,
+                        'offer_url'            => app_url('/offers/' . $offer->code),
+                        'sender_name'          => $senderName,
+                        'product_name'         => app_setting_string('branding.app_name', 'Recruit Aid'),
+                    ]
+                );
+            }
+        }
+
         return ['success' => true, 'error' => null];
     }
 
@@ -137,8 +170,9 @@ final class OfferService
         $this->offers->updateStatus($offerId, 'accepted', $responseNotes);
         $this->offers->recordHistory($offerId, 'sent', 'accepted', $this->auth?->user()?->id, $responseNotes);
 
-        // Move application to the terminal 'Hired' stage if it exists
-        $this->moveApplicationToHired($offer->applicationId);
+        // Close the hire loop: application → hired, candidate → hired,
+        // vacancy → filled if positions_count reached.
+        $this->finalizeHire($offer->applicationId);
 
         $this->activity->log(
             'offer.accepted',
@@ -222,26 +256,68 @@ final class OfferService
      * Move the application to the 'Hired' terminal stage, if the
      * vacancy has such a stage defined.
      */
-    private function moveApplicationToHired(int $applicationId): void
+    /**
+     * On offer acceptance: mark the application hired, mark the
+     * candidate hired, and if the vacancy's positions_count is
+     * reached, mark the vacancy filled.
+     */
+    private function finalizeHire(int $applicationId): void
     {
         $application = $this->applications->findById($applicationId);
         if ($application === null) return;
 
+        // 1. Move the application to the terminal 'Hired' stage (if any)
         $stages = $this->stages->forVacancy($application->vacancyId);
-        $hired = null;
+        $hiredStage = null;
         foreach ($stages as $s) {
             if ($s->keySlug === 'hired' || ($s->isTerminal && strtolower($s->label) === 'hired')) {
-                $hired = $s;
+                $hiredStage = $s;
                 break;
             }
         }
-        if ($hired === null) return;
+        if ($hiredStage !== null && $application->currentStageId !== $hiredStage->id) {
+            $fromStageId = $application->currentStageId;
+            $this->applications->updateStage($applicationId, $hiredStage->id);
+            $this->applications->recordStageMove($applicationId, $fromStageId, $hiredStage->id, $this->auth?->user()?->id, 'Moved to Hired on offer acceptance');
+        }
 
-        // Only move if not already there
-        if ($application->currentStageId === $hired->id) return;
+        // 2. Mark the application as hired (status)
+        if ($application->status !== 'hired') {
+            $this->applications->updateStatus($applicationId, 'hired');
+        }
 
-        $fromStageId = $application->currentStageId;
-        $this->applications->updateStage($applicationId, $hired->id);
-        $this->applications->recordStageMove($applicationId, $fromStageId, $hired->id, $this->auth?->user()?->id, 'Moved to Hired on offer acceptance');
+        // 3. Mark the candidate as hired
+        $candidate = $this->candidates->findById($application->candidateId);
+        if ($candidate !== null && $candidate->status !== 'hired') {
+            $this->candidates->update($candidate->id, ['status' => 'hired']);
+            $this->activity->log(
+                'candidate.hired',
+                'candidates',
+                'Marked candidate ' . $candidate->fullName() . ' (' . $candidate->code . ') as hired',
+                'candidate',
+                $candidate->id
+            );
+        }
+
+        // 4. Count hired applications vs. vacancies.positions_count
+        $vacancy = $this->vacancies->findById($application->vacancyId);
+        if ($vacancy === null) return;
+
+        $hiredCount = $this->applications->countHiredByVacancy($vacancy->id);
+        $positionsNeeded = max(1, $vacancy->positionsCount);
+
+        // Only flip to 'filled' if all positions are hired and the vacancy
+        // isn't already in a terminal state.
+        $terminalStatuses = ['filled', 'closed', 'cancelled'];
+        if ($hiredCount >= $positionsNeeded && !in_array($vacancy->status, $terminalStatuses, true)) {
+            $this->vacancies->update($vacancy->id, ['status' => 'filled']);
+            $this->activity->log(
+                'vacancy.filled',
+                'vacancies',
+                'Marked vacancy ' . $vacancy->code . ' as filled (' . $hiredCount . '/' . $positionsNeeded . ' hires)',
+                'vacancy',
+                $vacancy->id
+            );
+        }
     }
 }

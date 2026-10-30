@@ -97,8 +97,8 @@ final class ActivityController
                 if ($e === null) return null;
                 /** @var OrganisationRepository $orgRepo */
                 $orgRepo = $this->container->get(OrganisationRepository::class);
-                $org = $orgRepo->findById($e->organisationId);
-                $orgCode = $org ? $org->code : (string) $e->organisationId;
+                $org = $orgRepo->findById($e->clientOrganisationId);
+                $orgCode = $org ? $org->code : (string) $e->clientOrganisationId;
                 return [
                     'label'   => $e->fullName(),
                     'code'    => $e->code,

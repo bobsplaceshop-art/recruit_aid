@@ -9,7 +9,7 @@ final class Engagement
 {
     public int $id;
     public string $code;
-    public int $organisationId;
+    public int $clientOrganisationId;
     public ?int $packageId;
     public string $name;
     public string $serviceType;
@@ -40,7 +40,7 @@ final class Engagement
         $e = new self();
         $e->id = Row::int($row, 'id');
         $e->code = Row::str($row, 'code');
-        $e->organisationId = Row::int($row, 'organisation_id');
+        $e->clientOrganisationId = Row::int($row, 'client_organisation_id');
         $e->packageId = Row::nullableInt($row, 'package_id');
         $e->name = Row::str($row, 'name');
         $e->serviceType = Row::str($row, 'service_type');

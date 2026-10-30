@@ -6,41 +6,45 @@ namespace CorporateAid\Recruit\Repositories;
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Recruit\Models\Engagement;
 
 final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
-    public function __construct(private Database $db) {}
+    public function __construct(
+        private Database $db,
+        private TenantContext $tenant
+    ) {}
 
     public function findById(int $id): ?Engagement
     {
         $row = $this->db->selectOne(
-            "SELECT * FROM `recruit_engagements` WHERE `id` = ? LIMIT 1",
-            PDOParams::positional([$id])
+            "SELECT * FROM `recruit_engagements` WHERE `id` = ? AND `tenant_id` = ? LIMIT 1",
+            PDOParams::positional([$id, $this->tenant->id()])
         );
         return $row ? Engagement::fromRow($row) : null;
     }
 
     public function findByCode(string $code, bool $includeDeleted = false): ?Engagement
     {
-        $sql = "SELECT * FROM `recruit_engagements` WHERE `code` = ?";
+        $sql = "SELECT * FROM `recruit_engagements` WHERE `code` = ? AND `tenant_id` = ?";
         if (!$includeDeleted) {
             $sql .= " AND `deleted_at` IS NULL";
         }
         $sql .= " LIMIT 1";
 
-        $row = $this->db->selectOne($sql, PDOParams::positional([$code]));
+        $row = $this->db->selectOne($sql, PDOParams::positional([$code, $this->tenant->id()]));
         return $row ? Engagement::fromRow($row) : null;
     }
 
     /**
-     * @param array{search?:string,status?:string,include_deleted?:bool,organisation_id?:int} $filters
+     * @param array{search?:string,status?:string,include_deleted?:bool,client_organisation_id?:int} $filters
      * @return array{rows:Engagement[], total:int, page:int, per_page:int, total_pages:int}
      */
     public function paginate(array $filters = [], int $page = 1, int $perPage = 25): array
     {
-        $where = [];
-        $params = [];
+        $where = ['`tenant_id` = ?'];
+        $params = [$this->tenant->id()];
 
         if (empty($filters['include_deleted'])) {
             $where[] = "`deleted_at` IS NULL";
@@ -61,12 +65,12 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
             }
         }
 
-        if (!empty($filters['organisation_id'])) {
-            $where[] = "`organisation_id` = ?";
-            $params[] = (int) $filters['organisation_id'];
+        if (!empty($filters['client_organisation_id'])) {
+            $where[] = "`client_organisation_id` = ?";
+            $params[] = (int) $filters['client_organisation_id'];
         }
 
-        $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
         $paramObj = PDOParams::positional($params);
 
         $total = $this->db->scalarInt(
@@ -97,13 +101,13 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
     }
 
     /** @return Engagement[] */
-    public function forOrganisation(int $organisationId): array
+    public function forOrganisation(int $clientOrganisationId): array
     {
         $rows = $this->db->select(
             "SELECT * FROM `recruit_engagements`
-             WHERE `organisation_id` = ? AND `deleted_at` IS NULL
+             WHERE `client_organisation_id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL
              ORDER BY `created_at` DESC",
-            PDOParams::positional([$organisationId])
+            PDOParams::positional([$clientOrganisationId, $this->tenant->id()])
         );
         return array_map([Engagement::class, 'fromRow'], $rows);
     }
@@ -113,8 +117,9 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
     {
         $rows = $this->db->select(
             "SELECT `status`, COUNT(*) AS n FROM `recruit_engagements`
-             WHERE `deleted_at` IS NULL
-             GROUP BY `status`"
+             WHERE `tenant_id` = ? AND `deleted_at` IS NULL
+             GROUP BY `status`",
+            PDOParams::positional([$this->tenant->id()])
         );
 
         $counts = [
@@ -135,15 +140,16 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
     public function create(array $data): int
     {
         $sql = "INSERT INTO `recruit_engagements`
-            (`code`, `organisation_id`, `package_id`, `name`, `service_type`, `status`,
+            (`tenant_id`, `code`, `client_organisation_id`, `package_id`, `name`, `service_type`, `status`,
              `start_date`, `end_date`, `agreed_active_role_capacity`,
              `reporting_frequency`, `countries`, `scope_description`, `stages_included`,
              `notes`, `created_by`)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         return $this->db->insert($sql, PDOParams::positional([
+            $this->tenant->id(),
             $data['code'],
-            $data['organisation_id'],
+            $data['client_organisation_id'],
             $data['package_id'] ?? null,
             $data['name'],
             $data['service_type'],
@@ -220,8 +226,9 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
         if (empty($sets)) return [];
 
         $params[] = $id;
+        $params[] = $this->tenant->id();
         $this->db->execute(
-            "UPDATE `recruit_engagements` SET " . implode(', ', $sets) . " WHERE `id` = ?",
+            "UPDATE `recruit_engagements` SET " . implode(', ', $sets) . " WHERE `id` = ? AND `tenant_id` = ?",
             PDOParams::positional($params)
         );
 
@@ -231,16 +238,16 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
     public function softDelete(int $id): void
     {
         $this->db->execute(
-            "UPDATE `recruit_engagements` SET `deleted_at` = NOW() WHERE `id` = ?",
-            PDOParams::positional([$id])
+            "UPDATE `recruit_engagements` SET `deleted_at` = NOW() WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$id, $this->tenant->id()])
         );
     }
 
     public function restore(int $id): void
     {
         $this->db->execute(
-            "UPDATE `recruit_engagements` SET `deleted_at` = NULL WHERE `id` = ?",
-            PDOParams::positional([$id])
+            "UPDATE `recruit_engagements` SET `deleted_at` = NULL WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$id, $this->tenant->id()])
         );
     }
 
@@ -261,15 +268,25 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
      */
     public function recruitersFor(int $engagementId): array
     {
-        /** @var array<int, array{user_id: int, role: string, name: string, email: string}> */
-        return $this->db->select(
+        $rows = $this->db->select(
             "SELECT er.`user_id`, er.`role`, u.`name`, u.`email`
              FROM `recruit_engagement_recruiters` er
              JOIN `core_users` u ON u.`id` = er.`user_id`
-             WHERE er.`engagement_id` = ?
+             WHERE er.`engagement_id` = ? AND er.`tenant_id` = ?
              ORDER BY FIELD(er.`role`, 'lead', 'recruiter', 'researcher'), u.`name`",
-            PDOParams::positional([$engagementId])
+            PDOParams::positional([$engagementId, $this->tenant->id()])
         );
+
+        $result = [];
+        foreach ($rows as $row) {
+            $result[] = [
+                'user_id' => Row::int($row, 'user_id'),
+                'role'    => Row::str($row, 'role'),
+                'name'    => Row::str($row, 'name'),
+                'email'   => Row::str($row, 'email'),
+            ];
+        }
+        return $result;
     }
 
     public function assignRecruiter(int $engagementId, int $userId, string $role = 'recruiter'): void
@@ -278,18 +295,18 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
         if (!in_array($role, $valid, true)) $role = 'recruiter';
 
         $this->db->execute(
-            "INSERT INTO `recruit_engagement_recruiters` (`engagement_id`, `user_id`, `role`)
-             VALUES (?, ?, ?)
+            "INSERT INTO `recruit_engagement_recruiters` (`tenant_id`, `engagement_id`, `user_id`, `role`)
+             VALUES (?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE `role` = VALUES(`role`)",
-            PDOParams::positional([$engagementId, $userId, $role])
+            PDOParams::positional([$this->tenant->id(), $engagementId, $userId, $role])
         );
     }
 
     public function unassignRecruiter(int $engagementId, int $userId): void
     {
         $this->db->execute(
-            "DELETE FROM `recruit_engagement_recruiters` WHERE `engagement_id` = ? AND `user_id` = ?",
-            PDOParams::positional([$engagementId, $userId])
+            "DELETE FROM `recruit_engagement_recruiters` WHERE `engagement_id` = ? AND `user_id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$engagementId, $userId, $this->tenant->id()])
         );
     }
 
@@ -299,9 +316,10 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
             return $this->db->scalarInt(
                 "SELECT COUNT(*) FROM `recruit_vacancies`
                  WHERE `engagement_id` = ?
+                   AND `tenant_id` = ?
                    AND `status` NOT IN ('draft','closed','cancelled')
                    AND `deleted_at` IS NULL",
-                PDOParams::positional([$engagementId])
+                PDOParams::positional([$engagementId, $this->tenant->id()])
             );
         } catch (\Throwable) {
             return 0;
@@ -312,7 +330,8 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
     public function packages(): array
     {
         return $this->db->select(
-            "SELECT * FROM `recruit_engagement_packages` WHERE `is_active` = 1 ORDER BY `name`"
+            "SELECT * FROM `recruit_engagement_packages` WHERE `tenant_id` = ? AND `is_active` = 1 ORDER BY `name`",
+            PDOParams::positional([$this->tenant->id()])
         );
     }
 
@@ -320,8 +339,8 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
     public function findPackage(int $id): ?array
     {
         return $this->db->selectOne(
-            "SELECT * FROM `recruit_engagement_packages` WHERE `id` = ?",
-            PDOParams::positional([$id])
+            "SELECT * FROM `recruit_engagement_packages` WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$id, $this->tenant->id()])
         );
     }
 
@@ -329,14 +348,11 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
     public function findPackageBySlug(string $slug): ?array
     {
         return $this->db->selectOne(
-            "SELECT * FROM `recruit_engagement_packages` WHERE `slug` = ?",
-            PDOParams::positional([$slug])
+            "SELECT * FROM `recruit_engagement_packages` WHERE `slug` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$slug, $this->tenant->id()])
         );
     }
 
-    /**
-     * Live-search configuration for the reusable LiveSearch engine.
-     */
     public function liveSearchConfig(): array
     {
         return [
@@ -345,9 +361,10 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
             'columns'          => ['e.name', 'e.code'],
             'order'            => 'e.created_at DESC',
             'permission'       => 'recruit.engagements.view',
-            'baseFilters'      => ['e.`deleted_at` IS NULL'],
+            'baseFilters'      => ['e.`deleted_at` IS NULL', 'e.`tenant_id` = ?'],
+            'baseFilterParams' => [$this->tenant->id()],
             'joins'            => [
-                'INNER JOIN `recruit_client_organisations` o ON o.`id` = e.`organisation_id`',
+                'INNER JOIN `recruit_client_organisations` o ON o.`id` = e.`client_organisation_id`',
             ],
             'rowView'          => 'engagements/_row',
             'extraColumns'     => ['o.name AS organisation_name', 'o.code AS organisation_code'],

@@ -40,8 +40,8 @@ final class EngagementController
         $orgs = $this->container->get(OrganisationRepository::class);
         $orgMap = [];
         foreach ($result['rows'] as $e) {
-            if (!isset($orgMap[$e->organisationId])) {
-                $orgMap[$e->organisationId] = $orgs->findById($e->organisationId);
+            if (!isset($orgMap[$e->clientOrganisationId])) {
+                $orgMap[$e->clientOrganisationId] = $orgs->findById($e->clientOrganisationId);
             }
         }
 
@@ -163,7 +163,7 @@ final class EngagementController
 
         /** @var OrganisationRepository $orgs */
         $orgs = $this->container->get(OrganisationRepository::class);
-        $org = $orgs->findById($engagement->organisationId);
+        $org = $orgs->findById($engagement->clientOrganisationId);
 
         /** @var View $view */
         $view = $this->container->get(View::class);
@@ -218,7 +218,7 @@ final class EngagementController
             'user'           => $auth->user(),
             'engagement'     => $engagement,
             'organisations'  => $orgs->paginate(['status' => 'active'], 1, 500)['rows'],
-            'preselectedOrg' => $orgs->findById($engagement->organisationId),
+            'preselectedOrg' => $orgs->findById($engagement->clientOrganisationId),
             'packages'       => $engagements->packages(),
             'old'            => [],
             'errors'         => [],
@@ -260,7 +260,7 @@ final class EngagementController
                 'user'           => $auth->user(),
                 'engagement'     => $engagement,
                 'organisations'  => $orgs->paginate(['status' => 'active'], 1, 500)['rows'],
-                'preselectedOrg' => $orgs->findById($engagement->organisationId),
+                'preselectedOrg' => $orgs->findById($engagement->clientOrganisationId),
                 'packages'       => $engagements->packages(),
                 'old'            => $input,
                 'errors'         => $result['errors'],

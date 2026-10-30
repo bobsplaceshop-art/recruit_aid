@@ -11,6 +11,7 @@ use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Request;
 use CorporateAid\Core\Response;
 use CorporateAid\Core\Session;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Core\View;
 use CorporateAid\Recruit\Repositories\ApplicationRepository;
 use CorporateAid\Recruit\Repositories\CandidateRepository;
@@ -34,23 +35,33 @@ final class ApplicationController
         $candidates = $this->container->get(CandidateRepository::class);
         /** @var VacancyRepository $vacancies */
         $vacancies = $this->container->get(VacancyRepository::class);
+        /** @var TenantContext $tenant */
+        $tenant = $this->container->get(TenantContext::class);
 
         $q = trim($request->queryStringValue('q', ''));
         $page = max(1, $request->queryInt('page', 1));
 
-        // We'll use the ApplicationRepository's forVacancy or a new global method?
-        // For now, let's just fetch all applications using a direct query (or add a method later).
         $db = $this->container->get(Database::class);
-        $where = ["a.`deleted_at` IS NULL"];
-        $paramsSql = [];
+        $where = ["a.`deleted_at` IS NULL", "a.`tenant_id` = ?"];
+        $paramsSql = [$tenant->id()];
+        
         if ($q !== '') {
             $where[] = "(c.`first_name` LIKE ? OR c.`last_name` LIKE ? OR v.`title` LIKE ? OR a.`code` LIKE ?)";
             $term = '%' . $q . '%';
-            $paramsSql[] = $term; $paramsSql[] = $term; $paramsSql[] = $term; $paramsSql[] = $term;
+            $paramsSql[] = $term; 
+            $paramsSql[] = $term; 
+            $paramsSql[] = $term; 
+            $paramsSql[] = $term;
         }
         $whereSql = 'WHERE ' . implode(' AND ', $where);
 
-        $total = $db->scalarInt("SELECT COUNT(*) FROM `recruit_applications` a JOIN `recruit_candidates` c ON c.`id` = a.`candidate_id` JOIN `recruit_vacancies` v ON v.`id` = a.`vacancy_id` $whereSql", PDOParams::positional($paramsSql));
+        $total = $db->scalarInt(
+            "SELECT COUNT(*) FROM `recruit_applications` a 
+             JOIN `recruit_candidates` c ON c.`id` = a.`candidate_id` 
+             JOIN `recruit_vacancies` v ON v.`id` = a.`vacancy_id` 
+             $whereSql", 
+            PDOParams::positional($paramsSql)
+        );
 
         $perPage = 25;
         $totalPages = max(1, (int) ceil($total / $perPage));

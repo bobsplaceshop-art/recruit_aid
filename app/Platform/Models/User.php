@@ -22,7 +22,7 @@ final class User
     public string $themePreference;
     public string $status;
     public bool $isClientUser;
-    public ?int $organisationId;
+    public ?int $clientOrganisationId;
     public int $failedLogins;
     public ?string $lockedUntil;
     public ?string $lastLoginAt;
@@ -52,7 +52,7 @@ final class User
         $u->themePreference = Row::str($row, 'theme_preference', 'dark');
         $u->status = Row::str($row, 'status');
         $u->isClientUser = Row::bool($row, 'is_client_user');
-        $u->organisationId = Row::nullableInt($row, 'organisation_id');
+        $u->clientOrganisationId = Row::nullableInt($row, 'client_organisation_id');
         $u->failedLogins = Row::int($row, 'failed_logins', 0);
         $u->lockedUntil = Row::nullableStr($row, 'locked_until');
         $u->lastLoginAt = Row::nullableStr($row, 'last_login_at');

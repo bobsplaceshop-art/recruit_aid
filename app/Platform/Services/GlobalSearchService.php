@@ -7,6 +7,7 @@ use CorporateAid\Core\Auth;
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
+use CorporateAid\Core\TenantContext;
 
 /**
  * Cross-entity global search. Substring LIKE %term% per entity,
@@ -16,6 +17,7 @@ final class GlobalSearchService
 {
     public function __construct(
         private Database $db,
+        private TenantContext $tenant,
         private ?Auth $auth = null
     ) {}
 
@@ -39,17 +41,19 @@ final class GlobalSearchService
         $groups = [];
         $total = 0;
         $user = $this->auth?->user();
+        $tenantId = $this->tenant->id();
 
         // Organisations
         if ($user !== null && $user->can('recruit.organisations.view')) {
             $rows = $this->db->select(
                 "SELECT id, code, name, legal_name, email, industry
                  FROM `recruit_client_organisations`
-                 WHERE `deleted_at` IS NULL
+                 WHERE `tenant_id` = ?
+                   AND `deleted_at` IS NULL
                    AND (`name` LIKE ? OR `legal_name` LIKE ? OR `email` LIKE ? OR `industry` LIKE ?)
                  ORDER BY `name` ASC
                  LIMIT " . (int) $limitPerGroup,
-                PDOParams::positional([$like, $like, $like, $like])
+                PDOParams::positional([$tenantId, $like, $like, $like, $like])
             );
             $items = array_map(fn($r) => [
                 'title'    => Row::str($r, 'name'),
@@ -69,13 +73,13 @@ final class GlobalSearchService
                 "SELECT c.id, c.code, c.first_name, c.last_name, c.email, c.position,
                         o.code AS org_code, o.name AS org_name
                  FROM `recruit_client_contacts` c
-                 INNER JOIN `recruit_client_organisations` o ON o.id = c.organisation_id
-                 WHERE c.`deleted_at` IS NULL AND o.`deleted_at` IS NULL
+                 INNER JOIN `recruit_client_organisations` o ON o.id = c.client_organisation_id
+                 WHERE c.`tenant_id` = ? AND c.`deleted_at` IS NULL AND o.`deleted_at` IS NULL
                    AND (c.`first_name` LIKE ? OR c.`last_name` LIKE ? OR c.`email` LIKE ?
                         OR c.`position` LIKE ? OR c.`department` LIKE ?)
                  ORDER BY c.`last_name` ASC, c.`first_name` ASC
                  LIMIT " . (int) $limitPerGroup,
-                PDOParams::positional([$like, $like, $like, $like, $like])
+                PDOParams::positional([$tenantId, $like, $like, $like, $like, $like])
             );
             $items = array_map(fn($r) => [
                 'title'    => trim(Row::str($r, 'first_name') . ' ' . Row::str($r, 'last_name')),
@@ -94,11 +98,12 @@ final class GlobalSearchService
             $rows = $this->db->select(
                 "SELECT id, code, name, service_type, notes
                  FROM `recruit_engagements`
-                 WHERE `deleted_at` IS NULL
+                 WHERE `tenant_id` = ?
+                   AND `deleted_at` IS NULL
                    AND (`name` LIKE ? OR `notes` LIKE ? OR `scope_description` LIKE ?)
                  ORDER BY `name` ASC
                  LIMIT " . (int) $limitPerGroup,
-                PDOParams::positional([$like, $like, $like])
+                PDOParams::positional([$tenantId, $like, $like, $like])
             );
             $items = array_map(fn($r) => [
                 'title'    => Row::str($r, 'name'),
@@ -117,11 +122,12 @@ final class GlobalSearchService
             $rows = $this->db->select(
                 "SELECT id, code, title, department, city
                  FROM `recruit_vacancies`
-                 WHERE `deleted_at` IS NULL
+                 WHERE `tenant_id` = ?
+                   AND `deleted_at` IS NULL
                    AND (`title` LIKE ? OR `department` LIKE ? OR `city` LIKE ? OR `description` LIKE ?)
                  ORDER BY `title` ASC
                  LIMIT " . (int) $limitPerGroup,
-                PDOParams::positional([$like, $like, $like, $like])
+                PDOParams::positional([$tenantId, $like, $like, $like, $like])
             );
             $items = array_map(fn($r) => [
                 'title'    => Row::str($r, 'title'),

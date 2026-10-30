@@ -91,6 +91,28 @@ final class VacancyValidator
             $errors['currency'][] = 'Currency must be a 3-letter ISO code (e.g. KES, USD).';
         }
 
+        // Required assignment checks
+        $recruiterIds = is_array($input['recruiter_ids'] ?? null)
+            ? array_filter(
+                array_map(static fn(mixed $v): int => is_scalar($v) ? (int) $v : 0, $input['recruiter_ids']),
+                static fn(int $v): bool => $v > 0
+            )
+            : [];
+        $leadRecruiter = is_numeric($input['recruiter_id'] ?? null) ? (int) $input['recruiter_id'] : 0;
+        if ($leadRecruiter <= 0) {
+            $errors['recruiter_id'][] = 'A lead recruiter is required.';
+        }
+
+        $hmIds = is_array($input['hiring_manager_contact_ids'] ?? null)
+            ? array_filter(
+                array_map(static fn(mixed $v): int => is_scalar($v) ? (int) $v : 0, $input['hiring_manager_contact_ids']),
+                static fn(int $v): bool => $v > 0
+            )
+            : [];
+        if (empty($hmIds)) {
+            $errors['hiring_manager_contact_ids'][] = 'At least one hiring manager is required.';
+        }
+
         return $errors;
     }
 
