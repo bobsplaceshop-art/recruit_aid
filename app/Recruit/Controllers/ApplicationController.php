@@ -200,7 +200,11 @@ final class ApplicationController
         if (!$result['success']) {
             $session->flash('error', $result['error'] ?? 'Could not move the application.');
         } else {
-            $session->flash('success', 'Application moved.');
+            $passed = $result['passed_through'];
+            $suffix = empty($passed)
+                ? ''
+                : ' (' . count($passed) . ' stage(s) recorded as passed through)';
+            $session->flash('success', 'Application moved' . $suffix . '.');
         }
 
         return Response::redirect($redirect);

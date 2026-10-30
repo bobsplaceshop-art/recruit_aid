@@ -354,7 +354,12 @@ final class App
             $c->get(InterviewRepository::class),
             $c->get(ScorecardRepository::class),
             $c->get(ApplicationRepository::class),
+            $c->get(CandidateRepository::class),
+            $c->get(VacancyRepository::class),
+            $c->get(VacancyStageRepository::class),
+            $c->get(ApplicationService::class),
             $c->get(ActivityLogger::class),
+            $c->get(EmailService::class),
             $c->get(Auth::class)
         ));
 
@@ -362,7 +367,10 @@ final class App
             $c->get(OfferRepository::class),
             $c->get(ApplicationRepository::class),
             $c->get(VacancyStageRepository::class),
+            $c->get(CandidateRepository::class),
+            $c->get(VacancyRepository::class),
             $c->get(ActivityLogger::class),
+            $c->get(EmailService::class),
             $c->get(Auth::class)
         ));
 
