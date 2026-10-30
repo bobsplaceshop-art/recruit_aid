@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Services;
 
 use CorporateAid\Core\Auth;
+use CorporateAid\Core\Database;
 use CorporateAid\Core\Row;
+use CorporateAid\Platform\Shared\Contracts\PersonService;
+use CorporateAid\Platform\Support\ActivityLogger;
 use CorporateAid\Recruit\Models\Candidate;
 use CorporateAid\Recruit\Repositories\CandidateRepository;
-use CorporateAid\Platform\Support\ActivityLogger;
 use CorporateAid\Recruit\Validation\CandidateValidator;
 
 final class CandidateService
@@ -16,6 +18,8 @@ final class CandidateService
         private CandidateRepository $candidates,
         private CandidateValidator $validator,
         private ActivityLogger $activity,
+        private Database $db,
+        private PersonService $persons,
         private ?Auth $auth = null
     ) {}
 
@@ -60,17 +64,36 @@ final class CandidateService
         }
 
         $normalized = $this->validator->normalize($input);
-        $normalized['code'] = $this->candidates->nextCode();
         $normalized['created_by'] = $this->auth?->user()?->id;
 
         // Denormalized skills/languages cache for live search
         $normalized['skills'] = $this->extractStringList($input['skills_flat'] ?? null);
         $normalized['languages'] = $this->extractStringList($input['languages'] ?? null);
 
-        $id = $this->candidates->create($normalized);
+        // Person + candidate must be created atomically: a candidate
+        // must never exist without its canonical person, and a failed
+        // candidate insert must not leave an orphan person behind.
+        $this->db->beginTransaction();
+        try {
+            $personId = $this->persons->create([
+                'first_name' => (string) $normalized['first_name'],
+                'last_name'  => (string) $normalized['last_name'],
+                'created_by' => $normalized['created_by'] ?? null,
+            ]);
 
-        // Sync child tables (skills, experience, education, tags)
-        $this->syncChildTables($id, $input);
+            $normalized['person_id'] = $personId;
+            $normalized['code'] = $this->candidates->nextCode();
+
+            $id = $this->candidates->create($normalized);
+
+            // Sync child tables (skills, experience, education, tags)
+            $this->syncChildTables($id, $input);
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
 
         $candidate = $this->candidates->findById($id);
         if ($candidate === null) {
@@ -174,9 +197,9 @@ final class CandidateService
     {
         $candidate = $this->candidates->findById($id);
         if (!$candidate) return false;
-        
+
         $this->candidates->restore($id);
-        
+
         $this->activity->log(
             'candidate.restored',
             'candidates',

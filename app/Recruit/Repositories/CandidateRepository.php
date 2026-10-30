@@ -6,6 +6,7 @@ namespace CorporateAid\Recruit\Repositories;
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Recruit\Models\Candidate;
 use CorporateAid\Recruit\Models\CandidateEducation;
 use CorporateAid\Recruit\Models\CandidateExperience;
@@ -14,7 +15,10 @@ use CorporateAid\Recruit\Models\CandidateTag;
 
 final class CandidateRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
-    public function __construct(private Database $db) {}
+    public function __construct(
+        private Database $db,
+        private TenantContext $tenant
+    ) {}
 
     public function findById(int $id): ?Candidate
     {
@@ -105,14 +109,16 @@ final class CandidateRepository implements \CorporateAid\Platform\LiveSearch\Liv
     public function create(array $data): int
     {
         $sql = "INSERT INTO `recruit_candidates`
-            (`code`, `first_name`, `last_name`, `email`, `phone`, `country_code`, `city`,
+            (`tenant_id`, `code`, `person_id`, `first_name`, `last_name`, `email`, `phone`, `country_code`, `city`,
              `linkedin_url`, `portfolio_url`, `current_job_title`, `current_company`,
              `years_experience`, `seniority`, `skills`, `languages`, `summary`, `internal_notes`,
              `status`, `source`, `recruiter_id`, `created_by`)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         return $this->db->insert($sql, PDOParams::positional([
+            $this->tenant->id(),
             $data['code'],
+            $data['person_id'] ?? null,
             $data['first_name'],
             $data['last_name'],
             $data['email'],

@@ -36,6 +36,7 @@ use CorporateAid\Platform\LiveSearch\LiveSearchService;
 use CorporateAid\Platform\LiveSearch\LiveSearchable;
 use CorporateAid\Platform\Repositories\UserRepository;
 use CorporateAid\Platform\Shared\Repositories\PersonRepository;
+use CorporateAid\Platform\Shared\Services\PersonService;
 use CorporateAid\Platform\Repositories\PasswordResetRepository;
 use CorporateAid\Platform\Repositories\RateLimitRepository;
 use CorporateAid\Platform\Repositories\NotificationRepository;
@@ -221,6 +222,7 @@ final class App
         // ---------- Repositories ----------
         $c->singleton(UserRepository::class,              fn() => new UserRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(PersonRepository::class,            fn() => new PersonRepository($c->get(Database::class)));
+        $c->singleton(PersonService::class,               fn() => new PersonService($c->get(PersonRepository::class)));
         $c->singleton(RoleRepository::class,              fn() => new RoleRepository($c->get(Database::class)));
         $c->singleton(LookupRepository::class,            fn() => new LookupRepository($c->get(Database::class)));
         $c->singleton(LiveSearchService::class, fn() => new LiveSearchService($c->get(Database::class), $c->get(View::class), $c->get(Auth::class)));
@@ -237,7 +239,7 @@ final class App
         $c->singleton(EngagementRepository::class,        fn() => new EngagementRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(EngagementAssignmentRepository::class, fn() => new EngagementAssignmentRepository($c->get(Database::class)));
         $c->singleton(VacancyRepository::class,           fn() => new VacancyRepository($c->get(Database::class), $c->get(TenantContext::class)));
-        $c->singleton(CandidateRepository::class,         fn() => new CandidateRepository($c->get(Database::class)));
+        $c->singleton(CandidateRepository::class,         fn() => new CandidateRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyStageRepository::class,      fn() => new VacancyStageRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyRecruiterRepository::class,   fn() => new VacancyRecruiterRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyHiringManagerRepository::class, fn() => new VacancyHiringManagerRepository($c->get(Database::class), $c->get(TenantContext::class)));
@@ -353,6 +355,8 @@ final class App
             $c->get(CandidateRepository::class),
             $c->get(CandidateValidator::class),
             $c->get(ActivityLogger::class),
+            $c->get(Database::class),
+            $c->get(PersonService::class),
             $c->get(Auth::class)
         ));
 
