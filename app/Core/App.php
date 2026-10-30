@@ -35,6 +35,7 @@ use CorporateAid\Platform\LiveSearch\LiveSearchRegistry;
 use CorporateAid\Platform\LiveSearch\LiveSearchService;
 use CorporateAid\Platform\LiveSearch\LiveSearchable;
 use CorporateAid\Platform\Repositories\UserRepository;
+use CorporateAid\Platform\Shared\Repositories\PersonRepository;
 use CorporateAid\Platform\Repositories\PasswordResetRepository;
 use CorporateAid\Platform\Repositories\RateLimitRepository;
 use CorporateAid\Platform\Repositories\NotificationRepository;
@@ -213,6 +214,7 @@ final class App
 
         // ---------- Repositories ----------
         $c->singleton(UserRepository::class,              fn() => new UserRepository($c->get(Database::class)));
+        $c->singleton(PersonRepository::class,            fn() => new PersonRepository($c->get(Database::class)));
         $c->singleton(RoleRepository::class,              fn() => new RoleRepository($c->get(Database::class)));
         $c->singleton(LookupRepository::class,            fn() => new LookupRepository($c->get(Database::class)));
         $c->singleton(LiveSearchService::class, fn() => new LiveSearchService($c->get(Database::class), $c->get(View::class), $c->get(Auth::class)));
