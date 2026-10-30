@@ -24,6 +24,7 @@
             "CorporateAid\\Core\\": "app/Core/",
             "CorporateAid\\Platform\\": "app/Platform/",
             "CorporateAid\\Recruit\\": "app/Recruit/",
+            "CorporateAid\\Modules\\": "app/Modules/",
             "CorporateAid\\Helpers\\": "app/Helpers/"
         },
         "files": [

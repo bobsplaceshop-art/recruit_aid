@@ -32,6 +32,7 @@ use CorporateAid\Platform\Repositories\LookupRepository;
 use CorporateAid\Platform\Services\LookupService;
 use CorporateAid\Platform\Services\GlobalSearchService;
 use CorporateAid\Platform\LiveSearch\LiveSearchRegistry;
+use CorporateAid\Platform\Modules\ModuleRegistrar;
 use CorporateAid\Platform\LiveSearch\LiveSearchService;
 use CorporateAid\Platform\LiveSearch\LiveSearchable;
 use CorporateAid\Platform\Repositories\UserRepository;
@@ -126,6 +127,10 @@ final class App
         LiveSearchRegistry::register('engagements',   EngagementRepository::class);
         LiveSearchRegistry::register('vacancies',     VacancyRepository::class);
         LiveSearchRegistry::register('candidates',    CandidateRepository::class);
+
+
+        // Boot module registry
+        ModuleRegistrar::boot($this->container);
     }
 
     private function registerErrorHandling(): void
