@@ -9,10 +9,20 @@ use CorporateAid\Platform\Support\Hasher;
 
 /**
  * Authentication service. Owns the "currently logged in user" concept.
+ *
+ * Session keys written by this class:
+ *   - auth_user_id    (login / read on every authenticated request)
+ *   - auth_tenant_id  (login — consumed by TenantContext::id())
+ *
+ * TenantContext must NOT depend on Auth (cycle: Auth -> UserRepository
+ * -> TenantContext -> Auth). Instead, login() writes the tenant id to
+ * the session here, and TenantContext reads it from the session. See
+ * TenantContext's docblock for the full rationale.
  */
 final class Auth
 {
-    private const SESSION_USER_KEY = 'auth_user_id';
+    private const SESSION_USER_KEY   = 'auth_user_id';
+    private const SESSION_TENANT_KEY = 'auth_tenant_id';
 
     private UserRepository $users;
     private Session $session;
@@ -71,17 +81,27 @@ final class Auth
     /**
      * Log a user in directly (used after successful attempt, and by
      * "remember me" or admin impersonation later).
+     *
+     * Writes both the user id and the tenant id to the session. The
+     * tenant id is what TenantContext::id() reads; without it, every
+     * request would fall back to the default tenant (1), which is fine
+     * for a single-tenant install but wrong the moment a second tenant
+     * exists.
      */
     public function login(User $user): void
     {
         $this->session->regenerate(true);
         $this->session->set(self::SESSION_USER_KEY, $user->id);
+        if (isset($user->tenantId) && $user->tenantId > 0) {
+            $this->session->set(self::SESSION_TENANT_KEY, $user->tenantId);
+        }
         $this->cached = $user;
     }
 
     public function logout(): void
     {
         $this->session->forget(self::SESSION_USER_KEY);
+        $this->session->forget(self::SESSION_TENANT_KEY);
         $this->session->regenerate(true);
         $this->cached = null;
     }

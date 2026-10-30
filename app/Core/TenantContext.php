@@ -6,9 +6,14 @@ namespace CorporateAid\Core;
 /**
  * Resolves the current tenant for the request.
  *
- * In a single-tenant install today, this always returns 1.
- * In a multi-tenant install, it would resolve from the session
- * (set at login by matching the user's tenant_id).
+ * Single-tenant install today: returns the session value if set,
+ * else the default tenant (1). Multi-tenant installs resolve from
+ * the session, which Auth::login() populates via TenantContext::set().
+ *
+ * This class MUST NOT depend on Auth. Auth depends on UserRepository,
+ * UserRepository depends on TenantContext — a TenantContext->Auth edge
+ * would close that loop and recurse in the container (no autowiring,
+ * no cycle detection).
  *
  * All repositories that read/write tenant-scoped tables must call
  * TenantContext::id() and filter by it.
@@ -16,18 +21,19 @@ namespace CorporateAid\Core;
 final class TenantContext
 {
     private const SESSION_TENANT_KEY = 'auth_tenant_id';
-    private const DEFAULT_TENANT_ID = 1;
+    private const DEFAULT_TENANT_ID  = 1;
 
     public function __construct(
-        private Session $session,
-        private ?Auth $auth = null
+        private Session $session
     ) {}
 
     /**
      * The current tenant ID. Precedence:
      *   1. Explicitly set in the session (auth_tenant_id)
-     *   2. The authenticated user's tenant_id
-     *   3. The default tenant (1) for a fresh install
+     *   2. The default tenant (1) for a fresh install
+     *
+     * Never reads from Auth. Auth::login() calls set() to keep the
+     * session value in sync after a user logs in.
      */
     public function id(): int
     {
@@ -35,14 +41,6 @@ final class TenantContext
         if (is_int($sessionTenant) && $sessionTenant > 0) {
             return $sessionTenant;
         }
-
-        if ($this->auth !== null) {
-            $user = $this->auth->user();
-            if ($user !== null && isset($user->tenantId) && $user->tenantId > 0) {
-                return $user->tenantId;
-            }
-        }
-
         return self::DEFAULT_TENANT_ID;
     }
 

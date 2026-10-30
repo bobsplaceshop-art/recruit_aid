@@ -12,6 +12,14 @@ use RuntimeException;
  *
  * Explicit bindings only — no autowiring. Every class resolved via
  * get() must be bound in App::registerServices().
+ *
+ * Cycle detection: if a factory (directly or indirectly) asks the
+ * container for a class that is already being resolved, we throw a
+ * named exception instead of recursing. Without this guard, a
+ * circular binding manifests as "Maximum function nesting level"
+ * or — worse — as a misleading constructor-arity error from an
+ * interrupted argument list. The guard makes the failure say what
+ * it is.
  */
 final class Container
 {
@@ -23,6 +31,9 @@ final class Container
 
     /** @var array<string, bool> */
     private array $singletons = [];
+
+    /** @var array<string, bool> Classes currently being resolved. */
+    private array $resolving = [];
 
     /**
      * Register a factory. If $singleton is true, the factory runs once
@@ -61,8 +72,7 @@ final class Container
      * Resolve a service. If it was bound as a singleton, cache it.
      *
      * The generic signature tells PHPStan that resolving a class-string
-     * returns an instance of that class. This is what removes hundreds
-     * of "Cannot call method on mixed" errors across the codebase.
+     * returns an instance of that class.
      *
      * @template R of object
      * @param  class-string<R> $id
@@ -79,8 +89,20 @@ final class Container
             throw new RuntimeException("Container: nothing bound for '{$id}'.");
         }
 
-        /** @var R $value */
-        $value = ($this->bindings[$id])($this);
+        if (isset($this->resolving[$id])) {
+            $chain = implode(' -> ', array_keys($this->resolving)) . " -> {$id}";
+            throw new RuntimeException(
+                "Container: circular dependency detected while resolving '{$id}'. Chain: {$chain}"
+            );
+        }
+
+        $this->resolving[$id] = true;
+        try {
+            /** @var R $value */
+            $value = ($this->bindings[$id])($this);
+        } finally {
+            unset($this->resolving[$id]);
+        }
 
         if (isset($this->singletons[$id])) {
             $this->instances[$id] = $value;
