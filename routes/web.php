@@ -30,6 +30,8 @@ use CorporateAid\Recruit\Controllers\CandidateController;
 use CorporateAid\Recruit\Controllers\ApplicationController;
 use CorporateAid\Recruit\Controllers\InterviewController;
 use CorporateAid\Recruit\Controllers\ScorecardController;
+use CorporateAid\Recruit\Controllers\OfferController;
+use CorporateAid\Recruit\Controllers\ReportController;
 
 /** @var Router $router */
 
@@ -40,10 +42,8 @@ $router->get('/health', [HomeController::class, 'health']);
 // These render a branded "Coming Soon" page instead of a 404.
 // When a feature ships, replace the route with the real controller.
 
-$router->get('/offers',       [ComingSoonController::class, 'offers'],       ['auth']);
 $router->get('/tasks',        [ComingSoonController::class, 'tasks'],        ['auth']);
 $router->get('/calendar',     [ComingSoonController::class, 'calendar'],     ['auth']);
-$router->get('/reports',      [ComingSoonController::class, 'reports'],      ['auth']);
 $router->get('/documents',    [ComingSoonController::class, 'documents'],    ['auth']);
 $router->get('/admin/audit',  [ComingSoonController::class, 'audit'],        ['auth', 'permission:core.settings.manage']);
 
@@ -137,6 +137,29 @@ $router->post('/interviews/{code}/complete',             [InterviewController::c
 $router->post('/interviews/{code}/cancel',               [InterviewController::class, 'cancel'],        ['auth', 'permission:recruit.interviews.delete', 'csrf']);
 $router->get('/interviews/{code}/scorecard',             [ScorecardController::class, 'form'],          ['auth', 'permission:recruit.scorecards.submit']);
 $router->post('/interviews/{code}/scorecard',            [ScorecardController::class, 'submit'],        ['auth', 'permission:recruit.scorecards.submit', 'csrf']);
+
+// ---------------------------------------------------------------------
+// Offers
+// ---------------------------------------------------------------------
+$router->get('/offers',                                 [OfferController::class, 'index'],       ['auth', 'permission:recruit.offers.view']);
+$router->get('/applications/{code}/make-offer',         [OfferController::class, 'createForm'],  ['auth', 'permission:recruit.offers.create']);
+$router->post('/applications/{code}/make-offer',        [OfferController::class, 'store'],       ['auth', 'permission:recruit.offers.create', 'csrf']);
+$router->get('/offers/{code}',                          [OfferController::class, 'show'],        ['auth', 'permission:recruit.offers.view']);
+$router->post('/offers/{code}/send',                    [OfferController::class, 'send'],        ['auth', 'permission:recruit.offers.send', 'csrf']);
+$router->post('/offers/{code}/accept',                  [OfferController::class, 'accept'],      ['auth', 'permission:recruit.offers.respond', 'csrf']);
+$router->post('/offers/{code}/decline',                 [OfferController::class, 'decline'],     ['auth', 'permission:recruit.offers.respond', 'csrf']);
+$router->post('/offers/{code}/withdraw',                [OfferController::class, 'withdraw'],    ['auth', 'permission:recruit.offers.edit', 'csrf']);
+
+// ---------------------------------------------------------------------
+// Reports
+// ---------------------------------------------------------------------
+$router->get('/reports',                       [ReportController::class, 'index'],       ['auth', 'permission:recruit.reports.view']);
+$router->get('/reports/funnel',                [ReportController::class, 'funnel'],      ['auth', 'permission:recruit.reports.view']);
+$router->get('/reports/time-to-hire',          [ReportController::class, 'timeToHire'],  ['auth', 'permission:recruit.reports.view']);
+$router->get('/reports/productivity',          [ReportController::class, 'productivity'],['auth', 'permission:recruit.reports.view']);
+$router->get('/reports/time-to-hire.csv',      [ReportController::class, 'exportTimeToHire'], ['auth', 'permission:recruit.reports.view']);
+
+
 
 
 

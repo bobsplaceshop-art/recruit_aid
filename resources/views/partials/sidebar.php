@@ -108,7 +108,7 @@ $isLoggedIn = isset($user) && $user;
             <?php if ($user->can('recruit.candidates.view')): ?>
                 <a href="/offers" class="ra-nav-item <?= $isActive('/offers') ?>">
                     <i class="bi bi-file-earmark-check"></i>
-                    <span>Offers</span><?= $soonBadge() ?>
+                    <span>Offers</span>
                 </a>
             <?php endif; ?>
         </div>
@@ -138,7 +138,7 @@ $isLoggedIn = isset($user) && $user;
             <?php if ($user->can('recruit.reports.view')): ?>
                 <a href="/reports" class="ra-nav-item <?= $isActive('/reports') ?>">
                     <i class="bi bi-graph-up"></i>
-                    <span>Reports</span><?= $soonBadge() ?>
+                    <span>Reports</span>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('core.documents.view')): ?>

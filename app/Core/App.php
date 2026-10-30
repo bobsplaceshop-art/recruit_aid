@@ -46,6 +46,7 @@ use CorporateAid\Recruit\Services\CandidateService;
 use CorporateAid\Recruit\Services\ApplicationService;
 use CorporateAid\Recruit\Services\InterviewService;
 use CorporateAid\Recruit\Services\OfferService;
+use CorporateAid\Recruit\Services\ReportService;
 use CorporateAid\Platform\Services\SystemSettingService;
 use CorporateAid\Platform\Services\FileService;
 use CorporateAid\Platform\Services\NotificationService;
@@ -372,6 +373,10 @@ final class App
             $c->get(ActivityLogger::class),
             $c->get(EmailService::class),
             $c->get(Auth::class)
+        ));
+
+        $c->singleton(ReportService::class, fn() => new ReportService(
+            $c->get(Database::class)
         ));
 
         // ---------- Dashboard ----------
