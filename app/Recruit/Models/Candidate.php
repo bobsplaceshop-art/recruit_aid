@@ -8,6 +8,7 @@ use CorporateAid\Core\Row;
 final class Candidate
 {
     public int $id;
+    public ?int $personId;
     public string $code;
     public string $firstName;
     public string $lastName;
@@ -46,6 +47,7 @@ final class Candidate
     {
         $c = new self();
         $c->id = Row::int($row, 'id');
+        $c->personId = Row::nullableInt($row, 'person_id');
         $c->code = Row::str($row, 'code');
         $c->firstName = Row::str($row, 'first_name');
         $c->lastName = Row::str($row, 'last_name');
@@ -79,9 +81,13 @@ final class Candidate
     /** @return string[] */
     private static function decodeJsonArray(mixed $raw): array
     {
-        if (empty($raw)) return [];
-        $decoded = json_decode(is_scalar($raw) ? (string) $raw : '', true);
-        if (!is_array($decoded)) return [];
+        if ($raw === null || $raw === '') {
+            return [];
+        }
+        $decoded = is_string($raw) ? json_decode($raw, true) : $raw;
+        if (!is_array($decoded)) {
+            return [];
+        }
         $out = [];
         foreach ($decoded as $v) {
             if (is_scalar($v)) $out[] = (string) $v;
