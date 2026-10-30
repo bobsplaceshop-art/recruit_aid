@@ -8,6 +8,16 @@ use RuntimeException;
 /**
  * Renders PHP templates from resources/views/.
  * Views are plain PHP files. Layouts wrap views; partials are fragments.
+ *
+ * Note on internal variable naming:
+ *
+ *   renderFile() uses EXTR_SKIP to inject $data into the template's
+ *   local scope. That means if a data key collides with one of
+ *   renderFile()'s own local variables (name, file, vars, data, this),
+ *   EXTR_SKIP would silently skip injecting it and the view would see
+ *   the wrong value. We prefix every internal variable with `_view`
+ *   (which is not a valid view-data key by convention) so collisions
+ *   are impossible.
  */
 final class View
 {
@@ -51,17 +61,17 @@ final class View
         return $content;
     }
 
-    /** @param array<string, mixed> $data */
-    private function renderFile(string $name, array $data): string
+    /** @param array<string, mixed> $_viewData */
+    private function renderFile(string $_viewName, array $_viewData): string
     {
-        $file = $this->resolvePath($name);
+        $_viewFile = $this->resolvePath($_viewName);
 
-        $vars = array_merge($this->shared, $data);
-        extract($vars, EXTR_SKIP);
+        $_viewVars = array_merge($this->shared, $_viewData);
+        extract($_viewVars, EXTR_SKIP);
 
         ob_start();
         try {
-            require $file;
+            require $_viewFile;
         } catch (\Throwable $e) {
             ob_end_clean();
             throw $e;
@@ -72,20 +82,20 @@ final class View
     /**
      * Turn 'auth/login' into 'resources/views/auth/login.php'.
      */
-    private function resolvePath(string $name): string
+    private function resolvePath(string $_viewName): string
     {
-        $name = str_replace('.', '/', $name);
+        $_viewName = str_replace('.', '/', $_viewName);
 
-        if (str_ends_with($name, '.php')) {
-            $name = substr($name, 0, -4);
+        if (str_ends_with($_viewName, '.php')) {
+            $_viewName = substr($_viewName, 0, -4);
         }
 
-        $file = $this->viewPath . '/' . $name . '.php';
+        $_viewFile = $this->viewPath . '/' . $_viewName . '.php';
 
-        if (!is_file($file)) {
-            throw new RuntimeException("View not found: {$name} (looked in {$file})");
+        if (!is_file($_viewFile)) {
+            throw new RuntimeException("View not found: {$_viewName} (looked in {$_viewFile})");
         }
 
-        return $file;
+        return $_viewFile;
     }
 }

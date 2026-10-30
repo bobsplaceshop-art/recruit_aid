@@ -114,6 +114,7 @@ final class VacancyController
             'engagementsByOrg'      => $engagementsByOrg,
             'contactsByOrg'         => $contactsByOrg,
             'requirements'          => [],
+            'hiringManagerIds'      => [],
             'old'                   => [],
             'errors'                => [],
         ], 'layouts/app');
@@ -166,6 +167,9 @@ final class VacancyController
                 'engagementsByOrg' => $engagementsByOrg,
                 'contactsByOrg'    => $contactsByOrg,
                 'requirements'   => [],
+                'hiringManagerIds' => is_array($input['hiring_manager_contact_ids'] ?? null)
+                    ? array_map(static fn(mixed $v): int => is_scalar($v) ? (int) $v : 0, $input['hiring_manager_contact_ids'])
+                    : [],
                 'old'            => $input,
                 'errors'         => $result['errors'],
             ], 'layouts/app');
@@ -308,6 +312,16 @@ final class VacancyController
         $engagementsByOrg = $this->buildEngagementsByOrg($engagements);
         $contactsByOrg = $this->buildContactsByOrg($orgs);
 
+        // Hiring managers: read from the pivot. Fallback to the single column
+        // if the pivot is empty (shouldn't happen after migration 0037, but
+        // defensive).
+        /** @var \CorporateAid\Recruit\Repositories\VacancyHiringManagerRepository $hmRepo */
+        $hmRepo = $this->container->get(\CorporateAid\Recruit\Repositories\VacancyHiringManagerRepository::class);
+        $hiringManagerIds = $hmRepo->contactIdsFor($vacancy->id);
+        if (empty($hiringManagerIds) && $vacancy->hiringManagerContactId !== null) {
+            $hiringManagerIds = [$vacancy->hiringManagerContactId];
+        }
+
         $html = $view->render('vacancies/form', [
             'title'                 => 'Edit Vacancy · ' . $vacancy->title,
             'user'                  => $auth->user(),
@@ -319,6 +333,7 @@ final class VacancyController
             'engagementsByOrg'      => $engagementsByOrg,
             'contactsByOrg'         => $contactsByOrg,
             'requirements'          => $vacancies->requirementsFor($vacancy->id),
+            'hiringManagerIds'      => $hiringManagerIds,
             'old'                   => [],
             'errors'                => [],
         ], 'layouts/app');
@@ -356,15 +371,25 @@ final class VacancyController
         $result = $service->update($vacancy->id, $input);
 
         if (!$result['success']) {
+            /** @var EngagementRepository $engagements */
+            $engagements = $this->container->get(EngagementRepository::class);
+            $engagementsByOrg = $this->buildEngagementsByOrg($engagements);
+            $contactsByOrg = $this->buildContactsByOrg($orgs);
+
             $html = $view->render('vacancies/form', [
                 'title'          => 'Edit Vacancy · ' . $vacancy->title,
                 'user'           => $auth->user(),
                 'vacancy'        => $vacancy,
                 'organisations'  => $orgs->paginate([], 1, 500)['rows'],
                 'preselectedOrg' => $orgs->findById($vacancy->organisationId),
-                'preselectedEngagement' => $vacancy->engagementId ? $this->container->get(EngagementRepository::class)->findById($vacancy->engagementId) : null,
+                'preselectedEngagement' => $vacancy->engagementId ? $engagements->findById($vacancy->engagementId) : null,
                 'staffUsers'     => $users->listForAssignment(),
+                'engagementsByOrg' => $engagementsByOrg,
+                'contactsByOrg'    => $contactsByOrg,
                 'requirements'   => $vacancies->requirementsFor($vacancy->id),
+                'hiringManagerIds' => is_array($input['hiring_manager_contact_ids'] ?? null)
+                    ? array_map(static fn(mixed $v): int => is_scalar($v) ? (int) $v : 0, $input['hiring_manager_contact_ids'])
+                    : [],
                 'old'            => $input,
                 'errors'         => $result['errors'],
             ], 'layouts/app');
@@ -497,6 +522,13 @@ final class VacancyController
         $reqList  = $this->linesToList($request->input('requirements_list', ''));
         $prefList = $this->linesToList($request->input('preferred_list', ''));
 
+        // Picker fields (arrays from the chip pickers)
+        $rawRecruiterIds = $request->input('recruiter_ids', []);
+        $recruiterIds = is_array($rawRecruiterIds) ? $rawRecruiterIds : [];
+
+        $rawHmIds = $request->input('hiring_manager_contact_ids', []);
+        $hiringManagerIds = is_array($rawHmIds) ? $rawHmIds : [];
+
         return [
             'engagement_id'             => $request->input('engagement_id', null),
             'title'                     => trim($request->inputString('title', '')),
@@ -510,7 +542,9 @@ final class VacancyController
             'opening_date'              => trim($request->inputString('opening_date', '')),
             'target_hire_date'          => trim($request->inputString('target_hire_date', '')),
             'recruiter_id'              => $request->input('recruiter_id', null),
-            'hiring_manager_contact_id' => $request->input('hiring_manager_contact_id', null),
+            'recruiter_ids'             => $recruiterIds,
+            'hiring_manager_contact_id' => $this->firstInt($hiringManagerIds),
+            'hiring_manager_contact_ids' => $hiringManagerIds,
             'salary_min'                => trim($request->inputString('salary_min', '')),
             'salary_max'                => trim($request->inputString('salary_max', '')),
             'currency'                  => trim($request->inputString('currency', '')),
@@ -582,5 +616,22 @@ final class VacancyController
             ];
         }
         return $out;
+    }
+    /**
+     * Return the first positive int from a mixed value (typically an
+     * array from a chip-picker hidden input), or null if none.
+     *
+     * @param mixed $value
+     */
+    private function firstInt(mixed $value): ?int
+    {
+        if (!is_array($value)) return null;
+        foreach ($value as $v) {
+            if (is_scalar($v) && is_numeric($v)) {
+                $i = (int) $v;
+                if ($i > 0) return $i;
+            }
+        }
+        return null;
     }
 }

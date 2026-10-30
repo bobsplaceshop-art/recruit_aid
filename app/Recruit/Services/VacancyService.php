@@ -8,6 +8,8 @@ use CorporateAid\Core\Database;
 use CorporateAid\Recruit\Models\Vacancy;
 use CorporateAid\Recruit\Repositories\EngagementRepository;
 use CorporateAid\Recruit\Repositories\VacancyRepository;
+use CorporateAid\Recruit\Repositories\VacancyRecruiterRepository;
+use CorporateAid\Recruit\Repositories\VacancyHiringManagerRepository;
 use CorporateAid\Recruit\Repositories\VacancyStageRepository;
 use CorporateAid\Platform\Support\ActivityLogger;
 use CorporateAid\Platform\CustomFields\CustomFieldValueSaver;
@@ -21,6 +23,8 @@ final class VacancyService
 {
     public function __construct(
         private VacancyRepository $vacancies,
+        private VacancyRecruiterRepository $recruiters,
+        private VacancyHiringManagerRepository $hiringManagers,
         private VacancyStageRepository $stages,
         private EngagementRepository $engagements,
         private VacancyValidator $validator,
@@ -78,6 +82,9 @@ final class VacancyService
 
         $id = $this->vacancies->create($normalized);
 
+        // Sync recruiters + hiring managers pivot
+        $this->syncAssignments($id, $input);
+
         // Clone pipeline stages for the new vacancy
         $this->stages->cloneForOrganisation($id, $organisationId);
 
@@ -132,6 +139,9 @@ final class VacancyService
 
         $normalized = $this->validator->normalize($input);
         $changes = $this->vacancies->update($id, $normalized);
+
+        // Sync recruiters + hiring managers pivot
+        $this->syncAssignments($id, $input);
 
         $requirements = $this->validator->extractRequirements($input);
         $this->vacancies->syncRequirements($id, $requirements);
@@ -234,5 +244,31 @@ final class VacancyService
         if (is_bool($v)) return $v ? 'yes' : 'no';
         if ($v === null) return '(empty)';
         return is_scalar($v) ? (string) $v : '';
+    }
+    /**
+     * Sync the recruiters pivot + hiring managers (if the multi-hm
+     * table doesn't exist yet, hiring_manager_contact_id on the
+     * vacancy row is updated via the vacancy update() call).
+     *
+     * @param array<string, mixed> $input
+     */
+    private function syncAssignments(int $vacancyId, array $input): void
+    {
+        $lead = is_numeric($input['recruiter_id'] ?? null) ? (int) $input['recruiter_id'] : 0;
+        $others = is_array($input['recruiter_ids'] ?? null)
+            ? array_map(static fn(mixed $v): int => is_scalar($v) ? (int) $v : 0, $input['recruiter_ids'])
+            : [];
+        $others = array_filter($others, static fn($v) => $v > 0);
+        if ($lead > 0) {
+            array_unshift($others, $lead);
+        }
+        $this->recruiters->sync($vacancyId, array_values(array_unique($others)), $lead);
+
+        // Sync hiring managers pivot
+        $hmIds = is_array($input['hiring_manager_contact_ids'] ?? null)
+            ? array_map(static fn(mixed $v): int => is_scalar($v) ? (int) $v : 0, $input['hiring_manager_contact_ids'])
+            : [];
+        $hmIds = array_values(array_filter($hmIds, static fn(int $v): bool => $v > 0));
+        $this->hiringManagers->sync($vacancyId, $hmIds, $this->auth?->user()?->id);
     }
 }

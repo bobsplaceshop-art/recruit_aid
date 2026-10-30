@@ -273,37 +273,69 @@ $formAction = $isEdit ? '/vacancies/' . $vacancy->code : '/vacancies';
                 <input type="date" id="vac-target" name="target_hire_date" class="ra-input" value="<?= e($targetHire) ?>">
             </div>
             <div class="col-md-3">
-                <label class="ra-label" for="vac-recruiter">Assigned recruiter</label>
-                <select id="vac-recruiter" name="recruiter_id" class="ra-input ra-select" style="width:100%;">
-                    <option value="">— None —</option>
-                    <?php foreach ($staffUsers as $u): ?>
-                        <option value="<?= (int) $u['id'] ?>" <?= (string) $u['id'] === $recruiterId ? 'selected' : '' ?>>
-                            <?= e($u['name']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <label class="ra-label">Lead recruiter <span class="text-danger">*</span></label>
+                <?php
+                    $leadRecruiterItems = [];
+                    foreach ($staffUsers as $u) {
+                        $leadRecruiterItems[] = [
+                            'id'       => (int) $u['id'],
+                            'label'    => (string) $u['name'],
+                            'sublabel' => (string) ($u['email'] ?? ''),
+                        ];
+                    }
+                    $leadSelectedIds = $recruiterId !== '' ? [(int) $recruiterId] : [];
+                ?>
+                <?= view_partial('partials/chip-picker', [
+                    'id'          => 'lead-recruiter-picker',
+                    'name'        => 'recruiter_id',
+                    'items'       => $leadRecruiterItems,
+                    'selected'    => $leadSelectedIds,
+                    'mode'        => 'single',
+                    'placeholder' => 'Search for the lead recruiter…',
+                    'required'    => true,
+                ]) ?>
             </div>
             <div class="col-md-3">
-                <label class="ra-label" for="vac-hm-select">Hiring manager</label>
-                <select id="vac-hm-select" name="hiring_manager_contact_id"
-                        class="ra-input ra-select" style="width:100%;">
-                    <option value="">— None —</option>
-                    <?php
-                        $currentOrgIdForHm = $preselectedOrg ? $preselectedOrg->id : 0;
-                        foreach ($contactsByOrg as $orgId => $contactList):
-                            foreach ($contactList as $contact):
-                    ?>
-                        <option value="<?= (int) $contact['id'] ?>"
-                                data-org-id="<?= (int) $orgId ?>"
-                                <?= (string) $contact['id'] === $hmContactId ? 'selected' : '' ?>
-                                <?= $orgId !== $currentOrgIdForHm ? 'style="display:none;"' : '' ?>>
-                            <?= e($contact['name']) ?><?php if (!empty($contact['position'])): ?> · <?= e($contact['position']) ?><?php endif; ?>
-                        </option>
-                    <?php
-                            endforeach;
-                        endforeach;
-                    ?>
-                </select>
+                <label class="ra-label">Hiring manager(s) <span class="text-danger">*</span></label>
+                <?php
+                    // Only contacts at the vacancy's organisation are
+                    // eligible hiring managers. If no org is picked yet,
+                    // the list is empty and the picker shows a hint.
+                    $currentOrgId = $preselectedOrg ? (int) $preselectedOrg->id : 0;
+                    $hmItems = [];
+                    if ($currentOrgId > 0 && isset($contactsByOrg[$currentOrgId])) {
+                        foreach ($contactsByOrg[$currentOrgId] as $contact) {
+                            $hmItems[] = [
+                                'id'       => (int) $contact['id'],
+                                'label'    => (string) $contact['name'],
+                                'sublabel' => (string) ($contact['position'] ?? ''),
+                            ];
+                        }
+                    }
+                    $hmSelectedIds = $hiringManagerIds ?? [];
+                    if (empty($hmSelectedIds) && $hmContactId !== '') {
+                        $hmSelectedIds = [(int) $hmContactId];
+                    }
+                ?>
+                <?php if (empty($hmItems) && !$preselectedOrg): ?>
+                    <div class="ra-alert ra-alert-warn" style="padding:.5rem .75rem;font-size:.85rem;">
+                        Select an organisation first to choose hiring managers.
+                    </div>
+                <?php elseif (empty($hmItems)): ?>
+                    <div class="ra-alert ra-alert-warn" style="padding:.5rem .75rem;font-size:.85rem;">
+                        This organisation has no contacts yet. <a href="/organisations/<?= e($preselectedOrg->code) ?>/contacts/create">Add a contact</a> first.
+                    </div>
+                <?php else: ?>
+                    <?= view_partial('partials/chip-picker', [
+                        'id'          => 'hiring-manager-picker',
+                        'name'        => 'hiring_manager_contact_ids[]',
+                        'items'       => $hmItems,
+                        'selected'    => $hmSelectedIds,
+                        'mode'        => 'multi',
+                        'placeholder' => 'Search hiring managers…',
+                        'required'    => true,
+                    ]) ?>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -464,3 +496,5 @@ $formAction = $isEdit ? '/vacancies/' . $vacancy->code : '/vacancies';
     }
 })();
 </script>
+
+<?= view_partial('partials/chip-picker-script') ?>

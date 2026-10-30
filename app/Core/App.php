@@ -18,6 +18,8 @@ use CorporateAid\Recruit\Repositories\ScorecardRepository;
 use CorporateAid\Recruit\Repositories\OfferRepository;
 use CorporateAid\Recruit\Repositories\CandidateRepository;
 use CorporateAid\Recruit\Repositories\VacancyStageRepository;
+use CorporateAid\Recruit\Repositories\VacancyRecruiterRepository;
+use CorporateAid\Recruit\Repositories\VacancyHiringManagerRepository;
 use CorporateAid\Platform\Repositories\FileRepository;
 use CorporateAid\Platform\Repositories\EmailTemplateRepository;
 use CorporateAid\Platform\Repositories\EntityFileRepository;
@@ -48,6 +50,7 @@ use CorporateAid\Recruit\Services\InterviewService;
 use CorporateAid\Recruit\Services\OfferService;
 use CorporateAid\Recruit\Services\ReportService;
 use CorporateAid\Platform\Services\SystemSettingService;
+use CorporateAid\Platform\Export\CsvExporter;
 use CorporateAid\Platform\Services\FileService;
 use CorporateAid\Platform\Services\NotificationService;
 use CorporateAid\Platform\Services\NotificationRuleService;
@@ -228,6 +231,8 @@ final class App
         $c->singleton(VacancyRepository::class,           fn() => new VacancyRepository($c->get(Database::class)));
         $c->singleton(CandidateRepository::class,         fn() => new CandidateRepository($c->get(Database::class)));
         $c->singleton(VacancyStageRepository::class,      fn() => new VacancyStageRepository($c->get(Database::class)));
+        $c->singleton(VacancyRecruiterRepository::class,   fn() => new VacancyRecruiterRepository($c->get(Database::class)));
+        $c->singleton(VacancyHiringManagerRepository::class, fn() => new VacancyHiringManagerRepository($c->get(Database::class)));
         $c->singleton(ApplicationRepository::class,        fn() => new ApplicationRepository($c->get(Database::class)));
         $c->singleton(InterviewRepository::class,          fn() => new InterviewRepository($c->get(Database::class)));
         $c->singleton(ScorecardRepository::class,          fn() => new ScorecardRepository($c->get(Database::class)));
@@ -323,6 +328,8 @@ final class App
         // ---------- Vacancy service ----------
         $c->singleton(VacancyService::class, fn() => new VacancyService(
             $c->get(VacancyRepository::class),
+            $c->get(VacancyRecruiterRepository::class),
+            $c->get(VacancyHiringManagerRepository::class),
             $c->get(VacancyStageRepository::class),
             $c->get(EngagementRepository::class),
             $c->get(VacancyValidator::class),
@@ -346,6 +353,8 @@ final class App
             $c->get(VacancyRepository::class),
             $c->get(VacancyStageRepository::class),
             $c->get(EngagementRepository::class),
+            $c->get(EngagementAssignmentRepository::class),
+            $c->get(VacancyRecruiterRepository::class),
             $c->get(SystemSettingService::class),
             $c->get(ActivityLogger::class),
             $c->get(Auth::class)
@@ -378,6 +387,8 @@ final class App
         $c->singleton(ReportService::class, fn() => new ReportService(
             $c->get(Database::class)
         ));
+
+        $c->singleton(CsvExporter::class, fn() => new CsvExporter());
 
         // ---------- Dashboard ----------
         $c->singleton(DashboardService::class, fn() => new DashboardService(
