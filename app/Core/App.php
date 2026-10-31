@@ -33,6 +33,7 @@ use CorporateAid\Platform\Services\LookupService;
 use CorporateAid\Platform\Services\GlobalSearchService;
 use CorporateAid\Platform\LiveSearch\LiveSearchRegistry;
 use CorporateAid\Platform\Modules\ModuleRegistrar;
+use CorporateAid\Platform\Modules\EventBus;
 use CorporateAid\Platform\LiveSearch\LiveSearchService;
 use CorporateAid\Platform\LiveSearch\LiveSearchable;
 use CorporateAid\Platform\Repositories\UserRepository;
@@ -228,6 +229,8 @@ final class App
         $c->singleton(UserRepository::class,              fn() => new UserRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(PersonRepository::class,            fn() => new PersonRepository($c->get(Database::class)));
         $c->singleton(PersonService::class,               fn() => new PersonService($c->get(PersonRepository::class)));
+
+        $c->singleton(EventBus::class,                    fn() => new EventBus($c->get(Database::class)));
         $c->singleton(RoleRepository::class,              fn() => new RoleRepository($c->get(Database::class)));
         $c->singleton(LookupRepository::class,            fn() => new LookupRepository($c->get(Database::class)));
         $c->singleton(LiveSearchService::class, fn() => new LiveSearchService($c->get(Database::class), $c->get(View::class), $c->get(Auth::class)));

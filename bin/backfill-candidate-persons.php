@@ -4,6 +4,7 @@ declare(strict_types=1);
 use CorporateAid\Core\Database;
 use CorporateAid\Core\DatabaseConfig;
 use CorporateAid\Core\PDOParams;
+use CorporateAid\Core\Row;
 use CorporateAid\Platform\Shared\Repositories\PersonRepository;
 
 /**
@@ -61,9 +62,9 @@ $failedIds  = [];
 echo "Candidates needing a person link: {$total}\n";
 
 foreach ($rows as $row) {
-    $id        = (int) $row['id'];
-    $firstName = trim((string) ($row['first_name'] ?? ''));
-    $lastName  = trim((string) ($row['last_name'] ?? ''));
+    $id        = Row::int($row, 'id');
+    $firstName = trim(Row::str($row, 'first_name'));
+    $lastName  = trim(Row::str($row, 'last_name'));
 
     if ($firstName === '' || $lastName === '') {
         $skipped++;

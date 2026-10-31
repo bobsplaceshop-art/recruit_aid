@@ -11,8 +11,14 @@ final class Module implements ModuleContract
     public function getKey(): string { return 'recruit'; }
     public function getName(): string { return 'Recruit Aid'; }
     public function getVersion(): string { return '0.6.0-alpha'; }
+    
+    /** @return string[] */
     public function getMigrations(): array { return []; }
+    
+    /** @return string[] */
     public function getPermissions(): array { return []; }
+    
+    /** @return string[] */
     public function getEvents(): array { return []; }
     
     public function register(Container $c): void

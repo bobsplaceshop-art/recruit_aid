@@ -8,8 +8,15 @@ interface ModuleContract
     public function getKey(): string;
     public function getName(): string;
     public function getVersion(): string;
+    
+    /** @return string[] */
     public function getMigrations(): array;
+    
+    /** @return string[] */
     public function getPermissions(): array;
+    
+    /** @return string[] */
     public function getEvents(): array;
+    
     public function register(\CorporateAid\Core\Container $c): void;
 }

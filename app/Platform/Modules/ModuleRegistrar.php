@@ -34,8 +34,7 @@ final class ModuleRegistrar
 
             /** @var ModuleContract $module */
             $module = new $class();
-            if (!$module instanceof ModuleContract) continue;
-
+            
             self::$modules[$module->getKey()] = $module;
 
             $db->execute(
@@ -75,6 +74,7 @@ final class ModuleRegistrar
         return self::$modules[$key];
     }
 
+    /** @return array<string, ModuleContract> */
     public static function all(): array
     {
         return self::$modules;

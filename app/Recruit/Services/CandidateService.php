@@ -76,9 +76,9 @@ final class CandidateService
         $this->db->beginTransaction();
         try {
             $personId = $this->persons->create([
-                'first_name' => (string) $normalized['first_name'],
-                'last_name'  => (string) $normalized['last_name'],
-                'created_by' => $normalized['created_by'] ?? null,
+                'first_name' => Row::str($normalized, 'first_name'),
+                'last_name'  => Row::str($normalized, 'last_name'),
+                'created_by' => Row::nullableInt($normalized, 'created_by'),
             ]);
 
             $normalized['person_id'] = $personId;
