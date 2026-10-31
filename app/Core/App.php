@@ -394,6 +394,7 @@ final class App
         ));
 
         $c->singleton(InterviewService::class, fn() => new InterviewService(
+            $c->get(Database::class),
             $c->get(InterviewRepository::class),
             $c->get(ScorecardRepository::class),
             $c->get(ApplicationRepository::class),
