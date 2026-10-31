@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Repositories;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Models\Interview;
@@ -11,13 +12,17 @@ use CorporateAid\Recruit\Models\InterviewParticipant;
 
 final class InterviewRepository
 {
-    public function __construct(private Database $db) {}
+    public function __construct(
+        private Database $db,
+        private TenantContext $tenant
+    ) {}
 
     public function findById(int $id): ?Interview
     {
         $row = $this->db->selectOne(
             "SELECT * FROM `recruit_interviews` WHERE `id` = ? AND `deleted_at` IS NULL LIMIT 1",
-            PDOParams::positional([$id])
+            PDOParams::positional([$this->tenant->id(),
+            $id])
         );
         return $row ? Interview::fromRow($row) : null;
     }
@@ -129,8 +134,8 @@ final class InterviewRepository
     {
         return $this->db->insert(
             "INSERT INTO `recruit_interviews`
-                (`code`, `application_id`, `scheduled_at`, `duration_minutes`, `type`, `location`, `status`, `notes`, `created_by`)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (`tenant_id`, `code`, `application_id`, `scheduled_at`, `duration_minutes`, `type`, `location`, `status`, `notes`, `created_by`)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             PDOParams::positional([
                 $data['code'],
                 $data['application_id'],

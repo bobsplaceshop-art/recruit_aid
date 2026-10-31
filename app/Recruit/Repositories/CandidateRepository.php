@@ -64,8 +64,8 @@ final class CandidateRepository implements \CorporateAid\Platform\LiveSearch\Liv
      */
     public function paginate(array $filters = [], int $page = 1, int $perPage = 25): array
     {
-        $where = ["`deleted_at` IS NULL"];
-        $params = [];
+        $where = ["`deleted_at` IS NULL", "`tenant_id` = ?"];
+        $params = [$this->tenant->id()];
 
         if (!empty($filters['search'])) {
             $where[] = "(`first_name` LIKE ? OR `last_name` LIKE ? OR `email` LIKE ? OR `code` LIKE ?)";

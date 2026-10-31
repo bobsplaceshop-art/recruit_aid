@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Services;
 
 use CorporateAid\Core\Auth;
+use CorporateAid\Platform\Modules\EventBus;
+use CorporateAid\Platform\Modules\Events\PersonHiredEvent;
 use CorporateAid\Platform\Support\ActivityLogger;
 use CorporateAid\Platform\Support\EmailService;
 use CorporateAid\Recruit\Models\Offer;
@@ -23,8 +25,10 @@ final class OfferService
         private VacancyRepository $vacancies,
         private ActivityLogger $activity,
         private EmailService $mailer,
-        private ?Auth $auth = null
+        private ?Auth $auth = null,
+        private ?EventBus $events = null
     ) {}
+
 
     /**
      * Create a new draft offer against an application.
@@ -266,6 +270,9 @@ final class OfferService
         $application = $this->applications->findById($applicationId);
         if ($application === null) return;
 
+        $candidate = $this->candidates->findById($application->candidateId);
+        if ($candidate === null) return;
+
         // 1. Move the application to the terminal 'Hired' stage (if any)
         $stages = $this->stages->forVacancy($application->vacancyId);
         $hiredStage = null;
@@ -287,37 +294,20 @@ final class OfferService
         }
 
         // 3. Mark the candidate as hired
-        $candidate = $this->candidates->findById($application->candidateId);
-        if ($candidate !== null && $candidate->status !== 'hired') {
+        if ($candidate->status !== 'hired') {
             $this->candidates->update($candidate->id, ['status' => 'hired']);
-            $this->activity->log(
-                'candidate.hired',
-                'candidates',
-                'Marked candidate ' . $candidate->fullName() . ' (' . $candidate->code . ') as hired',
-                'candidate',
-                $candidate->id
-            );
         }
 
-        // 4. Count hired applications vs. vacancies.positions_count
-        $vacancy = $this->vacancies->findById($application->vacancyId);
-        if ($vacancy === null) return;
-
-        $hiredCount = $this->applications->countHiredByVacancy($vacancy->id);
-        $positionsNeeded = max(1, $vacancy->positionsCount);
-
-        // Only flip to 'filled' if all positions are hired and the vacancy
-        // isn't already in a terminal state.
-        $terminalStatuses = ['filled', 'closed', 'cancelled'];
-        if ($hiredCount >= $positionsNeeded && !in_array($vacancy->status, $terminalStatuses, true)) {
-            $this->vacancies->update($vacancy->id, ['status' => 'filled']);
-            $this->activity->log(
-                'vacancy.filled',
-                'vacancies',
-                'Marked vacancy ' . $vacancy->code . ' as filled (' . $hiredCount . '/' . $positionsNeeded . ' hires)',
-                'vacancy',
-                $vacancy->id
-            );
+        // 4. Dispatch the cross-module event
+        if ($candidate->personId !== null) {
+            $user = $this->auth?->user();
+            $tenantId = $user->tenantId ?? 1;
+            $this->events?->dispatch(PersonHiredEvent::TYPE, [
+                'tenant_id'    => $tenantId,
+                'person_id'    => $candidate->personId,
+                'candidate_id' => $candidate->id
+            ]);
         }
     }
+
 }

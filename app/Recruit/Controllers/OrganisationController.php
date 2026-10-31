@@ -43,9 +43,6 @@ final class OrganisationController
         $result = $orgs->paginate($filters, $page, $perPage);
         $counts = $orgs->countsByStatus();
 
-        // Add the "all" count
-        $counts['all'] = array_sum($counts);
-
         $html = $view->render('organisations/index', [
             'title'        => 'Organisations',
             'user'         => $auth->user(),

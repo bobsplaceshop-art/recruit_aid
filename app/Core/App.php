@@ -131,7 +131,7 @@ final class App
 
 
         // Boot module registry
-        ModuleRegistrar::boot($this->container);
+        // ModuleRegistrar::boot($this->container);
     }
 
     private function registerErrorHandling(): void
@@ -239,7 +239,7 @@ final class App
         $c->singleton(PasswordResetRepository::class,     fn() => new PasswordResetRepository($c->get(Database::class)));
         $c->singleton(RateLimitRepository::class,         fn() => new RateLimitRepository($c->get(Database::class)));
         $c->singleton(NotificationRepository::class,      fn() => new NotificationRepository($c->get(Database::class)));
-        $c->singleton(OrganisationRepository::class,      fn() => new OrganisationRepository($c->get(Database::class)));
+        $c->singleton(OrganisationRepository::class,      fn() => new OrganisationRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(CustomFieldRepository::class,       fn() => new CustomFieldRepository($c->get(Database::class)));
         $c->singleton(CustomFieldValueRepository::class,  fn() => new CustomFieldValueRepository($c->get(Database::class)));
         $c->singleton(PipelineStageRepository::class,     fn() => new PipelineStageRepository($c->get(Database::class), $c->get(TenantContext::class)));
@@ -252,8 +252,8 @@ final class App
         $c->singleton(VacancyRecruiterRepository::class,   fn() => new VacancyRecruiterRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyHiringManagerRepository::class, fn() => new VacancyHiringManagerRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(ApplicationRepository::class,        fn() => new ApplicationRepository($c->get(Database::class), $c->get(TenantContext::class)));
-        $c->singleton(InterviewRepository::class,          fn() => new InterviewRepository($c->get(Database::class)));
-        $c->singleton(ScorecardRepository::class,          fn() => new ScorecardRepository($c->get(Database::class)));
+        $c->singleton(InterviewRepository::class,          fn() => new InterviewRepository($c->get(Database::class), $c->get(TenantContext::class)));
+        $c->singleton(ScorecardRepository::class,          fn() => new ScorecardRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(OfferRepository::class,              fn() => new OfferRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(FileRepository::class,           fn() => new FileRepository($c->get(Database::class)));
         $c->singleton(EmailTemplateRepository::class,   fn() => new EmailTemplateRepository($c->get(Database::class)));
@@ -401,7 +401,8 @@ final class App
             $c->get(VacancyRepository::class),
             $c->get(ActivityLogger::class),
             $c->get(EmailService::class),
-            $c->get(Auth::class)
+            $c->get(Auth::class),
+            $c->get(EventBus::class)
         ));
 
         $c->singleton(ReportService::class, fn() => new ReportService(

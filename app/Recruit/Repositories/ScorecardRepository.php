@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Repositories;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Models\Scorecard;
@@ -11,13 +12,17 @@ use CorporateAid\Recruit\Models\ScorecardAttribute;
 
 final class ScorecardRepository
 {
-    public function __construct(private Database $db) {}
+    public function __construct(
+        private Database $db,
+        private TenantContext $tenant
+    ) {}
 
     public function findById(int $id): ?Scorecard
     {
         $row = $this->db->selectOne(
             "SELECT * FROM `recruit_scorecards` WHERE `id` = ? LIMIT 1",
-            PDOParams::positional([$id])
+            PDOParams::positional([$this->tenant->id(),
+            $id])
         );
         return $row ? Scorecard::fromRow($row) : null;
     }
@@ -59,8 +64,8 @@ final class ScorecardRepository
 
         return $this->db->insert(
             "INSERT INTO `recruit_scorecards`
-                (`interview_id`, `interviewer_id`, `recommendation`, `notes`, `submitted_at`)
-             VALUES (?, ?, ?, ?, ?)",
+                (`tenant_id`, `interview_id`, `interviewer_id`, `recommendation`, `notes`, `submitted_at`)
+             VALUES (?, ?, ?, ?, ?, ?)",
             PDOParams::positional([$interviewId, $interviewerId, $recommendation, $notes, $submittedAt])
         );
     }

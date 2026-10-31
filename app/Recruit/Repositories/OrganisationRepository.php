@@ -4,13 +4,17 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Repositories;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
 use CorporateAid\Recruit\Models\Organisation;
 
 final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
-    public function __construct(private Database $db) {}
+    public function __construct(
+        private Database $db,
+        private TenantContext $tenant
+    ) {}
 
     public function findById(int $id): ?Organisation
     {
@@ -62,8 +66,8 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
      */
     public function paginate(array $filters = [], int $page = 1, int $perPage = 25): array
     {
-        $where = [];
-        $params = [];
+        $where = ["`tenant_id` = ?"];
+        $params = [$this->tenant->id()];
 
         if (empty($filters['include_deleted'])) {
             $where[] = "`deleted_at` IS NULL";
@@ -84,7 +88,7 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
             $params[] = $filters['status'];
         }
 
-        $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
         $paramObj = PDOParams::positional($params);
 
         $total = $this->db->scalarInt(
@@ -119,17 +123,20 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
     {
         $rows = $this->db->select(
             "SELECT `status`, COUNT(*) AS n FROM `recruit_client_organisations`
-             WHERE `deleted_at` IS NULL
-             GROUP BY `status`"
+             WHERE `deleted_at` IS NULL AND `tenant_id` = ?
+             GROUP BY `status`",
+            PDOParams::positional([$this->tenant->id()])
         );
 
         $counts = ['all' => 0, 'prospect' => 0, 'active' => 0, 'inactive' => 0, 'former_client' => 0];
         foreach ($rows as $row) {
             $s = Row::str($row, 'status');
             $n = Row::int($row, 'n');
-            $counts[$s] = $n;
-            $counts['all'] += $n;
+            if (array_key_exists($s, $counts)) {
+                $counts[$s] = $n; 
+            }
         }
+        $counts['all'] = $counts['prospect'] + $counts['active'] + $counts['inactive'] + $counts['former_client'];
         return $counts;
     }
 
@@ -137,12 +144,13 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
     public function create(array $data): int
     {
         $sql = "INSERT INTO `recruit_client_organisations`
-            (`code`, `name`, `legal_name`, `industry`, `website`,
+            (`tenant_id`, `code`, `name`, `legal_name`, `industry`, `website`,
              `country_code`, `countries_operation`, `address`, `phone`, `email`,
              `status`, `notes`, `created_by`)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         return $this->db->insert($sql, PDOParams::positional([
+            $this->tenant->id(),
             $data['code'],
             $data['name'],
             $data['legal_name'] ?? null,
