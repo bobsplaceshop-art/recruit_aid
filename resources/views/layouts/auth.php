@@ -33,6 +33,7 @@
         <link rel="icon" href="/files/<?= e($fav) ?>">
     <?php endif; ?>
     <style>
+        :root { --ra-primary: <?= e($tenant['primary_color'] ?? '#0f4c81') ?>; }
         /* Override theme defaults — higher specificity than :root or [data-theme] */
         html[data-theme], html {
             --ra-primary: <?= e($primaryColor) ?> !important;
@@ -48,8 +49,8 @@
         .muted { color:#94a3b8; }
         .form-control, .form-control:focus { background:#0b1424; border-color:#1f2a44; color:#e2e8f0; }
         .form-control:focus { box-shadow:0 0 0 .2rem rgba(15,76,129,.35); border-color:#0f4c81; }
-        .btn-primary { background:#0f4c81; border-color:#0f4c81; }
-        .btn-primary:hover { background:#0d416e; border-color:#0d416e; }
+        .btn-primary { background:var(--ra-primary, #0f4c81); border-color:var(--ra-primary, #0f4c81); }
+        .btn-primary:hover { filter: brightness(0.9); }
         .alert-error { background:#3b1414; color:#fecaca; border:1px solid #7f1d1d; }
         .alert-success { background:#0f2c1c; color:#bbf7d0; border:1px solid #166534; }
     </style>
@@ -59,8 +60,10 @@
         <div class="brand mb-1">
             <span class="brand-mark"></span>
             <?php
-                $brandLogo = app_setting('branding.logo_path', '');
-                $brandName = app_setting('branding.app_name', 'Recruit Aid');
+                $tenantLogo = $tenant['logo_path'] ?? '';
+                $brandLogo = $tenantLogo !== '' ? $tenantLogo : app_setting('branding.logo_path', '');
+                $brandName = 'CAS Suite';
+                $loginMessage = $tenant['login_message'] ?? app_setting('branding.tagline', 'Corporate Aid Suite');
             ?>
             <?php if ($brandLogo !== ''): ?>
                 <img src="/files/<?= e($brandLogo) ?>" alt="<?= e($brandName) ?>" style="max-height:48px;max-width:200px;width:auto;object-fit:contain;">
@@ -68,7 +71,7 @@
                 <span><?= e($brandName) ?></span>
             <?php endif; ?>
         </div>
-        <p class="muted mb-4"><?= e(app_setting('branding.tagline', 'Recruitment Operations Platform')) ?></p>
+        <p class="muted mb-4"><?= e($loginMessage) ?></p>
 
         <?php
             // Prefer view data (set by controller). Fall back to flash.

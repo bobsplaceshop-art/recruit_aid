@@ -31,6 +31,11 @@ final class AuthController
         $view = $this->container->get(View::class);
         /** @var Session $session */
         $session = $this->container->get(Session::class);
+        /** @var \CorporateAid\Core\Database $db */
+        $db = $this->container->get(\CorporateAid\Core\Database::class);
+
+        // Fetch default tenant for branding
+        $tenant = $db->selectOne("SELECT `logo_path`, `primary_color`, `login_message` FROM `core_tenants` WHERE `id` = 1 LIMIT 1");
 
         $intended = $request->queryStringValue('intended', '');
         $oldEmail = is_scalar($session->old('email', '')) ? (string) $session->old('email', '') : '';
@@ -41,6 +46,7 @@ final class AuthController
             'error'    => is_string($error) ? $error : null,
             'intended' => $intended,
             'email'    => $oldEmail,
+            'tenant'   => $tenant ?: [],
         ], 'layouts/auth');
 
         return Response::html($html);
@@ -126,6 +132,9 @@ final class AuthController
         $auth->logout();
         $csrf->rotate();
 
-        return Response::redirect('/login');
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        $html = $view->render('auth/logout', [], 'layouts/auth');
+        return Response::html($html);
     }
 }

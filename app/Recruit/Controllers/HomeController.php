@@ -49,4 +49,16 @@ final class HomeController
             'time' => date('c'),
         ]);
     }
+    /** @param array<string, string> $params */
+    public function noAccess(Request $request, array $params = []): Response
+    {
+        /** @var View $view */
+        $view = $this->container->get(View::class);
+        $html = $view->render('errors/403', [
+            'title' => 'Access Denied',
+            'message' => 'You do not have permission to access any modules or the CAS Dashboard.',
+        ], 'layouts/auth');
+        return Response::html($html, 403);
+    }
+
 }

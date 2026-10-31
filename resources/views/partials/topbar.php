@@ -10,7 +10,10 @@
             <i class="bi bi-list" style="font-size:1.15rem;"></i>
         </button>
 
-        <div class="ra-breadcrumbs d-none d-md-flex">
+        <div class="ra-breadcrumbs d-none d-md-flex align-items-center gap-2">
+            <a href="/" class="ra-icon-btn" title="Back to CAS Suite" style="margin-right: 0.5rem; text-decoration: none;">
+                <i class="bi bi-grid-1x2-fill" style="color: var(--ra-primary);"></i>
+            </a>
             <a href="/recruit/dashboard">Home</a>
             <?php if (!empty($title) && $title !== 'Dashboard'): ?>
                 <span>/</span>

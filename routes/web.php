@@ -15,6 +15,7 @@ use CorporateAid\Recruit\Controllers\Admin\AdminNotificationRuleController;
 use CorporateAid\Recruit\Controllers\Admin\AdminUserController;
 use CorporateAid\Recruit\Controllers\DashboardController;
 use CorporateAid\Recruit\Controllers\HomeController;
+use CorporateAid\Recruit\Controllers\AuthController;
 use CorporateAid\Platform\Controllers\PortalController;
 use CorporateAid\Recruit\Controllers\NotificationController;
 use CorporateAid\Recruit\Controllers\OrganisationController;
@@ -38,6 +39,13 @@ use CorporateAid\Recruit\Controllers\ExportController;
 /** @var Router $router */
 
 $router->get('/',       [PortalController::class, 'index'], ['auth']);
+
+// ---------- Auth (Root) ----------
+$router->get('/login',  [AuthController::class, 'showLogin']);
+$router->post('/login', [AuthController::class, 'login']);
+$router->get('/logout', [AuthController::class, 'logout']); // Allow GET for convenience
+$router->post('/logout',[AuthController::class, 'logout']);
+
 $router->get('/health', [HomeController::class, 'health']);
 
 // ---------- Coming Soon (planned features) ----------
@@ -283,3 +291,6 @@ $router->get('/recruit/api/search',               [GlobalSearchController::class
 $router->get('/recruit/api/notifications',        [NotificationController::class, 'api'],         ['auth']);
 $router->post('/recruit/notifications/{id}/read', [NotificationController::class, 'markRead'],    ['auth', 'csrf']);
 $router->post('/recruit/notifications/read-all',  [NotificationController::class, 'markAllRead'], ['auth', 'csrf']);
+
+// ---------- No Access ----------
+$router->get('/no-access', [HomeController::class, 'noAccess'], ['auth']);
