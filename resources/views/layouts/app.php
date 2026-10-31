@@ -59,6 +59,15 @@ if (function_exists('flash')) {
     })();
     </script>
 <link rel="stylesheet" href="/assets/vendor/air-datepicker/air-datepicker.css">
+    <script>
+        // Force reload if the page is loaded from the back-forward cache
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+    </script>
+
 </head>
 <body>
     <div class="ra-shell">

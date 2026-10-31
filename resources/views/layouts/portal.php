@@ -17,6 +17,15 @@
         } catch (e) {}
     })();
     </script>
+    <script>
+        // Force reload if the page is loaded from the back-forward cache
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted || (typeof window.performance != 'undefined' && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+    </script>
+
 </head>
 <body>
     <nav class="ra-navbar" style="border-bottom: 1px solid var(--ra-border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;">

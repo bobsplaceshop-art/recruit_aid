@@ -31,7 +31,15 @@ final class AuthMiddleware
     public function handle(Request $request, callable $next): Response
     {
         if ($this->auth->check()) {
-            return $next($request);
+            $response = $next($request);
+            
+            // Prevent browser Back-Forward cache (bfcache) from showing
+            // a logged-in page after logout.
+            return $response->withHeaders([
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma'        => 'no-cache',
+                'Expires'       => '0',
+            ]);
         }
 
         $intended = $request->path();
