@@ -84,10 +84,10 @@ final class User
 
     public function can(string $permission): bool
     {
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-        return in_array($permission, $this->permissionSlugs, true);
+        // Delegate to the central AuthorizationService. The service
+        // applies the 11-rule precedence from docs/RBAC-ARCHITECTURE.md §5.2,
+        // including sensitivity-aware super_admin bypass.
+        return \CorporateAid\Platform\Authorization\AuthorizationService::check($this, $permission);
     }
 
     public function firstName(): string

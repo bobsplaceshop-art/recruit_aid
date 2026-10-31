@@ -6,6 +6,7 @@ namespace CorporateAid\Platform\Modules;
 use CorporateAid\Core\Container;
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
+use CorporateAid\Platform\Authorization\PermissionRegistry;
 use CorporateAid\Platform\Modules\Contracts\ModuleContract;
 use RuntimeException;
 
@@ -61,6 +62,19 @@ final class ModuleRegistrar
                     json_encode([])
                 ])
             );
+
+            // Register the module's permission definitions so the RBAC
+            // registry reflects what this module declares.
+            try {
+                (new PermissionRegistry($db))->register(
+                    $module->getKey(),
+                    $module->getPermissionDefinitions()
+                );
+            } catch (\Throwable $e) {
+                // Registration errors (e.g., namespace collision) must not
+                // take down the whole app. Log and continue.
+                \CorporateAid\Platform\Support\Logger::exception($e);
+            }
 
             $module->register($c);
         }

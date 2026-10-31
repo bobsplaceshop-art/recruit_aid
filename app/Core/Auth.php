@@ -152,7 +152,7 @@ final class Auth
 
     public function canAccessGlobalDashboard(): bool
     {
-        return $this->can('cas.dashboard.view');
+        return $this->can('cas.dashboard.access');
     }
 
     public function getDefaultApplication(): ?string

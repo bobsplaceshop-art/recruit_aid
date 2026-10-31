@@ -19,9 +19,19 @@ interface ModuleContract
     public function getEvents(): array;
     
     /**
-     * Returns aggregated metrics for the CAS Dashboard.
-     * @return array<string, int|string>
+     * Structured permission definitions for the RBAC registry.
+     * Each definition MUST declare the sensitivity class so the
+     * AuthorizationService knows how to evaluate it.
+     *
+     * @return array<int, array{
+     *   slug:        string,
+     *   name:        string,
+     *   description: string,
+     *   sensitivity: 'public'|'sensitive'|'restricted'
+     * }>
      */
+    public function getPermissionDefinitions(): array;
+    
     public function getDashboardMetrics(int $tenantId, \CorporateAid\Core\Container $c): array;
 
     public function register(\CorporateAid\Core\Container $c): void;

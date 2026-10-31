@@ -1,0 +1,91 @@
+-- =====================================================================
+-- 0046_extend_rbac_schema.sql
+-- CAS Suit RBAC Extension - Batch 33.1
+-- =====================================================================
+
+-- 1. Extend core_permissions
+ALTER TABLE `core_permissions`
+    ADD COLUMN `sensitivity` ENUM('public', 'sensitive', 'restricted') NOT NULL DEFAULT 'public' AFTER `description`,
+    ADD COLUMN `registered_version` VARCHAR(20) NULL AFTER `sensitivity`,
+    ADD COLUMN `is_active` TINYINT(1) NOT NULL DEFAULT 1 AFTER `registered_version`;
+
+-- 2. Extend core_roles
+ALTER TABLE `core_roles`
+    ADD COLUMN `is_system` TINYINT(1) NOT NULL DEFAULT 0 AFTER `module_key`,
+    ADD COLUMN `template_slug` VARCHAR(80) NULL AFTER `is_system`;
+
+-- Update existing super_admin role to is_system = 1
+UPDATE `core_roles` SET `is_system` = 1 WHERE `slug` = 'super_admin';
+
+-- 3. Extend core_user_roles
+ALTER TABLE `core_user_roles`
+    ADD COLUMN `assigned_by` INT UNSIGNED NULL AFTER `role_id`,
+    ADD COLUMN `expires_at` DATETIME NULL AFTER `assigned_at`,
+    ADD CONSTRAINT `fk_ur_assigned_by` FOREIGN KEY (`assigned_by`) REFERENCES `core_users` (`id`) ON DELETE SET NULL;
+
+-- 4. Create core_permission_registrations
+CREATE TABLE IF NOT EXISTS `core_permission_registrations` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `module_key` VARCHAR(40) NOT NULL,
+    `slug` VARCHAR(120) NOT NULL,
+    `name` VARCHAR(150) NOT NULL,
+    `description` TEXT NULL,
+    `sensitivity` ENUM('public', 'sensitive', 'restricted') NOT NULL DEFAULT 'public',
+    `registered_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uniq_reg_module_slug` (`module_key`, `slug`),
+    CONSTRAINT `fk_reg_module` FOREIGN KEY (`module_key`) REFERENCES `core_modules` (`module_key`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 5. Create core_admin_delegations
+CREATE TABLE IF NOT EXISTS `core_admin_delegations` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `user_id` INT UNSIGNED NOT NULL,
+    `tenant_id` INT UNSIGNED NOT NULL,
+    `module_key` VARCHAR(40) NOT NULL,
+    `granted_by` INT UNSIGNED NOT NULL,
+    `granted_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `expires_at` DATETIME NULL,
+    `revoked_at` DATETIME NULL,
+    `allowed_permissions_json` JSON NOT NULL,
+    `denied_permissions_json` JSON NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_del_user_module` (`user_id`, `module_key`),
+    CONSTRAINT `fk_del_user` FOREIGN KEY (`user_id`) REFERENCES `core_users` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_del_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `core_tenants` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_del_module` FOREIGN KEY (`module_key`) REFERENCES `core_modules` (`module_key`) ON DELETE CASCADE,
+    CONSTRAINT `fk_del_granted_by` FOREIGN KEY (`granted_by`) REFERENCES `core_users` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 6. Create core_permission_policies
+CREATE TABLE IF NOT EXISTS `core_permission_policies` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `tenant_id` INT UNSIGNED NOT NULL,
+    `permission_slug` VARCHAR(120) NOT NULL,
+    `effect` ENUM('allow', 'deny') NOT NULL DEFAULT 'deny',
+    `reason` VARCHAR(255) NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_pol_tenant_perm` (`tenant_id`, `permission_slug`),
+    CONSTRAINT `fk_pol_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `core_tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 7. Create core_rbac_audit_logs
+CREATE TABLE IF NOT EXISTS `core_rbac_audit_logs` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `tenant_id` INT UNSIGNED NOT NULL,
+    `actor_id` INT UNSIGNED NULL,
+    `action` VARCHAR(80) NOT NULL,
+    `target_type` VARCHAR(40) NULL,
+    `target_id` INT UNSIGNED NULL,
+    `module_key` VARCHAR(40) NULL,
+    `before_json` JSON NULL,
+    `after_json` JSON NULL,
+    `ip_address` VARCHAR(45) NULL,
+    `user_agent` VARCHAR(255) NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_audit_tenant_action` (`tenant_id`, `action`),
+    KEY `idx_audit_actor` (`actor_id`),
+    KEY `idx_audit_created` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -34,6 +34,7 @@ use CorporateAid\Platform\Services\GlobalSearchService;
 use CorporateAid\Platform\LiveSearch\LiveSearchRegistry;
 use CorporateAid\Platform\Modules\ModuleRegistrar;
 use CorporateAid\Platform\Modules\EventBus;
+use CorporateAid\Platform\Authorization\AuthorizationService;
 use CorporateAid\Platform\LiveSearch\LiveSearchService;
 use CorporateAid\Platform\LiveSearch\LiveSearchable;
 use CorporateAid\Platform\Repositories\UserRepository;
@@ -119,6 +120,10 @@ final class App
         $this->loadConfig();
         $this->registerTimezone();
         $this->registerServices();
+
+        // Boot the central authorization service after container bindings
+        // so it can resolve Database and TenantContext.
+        AuthorizationService::boot($this->container);
         $this->loadRoutes();
 
         // Boot live search registry — after all repository services are bound

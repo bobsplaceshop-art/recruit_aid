@@ -2,8 +2,13 @@
 <?php /** @var array<string, array<string, mixed>> $metrics */ ?>
 <div class="row g-4 mt-2">
     <div class="col-12 mb-3">
-        <h1 class="h3" style="color:var(--ra-text-strong);">Welcome to CAS Suite</h1>
-        <p class="muted">Select a module to begin working.</p>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3" style="color:var(--ra-text-strong);">Welcome to CAS Suite</h1>
+                <p class="muted">Select a module to begin working.</p>
+            </div>
+            <a href="/users" class="ra-btn ra-btn-outline"><i class="bi bi-people"></i> Manage Users</a>
+        </div>
     </div>
 
     <?php foreach ($modules as $key => $module): ?>

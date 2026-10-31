@@ -17,6 +17,7 @@ use CorporateAid\Recruit\Controllers\DashboardController;
 use CorporateAid\Recruit\Controllers\HomeController;
 use CorporateAid\Recruit\Controllers\AuthController;
 use CorporateAid\Platform\Controllers\PortalController;
+use CorporateAid\Platform\Controllers\UserManagementController;
 use CorporateAid\Recruit\Controllers\NotificationController;
 use CorporateAid\Recruit\Controllers\OrganisationController;
 use CorporateAid\Recruit\Controllers\ContactController;
@@ -39,6 +40,8 @@ use CorporateAid\Recruit\Controllers\ExportController;
 /** @var Router $router */
 
 $router->get('/',       [PortalController::class, 'index'], ['auth']);
+$router->get('/users', [UserManagementController::class, 'index'], ['auth']);
+$router->post('/users/update', [UserManagementController::class, 'update'], ['auth', 'csrf']);
 
 // ---------- Auth (Root) ----------
 $router->get('/login',  [AuthController::class, 'showLogin']);

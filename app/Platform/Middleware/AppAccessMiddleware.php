@@ -27,7 +27,7 @@ final class AppAccessMiddleware
         }
 
         // Super admins bypass the assignment check
-        if ($auth->can('cas.dashboard.view')) {
+        if ($auth->can('cas.dashboard.access')) {
             return $next($request);
         }
 

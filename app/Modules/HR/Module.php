@@ -26,6 +26,16 @@ final class Module implements ModuleContract
     /** @return string[] */
     public function getEvents(): array { return [PersonHiredEvent::TYPE]; }
     
+    public function getPermissionDefinitions(): array
+    {
+        return [
+            ['slug' => 'hr.employees.view',  'name' => 'View Employees',  'description' => '', 'sensitivity' => 'public'],
+            ['slug' => 'hr.employees.edit',  'name' => 'Edit Employees',  'description' => '', 'sensitivity' => 'public'],
+            ['slug' => 'hr.payroll.view',    'name' => 'View Payroll',    'description' => '', 'sensitivity' => 'sensitive'],
+            ['slug' => 'hr.payroll.approve', 'name' => 'Approve Payroll', 'description' => '', 'sensitivity' => 'restricted'],
+        ];
+    }
+    
     public function getDashboardMetrics(int $tenantId, Container $c): array
     {
         /** @var Database $db */
