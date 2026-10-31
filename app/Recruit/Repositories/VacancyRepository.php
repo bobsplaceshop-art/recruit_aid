@@ -7,6 +7,7 @@ use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
 use CorporateAid\Core\TenantContext;
+use CorporateAid\Platform\Support\CodeGenerator;
 use CorporateAid\Recruit\Models\Vacancy;
 use CorporateAid\Recruit\Models\VacancyRequirement;
 
@@ -14,7 +15,8 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
 {
     public function __construct(
         private Database $db,
-        private TenantContext $tenant
+        private TenantContext $tenant,
+        private CodeGenerator $codes
     ) {}
 
     public function findById(int $id): ?Vacancy
@@ -315,13 +317,7 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
 
     public function nextCode(): string
     {
-        $this->db->execute(
-            "UPDATE `core_sequence_counters` SET `last_value` = `last_value` + 1 WHERE `name` = 'rec_vacancy_code'"
-        );
-        $num = $this->db->scalarInt(
-            "SELECT `last_value` FROM `core_sequence_counters` WHERE `name` = 'rec_vacancy_code'"
-        );
-        return 'VAC-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
+        return $this->codes->nextForTenant('rec_vacancy_code', 'VAC', $this->tenant->id());
     }
 
     /** @return VacancyRequirement[] */
@@ -373,10 +369,9 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             'columns'          => ['v.title', 'v.code', 'v.city', 'v.department'],
             'order'            => 'v.created_at DESC',
             'permission'       => 'recruit.vacancies.view',
-            'baseFilters'      => ['v.`deleted_at` IS NULL', 'v.`tenant_id` = ?'],
-            'baseFilterParams' => [$this->tenant->id()],
+            'baseFilters'      => ['v.`deleted_at` IS NULL'],
             'joins'            => [
-                'INNER JOIN `recruit_client_organisations` o ON o.`id` = v.`client_organisation_id`',
+                'INNER JOIN `recruit_client_organisations` o ON o.`id` = v.`client_organisation_id` AND o.`tenant_id` = v.`tenant_id`',
             ],
             'rowView'          => 'vacancies/_row',
             'extraColumns'     => ['o.name AS organisation_name', 'o.code AS organisation_code'],

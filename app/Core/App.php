@@ -238,28 +238,36 @@ final class App
         $c->singleton(EventBus::class,                    fn() => new EventBus($c->get(Database::class)));
         $c->singleton(RoleRepository::class,              fn() => new RoleRepository($c->get(Database::class)));
         $c->singleton(LookupRepository::class,            fn() => new LookupRepository($c->get(Database::class)));
-        $c->singleton(LiveSearchService::class, fn() => new LiveSearchService($c->get(Database::class), $c->get(View::class), $c->get(Auth::class)));
+        $c->singleton(
+            LiveSearchService::class,
+            fn() => new LiveSearchService(
+                $c->get(Database::class),
+                $c->get(View::class),
+                $c->get(TenantContext::class),
+                $c->get(Auth::class)
+            )
+        );
         $c->singleton(GlobalSearchService::class, fn() => new GlobalSearchService($c->get(Database::class), $c->get(TenantContext::class), $c->get(Auth::class)));
         $c->singleton(LookupService::class,               fn() => new LookupService($c->get(LookupRepository::class)));
         $c->singleton(PasswordResetRepository::class,     fn() => new PasswordResetRepository($c->get(Database::class)));
         $c->singleton(RateLimitRepository::class,         fn() => new RateLimitRepository($c->get(Database::class)));
         $c->singleton(NotificationRepository::class,      fn() => new NotificationRepository($c->get(Database::class)));
-        $c->singleton(OrganisationRepository::class,      fn() => new OrganisationRepository($c->get(Database::class), $c->get(TenantContext::class)));
+        $c->singleton(OrganisationRepository::class,      fn() => new OrganisationRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
         $c->singleton(CustomFieldRepository::class,       fn() => new CustomFieldRepository($c->get(Database::class)));
         $c->singleton(CustomFieldValueRepository::class,  fn() => new CustomFieldValueRepository($c->get(Database::class)));
         $c->singleton(PipelineStageRepository::class,     fn() => new PipelineStageRepository($c->get(Database::class), $c->get(TenantContext::class)));
-        $c->singleton(ContactRepository::class,           fn() => new ContactRepository($c->get(Database::class), $c->get(TenantContext::class)));
-        $c->singleton(EngagementRepository::class,        fn() => new EngagementRepository($c->get(Database::class), $c->get(TenantContext::class)));
+        $c->singleton(ContactRepository::class,           fn() => new ContactRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
+        $c->singleton(EngagementRepository::class,        fn() => new EngagementRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
         $c->singleton(EngagementAssignmentRepository::class, fn() => new EngagementAssignmentRepository($c->get(Database::class)));
-        $c->singleton(VacancyRepository::class,           fn() => new VacancyRepository($c->get(Database::class), $c->get(TenantContext::class)));
-        $c->singleton(CandidateRepository::class,         fn() => new CandidateRepository($c->get(Database::class), $c->get(TenantContext::class)));
+        $c->singleton(VacancyRepository::class,           fn() => new VacancyRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
+        $c->singleton(CandidateRepository::class,         fn() => new CandidateRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
         $c->singleton(VacancyStageRepository::class,      fn() => new VacancyStageRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyRecruiterRepository::class,   fn() => new VacancyRecruiterRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyHiringManagerRepository::class, fn() => new VacancyHiringManagerRepository($c->get(Database::class), $c->get(TenantContext::class)));
-        $c->singleton(ApplicationRepository::class,        fn() => new ApplicationRepository($c->get(Database::class), $c->get(TenantContext::class)));
-        $c->singleton(InterviewRepository::class,          fn() => new InterviewRepository($c->get(Database::class), $c->get(TenantContext::class)));
+        $c->singleton(ApplicationRepository::class,        fn() => new ApplicationRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
+        $c->singleton(InterviewRepository::class,          fn() => new InterviewRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
         $c->singleton(ScorecardRepository::class,          fn() => new ScorecardRepository($c->get(Database::class), $c->get(TenantContext::class)));
-        $c->singleton(OfferRepository::class,              fn() => new OfferRepository($c->get(Database::class), $c->get(TenantContext::class)));
+        $c->singleton(OfferRepository::class,              fn() => new OfferRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
         $c->singleton(FileRepository::class,           fn() => new FileRepository($c->get(Database::class)));
         $c->singleton(EmailTemplateRepository::class,   fn() => new EmailTemplateRepository($c->get(Database::class)));
         $c->singleton(EntityFileRepository::class,     fn() => new EntityFileRepository($c->get(Database::class)));

@@ -7,13 +7,15 @@ use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
 use CorporateAid\Core\TenantContext;
+use CorporateAid\Platform\Support\CodeGenerator;
 use CorporateAid\Recruit\Models\Contact;
 
 final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
     public function __construct(
         private Database $db,
-        private TenantContext $tenant
+        private TenantContext $tenant,
+        private CodeGenerator $codes
     ) {}
 
     public function findById(int $id): ?Contact
@@ -177,14 +179,7 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
 
     public function nextCode(): string
     {
-        $this->db->execute(
-            "UPDATE `core_sequence_counters` SET `last_value` = `last_value` + 1 WHERE `name` = 'rec_client_contact_code'"
-        );
-        $num = $this->db->scalarInt(
-            "SELECT `last_value` FROM `core_sequence_counters` WHERE `name` = 'rec_client_contact_code'"
-        );
-
-        return 'CNT-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
+        return $this->codes->nextForTenant('rec_client_contact_code', 'CNT', $this->tenant->id());
     }
 
     /** @param array<string, mixed> $data */
@@ -420,11 +415,10 @@ final class ContactRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             'columns'          => ['c.first_name', 'c.last_name', 'c.email', 'c.position'],
             'order'            => 'c.last_name ASC, c.first_name ASC',
             'permission'       => 'recruit.contacts.view',
-            'baseFilters'      => ['c.`deleted_at` IS NULL', 'c.`tenant_id` = ?'],
-            'baseFilterParams' => [$this->tenant->id()],
+            'baseFilters'      => ['c.`deleted_at` IS NULL'],
             'joins'            => [
-                'INNER JOIN `recruit_client_organisations` o ON o.`id` = c.`client_organisation_id`',
-                'LEFT JOIN `recruit_contact_roles` cr ON cr.`contact_id` = c.`id`',
+                'INNER JOIN `recruit_client_organisations` o ON o.`id` = c.`client_organisation_id` AND o.`tenant_id` = c.`tenant_id`',
+                'LEFT JOIN `recruit_contact_roles` cr ON cr.`contact_id` = c.`id` AND cr.`tenant_id` = c.`tenant_id`',
             ],
             'rowView'          => 'contacts/_row',
             'extraColumns'     => ['o.name AS organisation_name', 'o.code AS organisation_code'],

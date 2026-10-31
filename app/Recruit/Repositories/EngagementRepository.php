@@ -7,13 +7,15 @@ use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
 use CorporateAid\Core\TenantContext;
+use CorporateAid\Platform\Support\CodeGenerator;
 use CorporateAid\Recruit\Models\Engagement;
 
 final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
     public function __construct(
         private Database $db,
-        private TenantContext $tenant
+        private TenantContext $tenant,
+        private CodeGenerator $codes
     ) {}
 
     public function findById(int $id): ?Engagement
@@ -253,14 +255,7 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
 
     public function nextCode(): string
     {
-        $this->db->execute(
-            "UPDATE `core_sequence_counters` SET `last_value` = `last_value` + 1 WHERE `name` = 'rec_engagement_code'"
-        );
-        $num = $this->db->scalarInt(
-            "SELECT `last_value` FROM `core_sequence_counters` WHERE `name` = 'rec_engagement_code'"
-        );
-
-        return 'ENG-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
+        return $this->codes->nextForTenant('rec_engagement_code', 'ENG', $this->tenant->id());
     }
 
     /**
@@ -361,10 +356,9 @@ final class EngagementRepository implements \CorporateAid\Platform\LiveSearch\Li
             'columns'          => ['e.name', 'e.code'],
             'order'            => 'e.created_at DESC',
             'permission'       => 'recruit.engagements.view',
-            'baseFilters'      => ['e.`deleted_at` IS NULL', 'e.`tenant_id` = ?'],
-            'baseFilterParams' => [$this->tenant->id()],
+            'baseFilters'      => ['e.`deleted_at` IS NULL'],
             'joins'            => [
-                'INNER JOIN `recruit_client_organisations` o ON o.`id` = e.`client_organisation_id`',
+                'INNER JOIN `recruit_client_organisations` o ON o.`id` = e.`client_organisation_id` AND o.`tenant_id` = e.`tenant_id`',
             ],
             'rowView'          => 'engagements/_row',
             'extraColumns'     => ['o.name AS organisation_name', 'o.code AS organisation_code'],

@@ -7,6 +7,7 @@ use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
 use CorporateAid\Core\TenantContext;
+use CorporateAid\Platform\Support\CodeGenerator;
 use CorporateAid\Recruit\Models\Application;
 use CorporateAid\Recruit\Models\ApplicationStageHistory;
 
@@ -14,7 +15,8 @@ final class ApplicationRepository
 {
     public function __construct(
         private Database $db,
-        private TenantContext $tenant
+        private TenantContext $tenant,
+        private CodeGenerator $codes
     ) {}
 
     public function findById(int $id): ?Application
@@ -177,12 +179,6 @@ final class ApplicationRepository
 
     public function nextCode(): string
     {
-        $this->db->execute(
-            "UPDATE `core_sequence_counters` SET `last_value` = `last_value` + 1 WHERE `name` = 'rec_application_code'"
-        );
-        $num = $this->db->scalarInt(
-            "SELECT `last_value` FROM `core_sequence_counters` WHERE `name` = 'rec_application_code'"
-        );
-        return 'APP-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
+        return $this->codes->nextForTenant('rec_application_code', 'APP', $this->tenant->id());
     }
 }

@@ -4,59 +4,101 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Repositories;
 
 use CorporateAid\Core\Database;
-use CorporateAid\Core\TenantContext;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
+use CorporateAid\Core\TenantContext;
+use CorporateAid\Platform\Support\CodeGenerator;
 use CorporateAid\Recruit\Models\Organisation;
 
 final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\LiveSearchable
 {
     public function __construct(
         private Database $db,
-        private TenantContext $tenant
+        private TenantContext $tenant,
+        private CodeGenerator $codes
     ) {}
+
+    private function tenantId(): int
+    {
+        return $this->tenant->id();
+    }
+
+    private function assertTenantUser(?int $userId, string $field): void
+    {
+        if ($userId === null) {
+            return;
+        }
+
+        $exists = $this->db->scalarInt(
+            "SELECT COUNT(*) FROM `core_users`
+             WHERE `id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL",
+            PDOParams::positional([$userId, $this->tenantId()])
+        );
+
+        if ($exists < 1) {
+            throw new \InvalidArgumentException(
+                ucfirst($field) . ' must belong to the active tenant.'
+            );
+        }
+    }
 
     public function findById(int $id): ?Organisation
     {
         $row = $this->db->selectOne(
-            "SELECT * FROM `recruit_client_organisations` WHERE `id` = ? LIMIT 1",
-            PDOParams::positional([$id])
+            "SELECT * FROM `recruit_client_organisations`
+             WHERE `id` = ? AND `tenant_id` = ?
+             LIMIT 1",
+            PDOParams::positional([$id, $this->tenantId()])
         );
+
         return $row ? Organisation::fromRow($row) : null;
     }
 
     public function findByCode(string $code, bool $includeDeleted = false): ?Organisation
     {
-        $sql = "SELECT * FROM `recruit_client_organisations` WHERE `code` = ?";
+        $sql = "SELECT * FROM `recruit_client_organisations`
+                WHERE `code` = ? AND `tenant_id` = ?";
+
+        $params = [$code, $this->tenantId()];
+
         if (!$includeDeleted) {
             $sql .= " AND `deleted_at` IS NULL";
         }
+
         $sql .= " LIMIT 1";
 
-        $row = $this->db->selectOne($sql, PDOParams::positional([$code]));
+        $row = $this->db->selectOne($sql, PDOParams::positional($params));
+
         return $row ? Organisation::fromRow($row) : null;
     }
 
     public function findByEmail(string $email, ?int $excludeId = null): ?Organisation
     {
         $sql = "SELECT * FROM `recruit_client_organisations`
-                WHERE LOWER(`email`) = LOWER(?) AND `deleted_at` IS NULL";
-        $params = [$email];
+                WHERE LOWER(`email`) = LOWER(?)
+                  AND `tenant_id` = ?
+                  AND `deleted_at` IS NULL";
+
+        $params = [$email, $this->tenantId()];
+
         if ($excludeId !== null) {
             $sql .= " AND `id` != ?";
             $params[] = $excludeId;
         }
+
         $sql .= " LIMIT 1";
 
         $row = $this->db->selectOne($sql, PDOParams::positional($params));
+
         return $row === null ? null : Organisation::fromRow($row);
     }
 
     public function codeExists(string $code): bool
     {
         return $this->db->scalarInt(
-            "SELECT COUNT(*) FROM `recruit_client_organisations` WHERE `code` = ?",
-            PDOParams::positional([$code])
+            "SELECT COUNT(*) FROM `recruit_client_organisations`
+             WHERE `code` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$code, $this->tenantId()])
         ) > 0;
     }
 
@@ -67,7 +109,7 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
     public function paginate(array $filters = [], int $page = 1, int $perPage = 25): array
     {
         $where = ["`tenant_id` = ?"];
-        $params = [$this->tenant->id()];
+        $params = [$this->tenantId()];
 
         if (empty($filters['include_deleted'])) {
             $where[] = "`deleted_at` IS NULL";
@@ -82,8 +124,10 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
             $params[] = $term;
         }
 
-        if (!empty($filters['status'])
-            && in_array($filters['status'], ['prospect', 'active', 'inactive', 'former_client'], true)) {
+        if (
+            !empty($filters['status'])
+            && in_array($filters['status'], ['prospect', 'active', 'inactive', 'former_client'], true)
+        ) {
             $where[] = "`status` = ?";
             $params[] = $filters['status'];
         }
@@ -96,10 +140,14 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
             $paramObj
         );
 
-        $page    = max(1, $page);
+        $page = max(1, $page);
         $perPage = max(1, min(100, $perPage));
         $totalPages = max(1, (int) ceil($total / $perPage));
-        if ($page > $totalPages) $page = $totalPages;
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
         $offset = ($page - 1) * $perPage;
 
         $rows = $this->db->select(
@@ -122,27 +170,48 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
     public function countsByStatus(): array
     {
         $rows = $this->db->select(
-            "SELECT `status`, COUNT(*) AS n FROM `recruit_client_organisations`
+            "SELECT `status`, COUNT(*) AS n
+             FROM `recruit_client_organisations`
              WHERE `deleted_at` IS NULL AND `tenant_id` = ?
              GROUP BY `status`",
-            PDOParams::positional([$this->tenant->id()])
+            PDOParams::positional([$this->tenantId()])
         );
 
-        $counts = ['all' => 0, 'prospect' => 0, 'active' => 0, 'inactive' => 0, 'former_client' => 0];
+        $counts = [
+            'all' => 0,
+            'prospect' => 0,
+            'active' => 0,
+            'inactive' => 0,
+            'former_client' => 0,
+        ];
+
         foreach ($rows as $row) {
-            $s = Row::str($row, 'status');
-            $n = Row::int($row, 'n');
-            if (array_key_exists($s, $counts)) {
-                $counts[$s] = $n; 
+            $status = Row::str($row, 'status');
+            $count = Row::int($row, 'n');
+
+            if (array_key_exists($status, $counts)) {
+                $counts[$status] = $count;
             }
         }
-        $counts['all'] = $counts['prospect'] + $counts['active'] + $counts['inactive'] + $counts['former_client'];
+
+        $counts['all'] =
+            $counts['prospect']
+            + $counts['active']
+            + $counts['inactive']
+            + $counts['former_client'];
+
         return $counts;
     }
 
     /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
+        $createdBy = isset($data['created_by'])
+            ? (int) $data['created_by']
+            : null;
+
+        $this->assertTenantUser($createdBy, 'creator');
+
         $sql = "INSERT INTO `recruit_client_organisations`
             (`tenant_id`, `code`, `name`, `legal_name`, `industry`, `website`,
              `country_code`, `countries_operation`, `address`, `phone`, `email`,
@@ -150,20 +219,22 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         return $this->db->insert($sql, PDOParams::positional([
-            $this->tenant->id(),
+            $this->tenantId(),
             $data['code'],
             $data['name'],
             $data['legal_name'] ?? null,
             $data['industry'] ?? null,
             $data['website'] ?? null,
             $data['country_code'] ?? null,
-            !empty($data['countries_operation']) ? json_encode($data['countries_operation']) : null,
+            !empty($data['countries_operation'])
+                ? json_encode($data['countries_operation'])
+                : null,
             $data['address'] ?? null,
             $data['phone'] ?? null,
             $data['email'] ?? null,
             $data['status'] ?? 'prospect',
             $data['notes'] ?? null,
-            $data['created_by'] ?? null,
+            $createdBy,
         ]));
     }
 
@@ -174,46 +245,78 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
     public function update(int $id, array $data): array
     {
         $existing = $this->findById($id);
+
         if (!$existing) {
             throw new \RuntimeException('Organisation not found.');
         }
 
         $allowed = [
-            'name', 'legal_name', 'industry', 'website', 'country_code',
-            'countries_operation', 'address', 'phone', 'email', 'status', 'notes',
+            'name',
+            'legal_name',
+            'industry',
+            'website',
+            'country_code',
+            'countries_operation',
+            'address',
+            'phone',
+            'email',
+            'status',
+            'notes',
         ];
 
         $sets = [];
         $params = [];
         $changes = [];
 
-        foreach ($allowed as $col) {
-            if (!array_key_exists($col, $data)) continue;
+        foreach ($allowed as $column) {
+            if (!array_key_exists($column, $data)) {
+                continue;
+            }
 
-            $newVal = $data[$col];
-            $prop = match ($col) {
-                'legal_name'          => 'legalName',
-                'country_code'        => 'countryCode',
+            $newValue = $data[$column];
+
+            $property = match ($column) {
+                'legal_name' => 'legalName',
+                'country_code' => 'countryCode',
                 'countries_operation' => 'countriesOperation',
-                default               => $col,
+                default => $column,
             };
-            $oldVal = $existing->$prop ?? null;
 
-            $newForCompare = $newVal;
-            if ($col === 'countries_operation') {
-                $newForCompare = !empty($newVal) ? (is_array($newVal) ? $newVal : (is_string($newVal) ? json_decode($newVal, true) : [])) : [];
-                $oldVal = $existing->countriesOperation;
+            $oldValue = $existing->$property ?? null;
+            $newForCompare = $newValue;
+
+            if ($column === 'countries_operation') {
+                $newForCompare = !empty($newValue)
+                    ? (
+                        is_array($newValue)
+                            ? $newValue
+                            : (
+                                is_string($newValue)
+                                    ? json_decode($newValue, true)
+                                    : []
+                            )
+                    )
+                    : [];
+
+                $oldValue = $existing->countriesOperation;
             }
 
-            if ($oldVal != $newForCompare) {
-                $changes[$col] = ['old' => $oldVal, 'new' => $newForCompare];
+            if ($oldValue != $newForCompare) {
+                $changes[$column] = [
+                    'old' => $oldValue,
+                    'new' => $newForCompare,
+                ];
             }
 
-            $sets[] = "`{$col}` = ?";
-            if ($col === 'countries_operation') {
-                $newVal = !empty($newVal) ? json_encode($newVal) : null;
+            $sets[] = "`{$column}` = ?";
+
+            if ($column === 'countries_operation') {
+                $newValue = !empty($newValue)
+                    ? json_encode($newValue)
+                    : null;
             }
-            $params[] = $newVal;
+
+            $params[] = $newValue;
         }
 
         if (empty($sets)) {
@@ -221,8 +324,12 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
         }
 
         $params[] = $id;
+        $params[] = $this->tenantId();
+
         $this->db->execute(
-            "UPDATE `recruit_client_organisations` SET " . implode(', ', $sets) . " WHERE `id` = ?",
+            "UPDATE `recruit_client_organisations`
+             SET " . implode(', ', $sets) . "
+             WHERE `id` = ? AND `tenant_id` = ?",
             PDOParams::positional($params)
         );
 
@@ -232,55 +339,61 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
     public function softDelete(int $id): void
     {
         $this->db->execute(
-            "UPDATE `recruit_client_organisations` SET `deleted_at` = NOW() WHERE `id` = ?",
-            PDOParams::positional([$id])
+            "UPDATE `recruit_client_organisations`
+             SET `deleted_at` = NOW()
+             WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$id, $this->tenantId()])
         );
     }
 
     public function restore(int $id): void
     {
         $this->db->execute(
-            "UPDATE `recruit_client_organisations` SET `deleted_at` = NULL WHERE `id` = ?",
-            PDOParams::positional([$id])
+            "UPDATE `recruit_client_organisations`
+             SET `deleted_at` = NULL
+             WHERE `id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$id, $this->tenantId()])
         );
     }
 
     public function count(): int
     {
         return $this->db->scalarInt(
-            "SELECT COUNT(*) FROM `recruit_client_organisations` WHERE `deleted_at` IS NULL"
+            "SELECT COUNT(*) FROM `recruit_client_organisations`
+             WHERE `deleted_at` IS NULL AND `tenant_id` = ?",
+            PDOParams::positional([$this->tenantId()])
         );
     }
 
     public function nextCode(): string
     {
-        $this->db->execute(
-            "UPDATE `core_sequence_counters` SET `last_value` = `last_value` + 1 WHERE `name` = 'rec_client_org_code'"
+        return $this->codes->nextForTenant(
+            'rec_client_org_code',
+            'ORG',
+            $this->tenantId()
         );
-        $num = $this->db->scalarInt(
-            "SELECT `last_value` FROM `core_sequence_counters` WHERE `name` = 'rec_client_org_code'"
-        );
-
-        return 'ORG-' . str_pad((string) $num, 6, '0', STR_PAD_LEFT);
     }
 
     /**
-     * Minimal list for filter dropdowns — active orgs only.
-     * @return array<int, array{id: int, code: string, name: string}>
+     * Minimal list for filter dropdowns: active organisations only.
+     *
+     * @return array<int, array{id:int,code:string,name:string}>
      */
     public function allForFilter(): array
     {
         $rows = $this->db->select(
             "SELECT `id`, `code`, `name`
              FROM `recruit_client_organisations`
-             WHERE `deleted_at` IS NULL
-             ORDER BY `name` ASC"
+             WHERE `deleted_at` IS NULL AND `tenant_id` = ?
+             ORDER BY `name` ASC",
+            PDOParams::positional([$this->tenantId()])
         );
+
         return array_map(
-            fn(array $r) => [
-                'id'   => Row::int($r, 'id'),
-                'code' => Row::str($r, 'code'),
-                'name' => Row::str($r, 'name'),
+            static fn(array $row): array => [
+                'id' => Row::int($row, 'id'),
+                'code' => Row::str($row, 'code'),
+                'name' => Row::str($row, 'name'),
             ],
             $rows
         );
