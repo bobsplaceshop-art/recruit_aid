@@ -18,7 +18,7 @@ use CorporateAid\Core\Row;
             <i class="bi bi-search"></i> Search
         </button>
         <?php if ($q !== ''): ?>
-            <a href="/applications" class="ra-btn ra-btn-outline">
+            <a href="/recruit/applications" class="ra-btn ra-btn-outline">
                 <i class="bi bi-x-lg"></i> Clear
             </a>
         <?php endif; ?>

@@ -14,7 +14,7 @@
 <!-- Summary cards -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-        <a href="/organisations" class="ra-card d-block text-decoration-none">
+        <a href="/recruit/organisations" class="ra-card d-block text-decoration-none">
             <div class="muted small mb-1">Organisations</div>
             <div style="font-size:1.75rem;font-weight:700;color:var(--ra-text-strong);">
                 <?= number_format($summary['organisations']) ?>
@@ -22,7 +22,7 @@
         </a>
     </div>
     <div class="col-6 col-md-3">
-        <a href="/organisations" class="ra-card d-block text-decoration-none">
+        <a href="/recruit/organisations" class="ra-card d-block text-decoration-none">
             <div class="muted small mb-1">Contacts</div>
             <div style="font-size:1.75rem;font-weight:700;color:var(--ra-text-strong);">
                 <?= number_format($summary['contacts']) ?>
@@ -30,7 +30,7 @@
         </a>
     </div>
     <div class="col-6 col-md-3">
-        <a href="/engagements" class="ra-card d-block text-decoration-none">
+        <a href="/recruit/engagements" class="ra-card d-block text-decoration-none">
             <div class="muted small mb-1">Engagements</div>
             <div style="font-size:1.75rem;font-weight:700;color:var(--ra-text-strong);">
                 <?= number_format($summary['engagements']) ?>
@@ -38,7 +38,7 @@
         </a>
     </div>
     <div class="col-6 col-md-3">
-        <a href="/vacancies" class="ra-card d-block text-decoration-none">
+        <a href="/recruit/vacancies" class="ra-card d-block text-decoration-none">
             <div class="muted small mb-1">Vacancies</div>
             <div style="font-size:1.75rem;font-weight:700;color:var(--ra-text-strong);">
                 <?= number_format($summary['vacancies']) ?>
@@ -65,7 +65,7 @@
                         Reaching the agreed active-role limit
                     </div>
                 </div>
-                <a href="/engagements" class="ra-row-actions">View all</a>
+                <a href="/recruit/engagements" class="ra-row-actions">View all</a>
             </div>
             <?php foreach ($capacityAlerts as $e): ?>
                 <?php
@@ -106,7 +106,7 @@
                         Target hire date in the next 30 days
                     </div>
                 </div>
-                <a href="/vacancies" class="ra-row-actions">View all</a>
+                <a href="/recruit/vacancies" class="ra-row-actions">View all</a>
             </div>
             <?php foreach ($deadlines as $v): ?>
                 <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom:1px solid var(--ra-border-soft);">
@@ -136,7 +136,7 @@
                         Worth reviewing — do these roles need re-scoping?
                     </div>
                 </div>
-                <a href="/vacancies" class="ra-row-actions">View all</a>
+                <a href="/recruit/vacancies" class="ra-row-actions">View all</a>
             </div>
             <?php foreach ($aging as $v): ?>
                 <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom:1px solid var(--ra-border-soft);">

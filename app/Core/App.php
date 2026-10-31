@@ -131,7 +131,7 @@ final class App
 
 
         // Boot module registry
-        // ModuleRegistrar::boot($this->container);
+        ModuleRegistrar::boot($this->container);
     }
 
     private function registerErrorHandling(): void

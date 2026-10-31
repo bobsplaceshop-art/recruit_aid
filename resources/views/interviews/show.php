@@ -20,7 +20,7 @@ if ($user !== null) {
             </div>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/interviews" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+            <a href="/recruit/interviews" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
             <?php if ($interview->isScheduled() && $user->can('recruit.interviews.edit')): ?>
                 <form method="POST" action="/interviews/<?= e($interview->code) ?>/complete" style="display:inline;">
                     <?= csrf_field() ?>

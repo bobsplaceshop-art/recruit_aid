@@ -17,7 +17,7 @@ $activityHtml = App::instance()->container()->get(\CorporateAid\Platform\Service
     <div class="ra-page-band-row">
         <div>
             <div class="ra-page-band-label">
-                Recruitment · <a href="/candidates" class="text-decoration-none">Candidates</a> · <code><?= e($candidate->code) ?></code>
+                Recruitment · <a href="/recruit/candidates" class="text-decoration-none">Candidates</a> · <code><?= e($candidate->code) ?></code>
             </div>
             <h1 class="ra-page-band-title"><?= e($candidate->fullName()) ?></h1>
             <div class="d-flex gap-2 flex-wrap mt-2">
@@ -28,7 +28,7 @@ $activityHtml = App::instance()->container()->get(\CorporateAid\Platform\Service
             </div>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/candidates" class="ra-btn ra-btn-outline">
+            <a href="/recruit/candidates" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i> Back
             </a>
             <?php if ($user->can('recruit.candidates.edit')): ?>

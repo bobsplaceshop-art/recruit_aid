@@ -1,7 +1,7 @@
 <div class="ra-page-header">
     <div>
         <div class="ra-breadcrumbs">
-            <a href="/dashboard">Home</a>
+            <a href="/recruit/dashboard">Home</a>
             <span>/</span>
             <span>Confirm password</span>
         </div>
@@ -39,7 +39,7 @@
                 <i class="bi bi-shield-lock"></i>
                 <span>Confirm</span>
             </button>
-            <a href="/dashboard" class="ra-btn ra-btn-outline">Cancel</a>
+            <a href="/recruit/dashboard" class="ra-btn ra-btn-outline">Cancel</a>
         </div>
     </form>
 </div>

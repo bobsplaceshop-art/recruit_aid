@@ -41,7 +41,7 @@ $pct = $capacity['capacity'] > 0
             </div>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/engagements" class="ra-btn ra-btn-outline">
+            <a href="/recruit/engagements" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i><span>Back</span>
             </a>
             <?php if ($user->can('recruit.engagements.edit')): ?>

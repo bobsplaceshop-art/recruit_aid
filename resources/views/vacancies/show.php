@@ -45,7 +45,7 @@ foreach ($requirements as $r) {
             </div>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/vacancies" class="ra-btn ra-btn-outline">
+            <a href="/recruit/vacancies" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i><span>Back</span>
             </a>
             <?php if ($user->can('recruit.vacancies.edit')): ?>

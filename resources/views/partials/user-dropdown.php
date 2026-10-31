@@ -11,7 +11,7 @@
         </div>
     <?php endif; ?>
 
-    <a href="/account" class="ra-dropdown-item">
+    <a href="/recruit/account" class="ra-dropdown-item">
         <i class="bi bi-person-circle"></i>
         <span>Your account</span>
     </a>

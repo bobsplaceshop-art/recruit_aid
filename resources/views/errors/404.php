@@ -38,7 +38,7 @@ $displayMessage = isset($errorMessage) && $errorMessage !== ''
         <p class="muted mb-4"><?= htmlspecialchars($displayMessage, ENT_QUOTES, 'UTF-8') ?></p>
 
         <div class="d-flex gap-2 justify-content-center flex-wrap">
-            <a href="/dashboard" class="ra-btn ra-btn-primary">
+            <a href="/recruit/dashboard" class="ra-btn ra-btn-primary">
                 <i class="bi bi-house-door"></i>
                 <span>Back to dashboard</span>
             </a>

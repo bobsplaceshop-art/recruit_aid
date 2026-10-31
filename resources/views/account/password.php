@@ -1,9 +1,9 @@
 <div class="ra-page-header">
     <div>
         <div class="ra-breadcrumbs">
-            <a href="/dashboard">Home</a>
+            <a href="/recruit/dashboard">Home</a>
             <span>/</span>
-            <a href="/account">Account</a>
+            <a href="/recruit/account">Account</a>
             <span>/</span>
             <span>Change password</span>
         </div>
@@ -65,7 +65,7 @@
                 <i class="bi bi-check2"></i>
                 <span>Update password</span>
             </button>
-            <a href="/account" class="ra-btn ra-btn-outline">Cancel</a>
+            <a href="/recruit/account" class="ra-btn ra-btn-outline">Cancel</a>
         </div>
     </form>
 </div>

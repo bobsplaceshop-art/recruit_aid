@@ -32,7 +32,7 @@ $activityHtml = \CorporateAid\Core\App::instance()->container()->get(\CorporateA
             </div>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/organisations" class="ra-btn ra-btn-outline">
+            <a href="/recruit/organisations" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>

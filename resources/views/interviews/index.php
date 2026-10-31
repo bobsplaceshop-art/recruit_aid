@@ -41,7 +41,7 @@ $statusPills = [
         <div class="text-center muted" style="padding:3rem 1.5rem;">
             <?php if ($activeStatus !== 'all'): ?>
                 No <?= e($activeStatus) ?> interviews.
-                <a href="/interviews" class="ms-2">Clear filter</a>
+                <a href="/recruit/interviews" class="ms-2">Clear filter</a>
             <?php else: ?>
                 No interviews scheduled yet.
             <?php endif; ?>

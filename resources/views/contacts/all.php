@@ -77,7 +77,7 @@ $pageUrl = function (int $p) use ($q, $orgId, $role): string {
                 <i class="bi bi-search"></i>
             </button>
             <?php if ($hasFilters): ?>
-                <a href="/contacts" class="ra-btn ra-btn-outline" title="Clear filters">
+                <a href="/recruit/contacts" class="ra-btn ra-btn-outline" title="Clear filters">
                     <i class="bi bi-x-lg"></i>
                 </a>
             <?php endif; ?>
@@ -101,7 +101,7 @@ $pageUrl = function (int $p) use ($q, $orgId, $role): string {
         <div class="text-center muted" style="padding:3rem 1.5rem;">
             <?php if ($hasFilters): ?>
                 <div class="mb-3">No contacts match your filters.</div>
-                <a href="/contacts" class="ra-btn ra-btn-outline">
+                <a href="/recruit/contacts" class="ra-btn ra-btn-outline">
                     <i class="bi bi-x-lg"></i>
                     <span>Clear filters</span>
                 </a>

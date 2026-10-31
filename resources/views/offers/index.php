@@ -42,7 +42,7 @@ $statusPills = [
         <input type="text" name="q" class="ra-input" placeholder="Search by candidate, vacancy, or offer code..." value="<?= e($q) ?>" style="max-width:400px;" autocomplete="off">
         <button type="submit" class="ra-btn ra-btn-outline"><i class="bi bi-search"></i> Search</button>
         <?php if ($q !== '' || $activeStatus !== 'all'): ?>
-            <a href="/offers" class="ra-btn ra-btn-outline"><i class="bi bi-x-lg"></i> Clear</a>
+            <a href="/recruit/offers" class="ra-btn ra-btn-outline"><i class="bi bi-x-lg"></i> Clear</a>
         <?php endif; ?>
     </div>
 </form>

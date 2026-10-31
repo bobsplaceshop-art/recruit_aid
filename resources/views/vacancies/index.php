@@ -66,7 +66,7 @@ $statusPills = [
             <span>Search</span>
         </button>
         <?php if ($search !== '' || $activeStatus !== 'all'): ?>
-            <a href="/vacancies" class="ra-btn ra-btn-outline">
+            <a href="/recruit/vacancies" class="ra-btn ra-btn-outline">
                 <i class="bi bi-x-lg"></i>
                 <span>Clear</span>
             </a>
@@ -94,7 +94,7 @@ $statusPills = [
         <div class="text-center muted" style="padding:3rem 1.5rem;">
             <?php if ($search !== '' || $activeStatus !== 'all'): ?>
                 <div class="mb-2">No vacancies match your filters.</div>
-                <a href="/vacancies" class="ra-btn ra-btn-outline">
+                <a href="/recruit/vacancies" class="ra-btn ra-btn-outline">
                     <i class="bi bi-x-lg"></i>
                     <span>Clear filters</span>
                 </a>

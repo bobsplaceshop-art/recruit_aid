@@ -337,4 +337,23 @@ final class UserRepository
             'email' => Row::str($r, 'email'),
         ], $rows);
     }
+    public function getDefaultApplication(int $userId): ?string
+    {
+        $row = $this->db->selectOne(
+            "SELECT `module_key` FROM `core_user_applications` WHERE `user_id` = ? AND `is_default` = 1 LIMIT 1",
+            PDOParams::positional([$userId])
+        );
+        return $row ? \CorporateAid\Core\Row::str($row, 'module_key') : null;
+    }
+
+    /** @return string[] */
+    public function getAssignedApplications(int $userId): array
+    {
+        $rows = $this->db->select(
+            "SELECT `module_key` FROM `core_user_applications` WHERE `user_id` = ?",
+            PDOParams::positional([$userId])
+        );
+        return array_map(static fn($r) => \CorporateAid\Core\Row::str($r, 'module_key'), $rows);
+    }
+
 }

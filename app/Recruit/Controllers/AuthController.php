@@ -91,9 +91,22 @@ final class AuthController
         $csrf->rotate();
         $session->clearOldInput();
 
-        $target = '/dashboard';
+        $target = '/';
         if ($intended !== '' && str_starts_with($intended, '/')) {
             $target = $intended;
+        } else {
+            // If no specific intended URL, route based on permissions
+            if ($auth->canAccessGlobalDashboard()) {
+                $target = '/';
+            } else {
+                $defaultApp = $auth->getDefaultApplication();
+                if ($defaultApp !== null) {
+                    $target = '/' . $defaultApp . '/dashboard';
+                } else {
+                    // No dashboard access and no default app
+                    return Response::redirect('/no-access');
+                }
+            }
         }
 
         return Response::redirect($target);

@@ -33,7 +33,7 @@ $isActive = function (string $href) use ($currentPath): string {
 $isLoggedIn = isset($user) && $user;
 ?>
 <aside class="ra-sidebar" id="ra-sidebar">
-    <a href="/dashboard" class="ra-brand">
+    <a href="/recruit/dashboard" class="ra-brand">
         <?php
             $brandLogo = app_setting('branding.logo_path', '');
             $brandName = app_setting('branding.app_name', 'Recruit Aid');
@@ -49,7 +49,7 @@ $isLoggedIn = isset($user) && $user;
     <nav class="ra-nav">
         <?php if ($isLoggedIn): ?>
         <div class="ra-nav-group">
-            <a href="/dashboard" class="ra-nav-item <?= $isActive('/dashboard') ?>">
+            <a href="/recruit/dashboard" class="ra-nav-item <?= $isActive('/dashboard') ?>">
                 <i class="bi bi-speedometer2"></i>
                 <span>Dashboard</span>
             </a>
@@ -60,19 +60,19 @@ $isLoggedIn = isset($user) && $user;
         <div class="ra-nav-group">
             <div class="ra-nav-group-label">Clients</div>
             <?php if ($user->can('recruit.organisations.view')): ?>
-                <a href="/organisations" class="ra-nav-item <?= $isActive('/organisations') ?>">
+                <a href="/recruit/organisations" class="ra-nav-item <?= $isActive('/organisations') ?>">
                     <i class="bi bi-buildings"></i>
                     <span>Organisations</span>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('recruit.contacts.view')): ?>
-                <a href="/contacts" class="ra-nav-item <?= $isActive('/contacts') ?>">
+                <a href="/recruit/contacts" class="ra-nav-item <?= $isActive('/contacts') ?>">
                     <i class="bi bi-person-lines-fill"></i>
                     <span>Contacts</span>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('recruit.engagements.view')): ?>
-                <a href="/engagements" class="ra-nav-item <?= $isActive('/engagements') ?>">
+                <a href="/recruit/engagements" class="ra-nav-item <?= $isActive('/engagements') ?>">
                     <i class="bi bi-file-earmark-text"></i>
                     <span>Engagements</span>
                 </a>
@@ -84,29 +84,29 @@ $isLoggedIn = isset($user) && $user;
         <div class="ra-nav-group">
             <div class="ra-nav-group-label">Recruitment</div>
             <?php if ($user->can('recruit.vacancies.view')): ?>
-                <a href="/vacancies" class="ra-nav-item <?= $isActive('/vacancies') ?>">
+                <a href="/recruit/vacancies" class="ra-nav-item <?= $isActive('/vacancies') ?>">
                     <i class="bi bi-briefcase"></i>
                     <span>Vacancies</span>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('recruit.candidates.view')): ?>
-                <a href="/candidates" class="ra-nav-item <?= $isActive('/candidates') ?>">
+                <a href="/recruit/candidates" class="ra-nav-item <?= $isActive('/candidates') ?>">
                     <i class="bi bi-people"></i>
                     <span>Candidates</span>
                 </a>
-                <a href="/applications" class="ra-nav-item <?= $isActive('/applications') ?>">
+                <a href="/recruit/applications" class="ra-nav-item <?= $isActive('/applications') ?>">
                     <i class="bi bi-diagram-3"></i>
                     <span>Applications</span>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('recruit.interviews.view')): ?>
-                <a href="/interviews" class="ra-nav-item <?= $isActive('/interviews') ?>">
+                <a href="/recruit/interviews" class="ra-nav-item <?= $isActive('/interviews') ?>">
                     <i class="bi bi-calendar-event"></i>
                     <span>Interviews</span>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('recruit.candidates.view')): ?>
-                <a href="/offers" class="ra-nav-item <?= $isActive('/offers') ?>">
+                <a href="/recruit/offers" class="ra-nav-item <?= $isActive('/offers') ?>">
                     <i class="bi bi-file-earmark-check"></i>
                     <span>Offers</span>
                 </a>

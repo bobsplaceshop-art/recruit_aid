@@ -19,7 +19,7 @@ use CorporateAid\Core\Row;
             </div>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/offers" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+            <a href="/recruit/offers" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
             <?php if ($offer->isDraft() && $user->can('recruit.offers.send')): ?>
                 <form method="POST" action="/offers/<?= e($offer->code) ?>/send" style="display:inline;">
                     <?= csrf_field() ?>

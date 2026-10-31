@@ -1,7 +1,7 @@
 <div class="ra-page-header">
     <div>
         <div class="ra-breadcrumbs">
-            <a href="/dashboard">Home</a>
+            <a href="/recruit/dashboard">Home</a>
             <span>/</span>
             <span>Account</span>
         </div>

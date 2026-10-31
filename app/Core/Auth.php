@@ -146,4 +146,20 @@ final class Auth
         $user = $this->user();
         return $user !== null && $user->can($permission);
     }
+
+
+
+
+    public function canAccessGlobalDashboard(): bool
+    {
+        return $this->can('cas.dashboard.view');
+    }
+
+    public function getDefaultApplication(): ?string
+    {
+        $userId = $this->id();
+        if ($userId === null) return null;
+        return $this->users->getDefaultApplication($userId);
+    }
+
 }

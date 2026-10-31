@@ -69,7 +69,7 @@ $displayRef = isset($errorRef) && is_string($errorRef) ? $errorRef : null;
         </div>
 
         <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">
-            <a href="/dashboard" class="ra-btn ra-btn-primary">
+            <a href="/recruit/dashboard" class="ra-btn ra-btn-primary">
                 <i class="bi bi-house-door"></i>
                 <span>Back to dashboard</span>
             </a>

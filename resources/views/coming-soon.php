@@ -5,7 +5,7 @@
             <h1 class="ra-page-band-title"><?= e($featureLabel) ?></h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/dashboard" class="ra-btn ra-btn-outline">
+            <a href="/recruit/dashboard" class="ra-btn ra-btn-outline">
                 <i class="bi bi-house-door"></i>
                 <span>Back to Dashboard</span>
             </a>
@@ -22,7 +22,7 @@
         <?= e($description) ?>
     </p>
     <div class="mt-4">
-        <a href="/dashboard" class="ra-btn ra-btn-primary">
+        <a href="/recruit/dashboard" class="ra-btn ra-btn-primary">
             <i class="bi bi-house-door"></i>
             <span>Back to Dashboard</span>
         </a>

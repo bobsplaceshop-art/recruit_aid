@@ -11,7 +11,7 @@
         </button>
 
         <div class="ra-breadcrumbs d-none d-md-flex">
-            <a href="/dashboard">Home</a>
+            <a href="/recruit/dashboard">Home</a>
             <?php if (!empty($title) && $title !== 'Dashboard'): ?>
                 <span>/</span>
                 <span><?= e($title) ?></span>
