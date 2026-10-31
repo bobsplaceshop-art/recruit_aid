@@ -160,8 +160,74 @@ try {
     $authz->clearCache();
 }
 
-// Rule 5: policy deny — skipped (no policies seeded)
-skipped('Rule 5: policy deny blocks', 'no policies seeded in core_permission_policies');
+// Rule 5: policy deny overrides role grant and explicit grant
+$createdRoleAssignment5 = false;
+$createdExplicitGrant5  = false;
+$createdPolicy5         = false;
+$createdPolicyId5       = 0;
+try {
+    // Pre-condition: assigned recruiter with role grant is allowed
+    $roleExists5 = $db->scalarInt(
+        "SELECT COUNT(*) FROM core_user_roles WHERE user_id = ? AND role_id = ?",
+        PDOParams::positional([$recruiterAssignedId, $testRoleId])
+    );
+    if ($roleExists5 === 0) {
+        $db->execute("INSERT INTO core_user_roles (user_id, role_id) VALUES (?, ?)",
+            PDOParams::positional([$recruiterAssignedId, $testRoleId]));
+        $createdRoleAssignment5 = true;
+    }
+    $authz->clearCache();
+    $recruiterWithRole = loadUser($db, $recruiterAssignedId);
+
+    ok('Rule 5 precondition: role grant allows before policy',
+        $authz->allows($recruiterWithRole, 'recruit.candidates.view') === true);
+
+    // Insert deny policy
+    $createdPolicyId5 = (int) $db->insert(
+        "INSERT INTO core_permission_policies (tenant_id, permission_slug, effect, reason)
+         VALUES (?, 'recruit.candidates.view', 'deny', 'rbac-test-fixture')",
+        PDOParams::positional([$tenantId])
+    );
+    $createdPolicy5 = true;
+    $authz->clearCache();
+
+    ok('Rule 5a: policy deny overrides role grant',
+        $authz->allows($recruiterWithRole, 'recruit.candidates.view') === false);
+
+    // Add explicit grant — policy should still deny
+    $grantExists5 = $db->scalarInt(
+        "SELECT COUNT(*) FROM core_user_permissions WHERE user_id = ? AND permission_id = ? AND denied = 0",
+        PDOParams::positional([$recruiterAssignedId, $viewPermId])
+    );
+    if ($grantExists5 === 0) {
+        $db->execute(
+            "INSERT INTO core_user_permissions (user_id, permission_id, granted_by, denied)
+             VALUES (?, ?, ?, 0)",
+            PDOParams::positional([$recruiterAssignedId, $viewPermId, $superId])
+        );
+        $createdExplicitGrant5 = true;
+    }
+    $authz->clearCache();
+
+    ok('Rule 5b: policy deny overrides explicit grant',
+        $authz->allows($recruiterWithRole, 'recruit.candidates.view') === false);
+} finally {
+    if ($createdExplicitGrant5) {
+        $db->execute(
+            "DELETE FROM core_user_permissions WHERE user_id = ? AND permission_id = ? AND denied = 0",
+            PDOParams::positional([$recruiterAssignedId, $viewPermId])
+        );
+    }
+    if ($createdRoleAssignment5) {
+        $db->execute("DELETE FROM core_user_roles WHERE user_id = ? AND role_id = ?",
+            PDOParams::positional([$recruiterAssignedId, $testRoleId]));
+    }
+    if ($createdPolicy5 && isset($createdPolicyId5) && $createdPolicyId5 > 0) {
+        $db->execute("DELETE FROM core_permission_policies WHERE id = ?",
+            PDOParams::positional([$createdPolicyId5]));
+    }
+    $authz->clearCache();
+}
 
 // Rule 6: unassigned user, no grant -> DENY
 ok('Rule 6: unassigned user denied',
@@ -221,8 +287,64 @@ ok('Rule 10: super_admin bypass on public',
 ok('Rule 10b: super_admin bypass blocked on sensitive',
     $authz->allows($superUser, 'cas.rbac.delegate_admin') === false);
 
-skipped('Rule 10c: super_admin bypass blocked on restricted',
-    'no restricted-classified permission activated in core_permissions');
+// Rule 10c: super_admin bypass blocked on restricted; explicit grant + app assignment bypasses
+$payrollPermRow = $db->selectOne("SELECT id FROM core_permissions WHERE slug = 'hr.payroll.approve'");
+if ($payrollPermRow === null) {
+    skipped('Rule 10c: super_admin bypass blocked on restricted', 'hr.payroll.approve not activated');
+} else {
+    $payrollPermId = Row::int($payrollPermRow, 'id');
+
+    $createdHrAssignment = false;
+    $createdPayrollGrant = false;
+    try {
+        ok('Rule 10c: super_admin bypass blocked on restricted',
+            $authz->allows($superUser, 'hr.payroll.approve') === false);
+
+        $hasHrApp = $db->scalarInt(
+            "SELECT COUNT(*) FROM core_user_applications WHERE user_id = ? AND module_key = 'hr'",
+            PDOParams::positional([$superId])
+        );
+        if ($hasHrApp === 0) {
+            $db->execute(
+                "INSERT INTO core_user_applications (user_id, module_key, is_default) VALUES (?, 'hr', 0)",
+                PDOParams::positional([$superId])
+            );
+            $createdHrAssignment = true;
+        }
+
+        $grantExists = $db->scalarInt(
+            "SELECT COUNT(*) FROM core_user_permissions WHERE user_id = ? AND permission_id = ? AND denied = 0",
+            PDOParams::positional([$superId, $payrollPermId])
+        );
+        if ($grantExists === 0) {
+            $db->execute(
+                "INSERT INTO core_user_permissions (user_id, permission_id, granted_by, denied)
+                 VALUES (?, ?, ?, 0)",
+                PDOParams::positional([$superId, $payrollPermId, $superId])
+            );
+            $createdPayrollGrant = true;
+        }
+
+        $authz->clearCache();
+
+        ok('Rule 10c-corollary: explicit grant + app assignment allows restricted',
+            $authz->allows($superUser, 'hr.payroll.approve') === true);
+    } finally {
+        if ($createdPayrollGrant) {
+            $db->execute(
+                "DELETE FROM core_user_permissions WHERE user_id = ? AND permission_id = ? AND denied = 0",
+                PDOParams::positional([$superId, $payrollPermId])
+            );
+        }
+        if ($createdHrAssignment) {
+            $db->execute(
+                "DELETE FROM core_user_applications WHERE user_id = ? AND module_key = 'hr'",
+                PDOParams::positional([$superId])
+            );
+        }
+        $authz->clearCache();
+    }
+}
 
 // Rule 11: default deny — user with no grants, no roles, on a global permission
 ok('Rule 11: default deny',
