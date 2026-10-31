@@ -10,10 +10,13 @@ use CorporateAid\Core\Container;
 
 final class AppAccessMiddleware
 {
-    public function __construct(private Container $container) {}
+    public function __construct(
+        private Container $container,
+        private string $moduleKey
+    ) {}
 
     /** @param callable(Request): Response $next */
-    public function handle(Request $request, callable $next, string $moduleKey): Response
+    public function handle(Request $request, callable $next): Response
     {
         /** @var Auth $auth */
         $auth = $this->container->get(Auth::class);
@@ -28,9 +31,9 @@ final class AppAccessMiddleware
             return $next($request);
         }
 
-        $assigned = $auth->users->getAssignedApplications($user->id);
-        if (!in_array($moduleKey, $assigned, true)) {
-            return Response::redirect('/no-access'); // Or 403
+        $assigned = $auth->getAssignedApplications();
+        if (!in_array($this->moduleKey, $assigned, true)) {
+            return Response::redirect('/no-access');
         }
 
         return $next($request);

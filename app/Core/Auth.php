@@ -162,4 +162,12 @@ final class Auth
         return $this->users->getDefaultApplication($userId);
     }
 
+    /** @return string[] */
+    public function getAssignedApplications(): array
+    {
+        $userId = $this->id();
+        if ($userId === null) return [];
+        return $this->users->getAssignedApplications($userId);
+    }
+
 }

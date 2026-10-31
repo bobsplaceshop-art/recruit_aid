@@ -9,6 +9,7 @@ use CorporateAid\Core\Request;
 use CorporateAid\Core\Response;
 use CorporateAid\Platform\Middleware\AuditLoggerMiddleware;
 use CorporateAid\Platform\Middleware\AuthMiddleware;
+use CorporateAid\Platform\Middleware\AppAccessMiddleware;
 use CorporateAid\Platform\Middleware\CsrfMiddleware;
 use CorporateAid\Platform\Middleware\CustomFieldFileMiddleware;
 use CorporateAid\Platform\Middleware\GuestMiddleware;
@@ -61,6 +62,7 @@ final class Kernel
         'permission' => PermissionMiddleware::class,
         'ratelimit'  => RateLimitMiddleware::class,
         'audit'      => AuditLoggerMiddleware::class,
+        'app_access' => AppAccessMiddleware::class,
     ];
 
     public function __construct(Container $container)
@@ -130,6 +132,10 @@ final class Kernel
 
         if ($name === 'permission') {
             return new PermissionMiddleware($this->container->get(Auth::class), (string) $arg);
+        }
+
+        if ($name === 'app_access') {
+            return new AppAccessMiddleware($this->container, (string) $arg);
         }
 
         if ($name === 'ratelimit') {
