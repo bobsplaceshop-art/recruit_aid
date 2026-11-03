@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "description": "Evidence-backed security and reliability findings established through source investigation. These records are separate from heuristic scanner output.",
+  "findings": [
+    {
+      "id": "SEC-001",
+      "title": "OfferController queries are not tenant-scoped",
+      "category": "TENANT_ISOLATION",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "status": "VERIFIED",
+      "file": "app/Recruit/Controllers/OfferController.php",
+      "evidence": [
+        "The index query joins offers, applications, candidates and vacancies without a tenant predicate.",
+        "The count query uses the same unscoped conditions.",
+        "The status count aggregates all non-deleted offers without tenant filtering.",
+        "The route permission controls access to the feature but does not scope records to the active tenant."
+      ],
+      "impact": "A user with access to the offers feature may receive records or aggregate counts belonging to other tenants.",
+      "verification_basis": "Source inspection of controller queries and route middleware.",
+      "remediation": "Apply active-tenant scoping consistently to list, count and status aggregate queries. Verify tenant ownership across joined records."
+    },
+    {
+      "id": "SEC-002",
+      "title": "PersonHiredHandler does not validate tenant ownership of payload entities",
+      "category": "TENANT_ISOLATION",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "status": "VERIFIED",
+      "file": "app/HR/Handlers/PersonHiredHandler.php",
+      "evidence": [
+        "The handler reads tenant_id, person_id and candidate_id from the event payload.",
+        "The duplicate employee lookup checks person_id globally without tenant scoping.",
+        "The handler inserts the supplied identifiers without validating their tenant ownership or relationships."
+      ],
+      "impact": "An event payload containing mismatched or foreign entity identifiers may create an employee record with invalid cross-tenant relationships.",
+      "verification_basis": "Source inspection of event handler lookup and insert logic.",
+      "remediation": "Resolve the tenant from trusted execution context and validate person and candidate ownership and their relationship before insertion."
+    },
+    {
+      "id": "SEC-011",
+      "title": "Event worker does not hold a transaction around SKIP LOCKED selection",
+      "category": "CONCURRENCY",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "status": "VERIFIED",
+      "file": "app/Core/Events/EventBus.php",
+      "evidence": [
+        "processPending selects pending events using FOR UPDATE SKIP LOCKED.",
+        "The method does not begin a transaction before selecting rows.",
+        "Database::select executes the query and fetches results without establishing a transaction.",
+        "Under normal PDO autocommit behavior, row locks are released when the SELECT statement completes."
+      ],
+      "impact": "Concurrent workers may select the same pending events and execute listeners more than once.",
+      "verification_basis": "Source inspection of EventBus and Database transaction/query methods.",
+      "remediation": "Implement an atomic transactional claim-and-process strategy, with explicit commit and rollback boundaries."
+    },
+    {
+      "id": "SEC-023",
+      "title": "EventBus executes dispatched events synchronously while leaving them pending",
+      "category": "EVENT_PROCESSING",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "status": "VERIFIED",
+      "file": "app/Core/Events/EventBus.php",
+      "evidence": [
+        "dispatch inserts the event into the outbox with pending status.",
+        "dispatch then executes registered listeners synchronously.",
+        "The event remains pending for subsequent processing by the CLI worker."
+      ],
+      "impact": "Listeners may execute a second time when the worker later processes the same pending event.",
+      "verification_basis": "Source inspection of dispatch and processPending behavior.",
+      "remediation": "Choose a consistent delivery model. For an outbox model, dispatch should persist the event and let the worker execute it, with idempotent listener handling."
+    },
+    {
+      "id": "SEC-025",
+      "title": "CLI event worker does not register module listeners",
+      "category": "EVENT_PROCESSING",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "status": "VERIFIED",
+      "file": "bin/process-events.php",
+      "evidence": [
+        "The CLI worker constructs EventBus and calls processPending.",
+        "It does not boot the application or invoke ModuleRegistrar.",
+        "The HR module registers PersonHiredHandler through its register method.",
+        "ModuleRegistrar boot is the discovered mechanism that invokes module registration.",
+        "The worker can therefore process events with an empty listener registry and mark them completed."
+      ],
+      "impact": "Events requiring module listeners may be marked completed without their intended business logic executing.",
+      "verification_basis": "Source inspection of CLI worker, ModuleRegistrar, HR Module and EventBus listener execution.",
+      "remediation": "Provide a dedicated module listener registration bootstrap for CLI workers without unnecessarily repeating web bootstrap side effects."
+    }
+  ]
+}

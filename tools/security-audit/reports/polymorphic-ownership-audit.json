@@ -1,0 +1,64 @@
+{
+    "generated_at": "2026-11-03T16:03:20+00:00",
+    "project_root": "/mnt/c/projects/recruitaid",
+    "mode": "READ ONLY",
+    "analyzer": "polymorphic-ownership",
+    "files_scanned": 3,
+    "results_count": 5,
+    "by_rule": {
+        "POLY-OWNERSHIP-001": 3,
+        "POLY-OWNERSHIP-002": 2
+    },
+    "results": [
+        {
+            "rule": "POLY-OWNERSHIP-001",
+            "type": "FILE_UUID_LOOKUP",
+            "file": "Platform/CustomFields/CustomFieldValueSaver.php",
+            "line": 70,
+            "severity": "MEDIUM",
+            "confidence": "REVIEW",
+            "message": "File UUID lookup detected. Verify that the file is authorised for the active tenant before use.",
+            "evidence": "$file = $this->files->findByUuid($uuid);"
+        },
+        {
+            "rule": "POLY-OWNERSHIP-002",
+            "type": "POLYMORPHIC_FILE_LINK",
+            "file": "Platform/CustomFields/CustomFieldValueSaver.php",
+            "line": 77,
+            "severity": "HIGH",
+            "confidence": "REVIEW",
+            "message": "Custom-field file link created without a visible file-to-tenant ownership check at this call site. Trace the UUID source and active tenant validation.",
+            "evidence": "$this->files->link($file->id, $entityType, $entityId, $field->fieldKey, $userId);"
+        },
+        {
+            "rule": "POLY-OWNERSHIP-002",
+            "type": "POLYMORPHIC_FILE_LINK",
+            "file": "Platform/CustomFields/CustomFieldValueSaver.php",
+            "line": 109,
+            "severity": "HIGH",
+            "confidence": "REVIEW",
+            "message": "Custom-field file link created without a visible file-to-tenant ownership check at this call site. Trace the UUID source and active tenant validation.",
+            "evidence": "$this->files->link($result->id, $entityType, $entityId, $field->fieldKey, $userId);"
+        },
+        {
+            "rule": "POLY-OWNERSHIP-001",
+            "type": "FILE_UUID_LOOKUP",
+            "file": "Platform/Services/FileService.php",
+            "line": 147,
+            "severity": "MEDIUM",
+            "confidence": "REVIEW",
+            "message": "File UUID lookup detected. Verify that the file is authorised for the active tenant before use.",
+            "evidence": "return $this->files->findByUuid($uuid);"
+        },
+        {
+            "rule": "POLY-OWNERSHIP-001",
+            "type": "FILE_UUID_LOOKUP",
+            "file": "Recruit/Controllers/FileController.php",
+            "line": 73,
+            "severity": "MEDIUM",
+            "confidence": "REVIEW",
+            "message": "File UUID lookup detected. Verify that the file is authorised for the active tenant before use.",
+            "evidence": "$file = $files->findByUuid($uuid);"
+        }
+    ]
+}

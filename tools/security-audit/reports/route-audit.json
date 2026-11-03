@@ -1,0 +1,444 @@
+{
+    "generated_at": "2026-11-03T16:03:11+00:00",
+    "project_root": "/mnt/c/projects/recruitaid",
+    "route_loading_order": [
+        "web",
+        "auth",
+        "client",
+        "public"
+    ],
+    "dispatch_strategy": "first_matching_registration_wins",
+    "route_files_scanned": 2,
+    "routes_discovered": 163,
+    "effective_routes_evaluated": 159,
+    "findings_count": 8,
+    "findings": [
+        {
+            "rule": "ROUTE-006",
+            "severity": "MEDIUM",
+            "confidence": "REVIEW",
+            "message": "The effective first registration omits middleware declared by a later shadowed registration.",
+            "method": "GET",
+            "path": "/login",
+            "handler": {
+                "class": "AuthController",
+                "method": "showLogin"
+            },
+            "file": "routes/web.php",
+            "line": 47,
+            "middleware": [],
+            "evidence": {
+                "route_key": "GET /login",
+                "dispatch_strategy": "first_matching_registration_wins",
+                "effective_registration": {
+                    "file": "routes/web.php",
+                    "line": 47,
+                    "load_order": 1,
+                    "registration_order": 4,
+                    "middleware": [],
+                    "middleware_known": true,
+                    "handler": {
+                        "class": "AuthController",
+                        "method": "showLogin"
+                    }
+                },
+                "shadowed_registrations": [
+                    {
+                        "file": "routes/auth.php",
+                        "line": 10,
+                        "load_order": 2,
+                        "registration_order": 157,
+                        "middleware": [
+                            "guest"
+                        ],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": "AuthController",
+                            "method": "showLogin"
+                        }
+                    }
+                ],
+                "all_registrations": [
+                    {
+                        "file": "routes/web.php",
+                        "line": 47,
+                        "load_order": 1,
+                        "registration_order": 4,
+                        "middleware": [],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": "AuthController",
+                            "method": "showLogin"
+                        }
+                    },
+                    {
+                        "file": "routes/auth.php",
+                        "line": 10,
+                        "load_order": 2,
+                        "registration_order": 157,
+                        "middleware": [
+                            "guest"
+                        ],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": "AuthController",
+                            "method": "showLogin"
+                        }
+                    }
+                ],
+                "middleware_missing_from_effective": [
+                    "guest"
+                ],
+                "permission_policies": [],
+                "permission_policy_conflict": false,
+                "handler_conflict": false,
+                "middleware_resolution_incomplete": false
+            }
+        },
+        {
+            "rule": "ROUTE-006",
+            "severity": "HIGH",
+            "confidence": "HIGH",
+            "message": "The effective first registration omits authentication or CSRF middleware declared by a later shadowed registration.",
+            "method": "POST",
+            "path": "/login",
+            "handler": {
+                "class": "AuthController",
+                "method": "login"
+            },
+            "file": "routes/web.php",
+            "line": 48,
+            "middleware": [],
+            "evidence": {
+                "route_key": "POST /login",
+                "dispatch_strategy": "first_matching_registration_wins",
+                "effective_registration": {
+                    "file": "routes/web.php",
+                    "line": 48,
+                    "load_order": 1,
+                    "registration_order": 5,
+                    "middleware": [],
+                    "middleware_known": true,
+                    "handler": {
+                        "class": "AuthController",
+                        "method": "login"
+                    }
+                },
+                "shadowed_registrations": [
+                    {
+                        "file": "routes/auth.php",
+                        "line": 11,
+                        "load_order": 2,
+                        "registration_order": 158,
+                        "middleware": [
+                            "guest",
+                            "csrf",
+                            "ratelimit:login"
+                        ],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": "AuthController",
+                            "method": "login"
+                        }
+                    }
+                ],
+                "all_registrations": [
+                    {
+                        "file": "routes/web.php",
+                        "line": 48,
+                        "load_order": 1,
+                        "registration_order": 5,
+                        "middleware": [],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": "AuthController",
+                            "method": "login"
+                        }
+                    },
+                    {
+                        "file": "routes/auth.php",
+                        "line": 11,
+                        "load_order": 2,
+                        "registration_order": 158,
+                        "middleware": [
+                            "guest",
+                            "csrf",
+                            "ratelimit:login"
+                        ],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": "AuthController",
+                            "method": "login"
+                        }
+                    }
+                ],
+                "middleware_missing_from_effective": [
+                    "guest",
+                    "csrf",
+                    "ratelimit"
+                ],
+                "permission_policies": [],
+                "permission_policy_conflict": false,
+                "handler_conflict": false,
+                "middleware_resolution_incomplete": false
+            }
+        },
+        {
+            "rule": "ROUTE-006",
+            "severity": "HIGH",
+            "confidence": "HIGH",
+            "message": "The effective first registration omits authentication or CSRF middleware declared by a later shadowed registration.",
+            "method": "POST",
+            "path": "/logout",
+            "handler": {
+                "class": "AuthController",
+                "method": "logout"
+            },
+            "file": "routes/web.php",
+            "line": 50,
+            "middleware": [],
+            "evidence": {
+                "route_key": "POST /logout",
+                "dispatch_strategy": "first_matching_registration_wins",
+                "effective_registration": {
+                    "file": "routes/web.php",
+                    "line": 50,
+                    "load_order": 1,
+                    "registration_order": 7,
+                    "middleware": [],
+                    "middleware_known": true,
+                    "handler": {
+                        "class": "AuthController",
+                        "method": "logout"
+                    }
+                },
+                "shadowed_registrations": [
+                    {
+                        "file": "routes/auth.php",
+                        "line": 12,
+                        "load_order": 2,
+                        "registration_order": 159,
+                        "middleware": [
+                            "auth",
+                            "csrf"
+                        ],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": "AuthController",
+                            "method": "logout"
+                        }
+                    }
+                ],
+                "all_registrations": [
+                    {
+                        "file": "routes/web.php",
+                        "line": 50,
+                        "load_order": 1,
+                        "registration_order": 7,
+                        "middleware": [],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": "AuthController",
+                            "method": "logout"
+                        }
+                    },
+                    {
+                        "file": "routes/auth.php",
+                        "line": 12,
+                        "load_order": 2,
+                        "registration_order": 159,
+                        "middleware": [
+                            "auth",
+                            "csrf"
+                        ],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": "AuthController",
+                            "method": "logout"
+                        }
+                    }
+                ],
+                "middleware_missing_from_effective": [
+                    "auth",
+                    "csrf"
+                ],
+                "permission_policies": [],
+                "permission_policy_conflict": false,
+                "handler_conflict": false,
+                "middleware_resolution_incomplete": false
+            }
+        },
+        {
+            "rule": "ROUTE-006",
+            "severity": "MEDIUM",
+            "confidence": "HIGH",
+            "message": "Duplicate registrations declare different permission policies. The first registration determines the effective policy.",
+            "method": "GET",
+            "path": "/recruit/admin/audit",
+            "handler": {
+                "class": "ComingSoonController",
+                "method": "audit"
+            },
+            "file": "routes/web.php",
+            "line": 61,
+            "middleware": [
+                "app_access:recruit",
+                "auth",
+                "permission:core.settings.manage"
+            ],
+            "evidence": {
+                "route_key": "GET /recruit/admin/audit",
+                "dispatch_strategy": "first_matching_registration_wins",
+                "effective_registration": {
+                    "file": "routes/web.php",
+                    "line": 61,
+                    "load_order": 1,
+                    "registration_order": 12,
+                    "middleware": [
+                        "app_access:recruit",
+                        "auth",
+                        "permission:core.settings.manage"
+                    ],
+                    "middleware_known": true,
+                    "handler": {
+                        "class": "ComingSoonController",
+                        "method": "audit"
+                    }
+                },
+                "shadowed_registrations": [
+                    {
+                        "file": "routes/web.php",
+                        "line": 274,
+                        "load_order": 1,
+                        "registration_order": 145,
+                        "middleware": [
+                            "auth",
+                            "permission:core.audit.view"
+                        ],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": null,
+                            "method": null
+                        }
+                    }
+                ],
+                "all_registrations": [
+                    {
+                        "file": "routes/web.php",
+                        "line": 61,
+                        "load_order": 1,
+                        "registration_order": 12,
+                        "middleware": [
+                            "app_access:recruit",
+                            "auth",
+                            "permission:core.settings.manage"
+                        ],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": "ComingSoonController",
+                            "method": "audit"
+                        }
+                    },
+                    {
+                        "file": "routes/web.php",
+                        "line": 274,
+                        "load_order": 1,
+                        "registration_order": 145,
+                        "middleware": [
+                            "auth",
+                            "permission:core.audit.view"
+                        ],
+                        "middleware_known": true,
+                        "handler": {
+                            "class": null,
+                            "method": null
+                        }
+                    }
+                ],
+                "middleware_missing_from_effective": [],
+                "permission_policies": [
+                    "core.settings.manage",
+                    "core.audit.view"
+                ],
+                "permission_policy_conflict": true,
+                "handler_conflict": true,
+                "middleware_resolution_incomplete": false
+            }
+        },
+        {
+            "rule": "ROUTE-002",
+            "severity": "HIGH",
+            "confidence": "HIGH",
+            "message": "Effective state-changing route does not declare CSRF middleware.",
+            "method": "POST",
+            "path": "/login",
+            "handler": {
+                "class": "AuthController",
+                "method": "login"
+            },
+            "file": "routes/web.php",
+            "line": 48,
+            "middleware": [],
+            "evidence": {
+                "required_middleware": "csrf"
+            }
+        },
+        {
+            "rule": "ROUTE-001",
+            "severity": "HIGH",
+            "confidence": "HIGH",
+            "message": "Effective GET route appears to invoke a state-changing action.",
+            "method": "GET",
+            "path": "/logout",
+            "handler": {
+                "class": "AuthController",
+                "method": "logout"
+            },
+            "file": "routes/web.php",
+            "line": 49,
+            "middleware": [],
+            "evidence": {
+                "handler_method": "logout"
+            }
+        },
+        {
+            "rule": "ROUTE-002",
+            "severity": "HIGH",
+            "confidence": "HIGH",
+            "message": "Effective state-changing route does not declare CSRF middleware.",
+            "method": "POST",
+            "path": "/logout",
+            "handler": {
+                "class": "AuthController",
+                "method": "logout"
+            },
+            "file": "routes/web.php",
+            "line": 50,
+            "middleware": [],
+            "evidence": {
+                "required_middleware": "csrf"
+            }
+        },
+        {
+            "rule": "ROUTE-004",
+            "severity": "MEDIUM",
+            "confidence": "REVIEW",
+            "message": "Effective administrative route has no explicit permission middleware. Confirm whether controller-level authorization is intentional.",
+            "method": "GET",
+            "path": "/recruit/admin",
+            "handler": {
+                "class": "AdminHomeController",
+                "method": "index"
+            },
+            "file": "routes/web.php",
+            "line": 210,
+            "middleware": [
+                "app_access:recruit",
+                "auth"
+            ],
+            "evidence": {
+                "expected_pattern": "permission:<permission-slug>"
+            }
+        }
+    ]
+}
