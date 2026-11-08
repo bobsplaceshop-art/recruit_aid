@@ -41,6 +41,7 @@ final class TenantAuthorityTest extends TestCase
     public static function tearDownAfterClass(): void
     {
         self::$tenant->set(self::$originalTenantId);
+        self::$tenant->setEffective(1);
         self::$authz->clearCache();
     }
 
@@ -63,7 +64,7 @@ final class TenantAuthorityTest extends TestCase
     public function testTenantPermissionRequiresMatchingTenantContext(): void
     {
         $this->withTenantFixture(function (int $userId, int $tenantId, int $otherTenantId) {
-            self::$tenant->set($tenantId);
+            self::$tenant->setEffective($tenantId);
             self::$authz->clearCache();
             $user = $this->loadUser($userId);
             self::assertTrue(
@@ -71,7 +72,7 @@ final class TenantAuthorityTest extends TestCase
                 'Sanity: permission allowed in home tenant context.'
             );
 
-            self::$tenant->set($otherTenantId);
+            self::$tenant->setEffective($otherTenantId);
             self::$authz->clearCache();
             self::assertFalse(
                 self::$authz->allows($user, 'recruit.candidates.view'),
@@ -142,7 +143,8 @@ final class TenantAuthorityTest extends TestCase
      */
     private function withTenantFixture(callable $body): void
     {
-        $original = self::$tenant->id();
+        $originalHome = self::$tenant->homeId();
+        $originalEffective = self::$tenant->id();
         self::$db->beginTransaction();
         try {
             $suffix = bin2hex(random_bytes(6));
@@ -194,7 +196,8 @@ final class TenantAuthorityTest extends TestCase
 
             $body($userId, 1, $tenant2);
         } finally {
-            self::$tenant->set($original);
+            self::$tenant->set($originalHome);
+            self::$tenant->setEffective($originalEffective);
             self::$authz->clearCache();
             self::$db->rollBack();
         }

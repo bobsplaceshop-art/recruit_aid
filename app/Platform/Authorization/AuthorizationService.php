@@ -42,13 +42,18 @@ final class AuthorizationService
     /** @var array<string, bool> module_key => is registered in core_modules */
     private array $moduleRegisteredCache = [];
 
-    public function __construct(private Database $db, private TenantContext $tenant) {}
+    public function __construct(
+        private Database $db,
+        private TenantContext $tenant,
+        private SupportDelegationService $supportDelegations
+    ) {}
 
     public static function boot(Container $c): void
     {
         self::$instance = new self(
             $c->get(Database::class),
-            $c->get(TenantContext::class)
+            $c->get(TenantContext::class),
+            $c->get(SupportDelegationService::class)
         );
     }
 
@@ -106,14 +111,14 @@ final class AuthorizationService
             return $this->hasPlatformPermission($user->id, $permission);
         }
 
-        // Tenant-owned permissions require an exact active tenant match.
+        // Rule 4: a valid active tenant context is required for any
+        // tenant-owned permission. Missing context is a hard DENY.
         $tenantId = $this->tenant->id();
-        if ($tenantId <= 0 || $user->tenantId <= 0 || $user->tenantId !== $tenantId) {
+        if ($tenantId <= 0) {
             return false;
         }
 
-        // Resolve ownership once. Both Rule 4 (module enabled) and
-        // Rule 6 (application assignment) use the resolved app key.
+        // Resolve ownership once. Rules 4b and 6 use the resolved app key.
         $resolution = $this->resolveApplication($perm['module'], $permission);
 
         // Rule 4a: unknown / unregistered ownership -> DENY (fail closed)
@@ -122,32 +127,63 @@ final class AuthorizationService
         }
 
         // Rule 4b: owning application disabled -> DENY
-        // (Only applies to app-scoped permissions; global namespaces skip.)
         if ($resolution->isResolved()) {
             if (!$this->isModuleEnabled($resolution->applicationKey)) {
                 return false;
             }
         }
 
-        // Rule 5: absolute policy denial -> DENY
+        // Rule 5: absolute policy denial -> DENY (evaluated against the
+        // active tenant context, regardless of how the user arrived there).
         if ($this->isPolicyDenied($tenantId, $permission)) {
             return false;
         }
 
         // Rule 6: application assignment is mandatory for app-scoped
-        // permissions. An explicit grant does NOT substitute for this.
+        // permissions. Applies universally — identity or delegation.
+        // A delegated cas_admin must still have the module assigned.
         if ($resolution->isResolved()) {
             if (!$this->isAppAssigned($user->id, $resolution->applicationKey)) {
                 return false;
             }
         }
 
+        // --- Branch: identity vs cross-tenant delegation ---
+        //
+        // Identity path: user's home tenant == active tenant. Use Rules 7–9.
+        // Delegation path: user is acting cross-tenant. Support delegation is
+        // the ONLY way to authorize. Rules 7–9 (home-tenant grants/roles) do
+        // NOT apply — they would leak home-tenant authority into another tenant.
+        $identityMatch = $user->tenantId > 0 && $user->tenantId === $tenantId;
+
+        if (!$identityMatch) {
+            // Rule 5 (from the design): delegation cannot grant cas.* or
+            // core.* permissions. The app-scoped check enforces this since
+            // cas.* / core.* resolve as global (isResolved() === false).
+            if (!$resolution->isResolved()) {
+                return false;
+            }
+            // Rule 8: expiry, revocation, and grantee status are checked
+            // inside activeFor(). No caching — every decision is fresh.
+            $delegation = $this->supportDelegations->activeFor(
+                $user->id,
+                $tenantId,
+                $resolution->applicationKey
+            );
+            if ($delegation === null) {
+                return false;
+            }
+            // permits() enforces: scope ceiling, explicit deny, allowlist.
+            return $this->supportDelegations->permits($delegation, $permission);
+        }
+
+        // Identity path — the user's home tenant matches the active tenant.
         // Rule 7: explicit user denial -> DENY (overrides grants + roles)
         if (in_array($permission, $this->getUserDenials($tenantId, $user->id), true)) {
             return false;
         }
 
-        // Rule 8: explicit user grant -> ALLOW (assigned user, no denial)
+        // Rule 8: explicit user grant -> ALLOW
         if (in_array($permission, $this->getUserGrants($tenantId, $user->id), true)) {
             return true;
         }

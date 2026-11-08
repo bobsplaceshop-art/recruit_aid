@@ -1,6 +1,6 @@
 {
-    "generated_at": "2026-11-03T17:01:34+00:00",
-    "project_root": "/mnt/c/projects/recruitaid",
+    "generated_at": "2026-11-08T11:01:47+00:00",
+    "project_root": "C:\\projects\\recruitaid",
     "mode": "READ ONLY",
     "analyzer": "polymorphic-ownership",
     "files_scanned": 3,
@@ -13,7 +13,7 @@
         {
             "rule": "POLY-OWNERSHIP-001",
             "type": "FILE_UUID_LOOKUP",
-            "file": "Platform/CustomFields/CustomFieldValueSaver.php",
+            "file": "Platform\\CustomFields\\CustomFieldValueSaver.php",
             "line": 70,
             "severity": "MEDIUM",
             "confidence": "REVIEW",
@@ -23,7 +23,7 @@
         {
             "rule": "POLY-OWNERSHIP-002",
             "type": "POLYMORPHIC_FILE_LINK",
-            "file": "Platform/CustomFields/CustomFieldValueSaver.php",
+            "file": "Platform\\CustomFields\\CustomFieldValueSaver.php",
             "line": 77,
             "severity": "HIGH",
             "confidence": "REVIEW",
@@ -33,7 +33,7 @@
         {
             "rule": "POLY-OWNERSHIP-002",
             "type": "POLYMORPHIC_FILE_LINK",
-            "file": "Platform/CustomFields/CustomFieldValueSaver.php",
+            "file": "Platform\\CustomFields\\CustomFieldValueSaver.php",
             "line": 109,
             "severity": "HIGH",
             "confidence": "REVIEW",
@@ -43,7 +43,7 @@
         {
             "rule": "POLY-OWNERSHIP-001",
             "type": "FILE_UUID_LOOKUP",
-            "file": "Platform/Services/FileService.php",
+            "file": "Platform\\Services\\FileService.php",
             "line": 147,
             "severity": "MEDIUM",
             "confidence": "REVIEW",
@@ -53,7 +53,7 @@
         {
             "rule": "POLY-OWNERSHIP-001",
             "type": "FILE_UUID_LOOKUP",
-            "file": "Recruit/Controllers/FileController.php",
+            "file": "Recruit\\Controllers\\FileController.php",
             "line": 73,
             "severity": "MEDIUM",
             "confidence": "REVIEW",

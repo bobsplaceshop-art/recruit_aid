@@ -23,11 +23,13 @@ final class UserRepository
 
     public function findById(int $id): ?User
     {
+        // Uses homeId() to avoid locking the platform admin out when
+        // they have overridden the effective tenant context.
         $row = $this->db->selectOne(
             "SELECT * FROM `core_users`
              WHERE `id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL
              LIMIT 1",
-            PDOParams::positional([$id, $this->tenant->id()])
+            PDOParams::positional([$id, $this->tenant->homeId()])
         );
         return $row ? User::fromRow($row) : null;
     }

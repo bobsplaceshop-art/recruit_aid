@@ -95,6 +95,8 @@ final class Auth
         if (isset($user->tenantId) && $user->tenantId > 0) {
             $this->session->set(self::SESSION_TENANT_KEY, $user->tenantId);
         }
+        // Clear any previous effective tenant override
+        $this->session->forget('auth_effective_tenant_id');
         $this->cached = $user;
     }
 
