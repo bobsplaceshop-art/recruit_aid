@@ -7,7 +7,6 @@
                 <h1 class="h3" style="color:var(--ra-text-strong);">Welcome to CAS Suite</h1>
                 <p class="muted">Select a module to begin working.</p>
             </div>
-            <a href="/users" class="ra-btn ra-btn-outline"><i class="bi bi-people"></i> Manage Users</a>
         </div>
     </div>
 
