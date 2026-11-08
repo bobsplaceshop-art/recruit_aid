@@ -1,20 +1,20 @@
 {
-    "generated_at": "2026-11-03T16:03:20+00:00",
+    "generated_at": "2026-11-03T17:01:34+00:00",
     "project_root": "/mnt/c/projects/recruitaid",
     "mode": "READ ONLY",
     "consolidation_version": 1,
     "source_reports": {
         "tenant": {
-            "generated_at": "2026-11-03T16:03:09+00:00"
+            "generated_at": "2026-11-03T17:01:26+00:00"
         },
         "routes": {
-            "generated_at": "2026-11-03T16:03:11+00:00"
+            "generated_at": "2026-11-03T17:01:27+00:00"
         },
         "controllers": {
-            "generated_at": "2026-11-03T16:03:18+00:00"
+            "generated_at": "2026-11-03T17:01:32+00:00"
         },
         "polymorphic": {
-            "generated_at": "2026-11-03T16:03:20+00:00"
+            "generated_at": "2026-11-03T17:01:34+00:00"
         },
         "verified": {
             "generated_at": null
@@ -66,13 +66,13 @@
                 "file": "app/Modules/HR/Handlers/PersonHiredHandler.php",
                 "line": 23
             },
-            "message": "SQL references hr_employees without an obvious tenant ownership condition",
+            "message": "SQL references hr_employees without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Modules/HR/Handlers/PersonHiredHandler.php",
                 "line": 23,
-                "evidence": "SQL references hr_employees without an obvious tenant ownership condition"
+                "evidence": "SQL references hr_employees without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -87,13 +87,13 @@
                 "file": "app/Platform/Authorization/AuthorizationService.php",
                 "line": 335
             },
-            "message": "SQL references core_admin_delegations without an obvious tenant ownership condition",
+            "message": "SQL references core_admin_delegations without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Platform/Authorization/AuthorizationService.php",
                 "line": 335,
-                "evidence": "SQL references core_admin_delegations without an obvious tenant ownership condition"
+                "evidence": "SQL references core_admin_delegations without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -129,13 +129,13 @@
                 "file": "app/Platform/Repositories/ActivityRepository.php",
                 "line": 34
             },
-            "message": "SQL references core_users as u without an obvious tenant ownership condition",
+            "message": "SQL references core_users as u without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Platform/Repositories/ActivityRepository.php",
                 "line": 34,
-                "evidence": "SQL references core_users as u without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users as u without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -150,13 +150,13 @@
                 "file": "app/Platform/Repositories/ActivityRepository.php",
                 "line": 76
             },
-            "message": "SQL references core_users as u without an obvious tenant ownership condition",
+            "message": "SQL references core_users as u without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Platform/Repositories/ActivityRepository.php",
                 "line": 76,
-                "evidence": "SQL references core_users as u without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users as u without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -171,13 +171,13 @@
                 "file": "app/Platform/Services/GlobalSearchService.php",
                 "line": 73
             },
-            "message": "SQL references recruit_client_organisations as o without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_organisations as o without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Platform/Services/GlobalSearchService.php",
                 "line": 73,
-                "evidence": "SQL references recruit_client_organisations as o without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_organisations as o without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -192,13 +192,13 @@
                 "file": "app/Platform/Services/NotificationRuleService.php",
                 "line": 108
             },
-            "message": "SQL references core_users as u without an obvious tenant ownership condition",
+            "message": "SQL references core_users as u without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Platform/Services/NotificationRuleService.php",
                 "line": 108,
-                "evidence": "SQL references core_users as u without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users as u without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -213,13 +213,13 @@
                 "file": "app/Platform/Services/NotificationRuleService.php",
                 "line": 124
             },
-            "message": "SQL references core_users as u without an obvious tenant ownership condition",
+            "message": "SQL references core_users as u without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Platform/Services/NotificationRuleService.php",
                 "line": 124,
-                "evidence": "SQL references core_users as u without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users as u without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -234,13 +234,13 @@
                 "file": "app/Platform/Services/NotificationRuleService.php",
                 "line": 143
             },
-            "message": "SQL references core_users without an obvious tenant ownership condition",
+            "message": "SQL references core_users without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Platform/Services/NotificationRuleService.php",
                 "line": 143,
-                "evidence": "SQL references core_users without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -255,13 +255,13 @@
                 "file": "app/Platform/Services/NotificationRuleService.php",
                 "line": 219
             },
-            "message": "SQL references core_users without an obvious tenant ownership condition",
+            "message": "SQL references core_users without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Platform/Services/NotificationRuleService.php",
                 "line": 219,
-                "evidence": "SQL references core_users without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -276,13 +276,13 @@
                 "file": "app/Recruit/Controllers/AccountController.php",
                 "line": 140
             },
-            "message": "SQL references core_users without an obvious tenant ownership condition",
+            "message": "SQL references core_users without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Controllers/AccountController.php",
                 "line": 140,
-                "evidence": "SQL references core_users without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -297,13 +297,13 @@
                 "file": "app/Recruit/Controllers/Admin/AdminNotificationRuleController.php",
                 "line": 256
             },
-            "message": "SQL references core_users without an obvious tenant ownership condition",
+            "message": "SQL references core_users without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Controllers/Admin/AdminNotificationRuleController.php",
                 "line": 256,
-                "evidence": "SQL references core_users without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -318,13 +318,13 @@
                 "file": "app/Recruit/Controllers/OfferController.php",
                 "line": 79
             },
-            "message": "SQL references recruit_offers without an obvious tenant ownership condition",
+            "message": "SQL references recruit_offers without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Controllers/OfferController.php",
                 "line": 79,
-                "evidence": "SQL references recruit_offers without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_offers without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -339,13 +339,13 @@
                 "file": "app/Recruit/Deletion/Entities/ContactEntity.php",
                 "line": 61
             },
-            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/ContactEntity.php",
                 "line": 61,
-                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -360,13 +360,13 @@
                 "file": "app/Recruit/Deletion/Entities/ContactEntity.php",
                 "line": 71
             },
-            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/ContactEntity.php",
                 "line": 71,
-                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -381,13 +381,13 @@
                 "file": "app/Recruit/Deletion/Entities/ContactEntity.php",
                 "line": 79
             },
-            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/ContactEntity.php",
                 "line": 79,
-                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -402,13 +402,13 @@
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 40
             },
-            "message": "SQL references recruit_engagement_recruiters without an obvious tenant ownership condition",
+            "message": "SQL references recruit_engagement_recruiters without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 40,
-                "evidence": "SQL references recruit_engagement_recruiters without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_engagement_recruiters without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -423,13 +423,13 @@
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 67
             },
-            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 67,
-                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -444,13 +444,13 @@
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 88
             },
-            "message": "SQL references recruit_engagement_recruiters without an obvious tenant ownership condition",
+            "message": "SQL references recruit_engagement_recruiters without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 88,
-                "evidence": "SQL references recruit_engagement_recruiters without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_engagement_recruiters without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -465,13 +465,13 @@
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 98
             },
-            "message": "SQL references recruit_engagements without an obvious tenant ownership condition",
+            "message": "SQL references recruit_engagements without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 98,
-                "evidence": "SQL references recruit_engagements without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_engagements without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -486,13 +486,13 @@
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 108
             },
-            "message": "SQL references recruit_engagements without an obvious tenant ownership condition",
+            "message": "SQL references recruit_engagements without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 108,
-                "evidence": "SQL references recruit_engagements without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_engagements without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -507,13 +507,13 @@
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 116
             },
-            "message": "SQL references recruit_engagements without an obvious tenant ownership condition",
+            "message": "SQL references recruit_engagements without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/EngagementEntity.php",
                 "line": 116,
-                "evidence": "SQL references recruit_engagements without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_engagements without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -528,13 +528,13 @@
                 "file": "app/Recruit/Deletion/Entities/OrganisationEntity.php",
                 "line": 88
             },
-            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/OrganisationEntity.php",
                 "line": 88,
-                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -549,13 +549,13 @@
                 "file": "app/Recruit/Deletion/Entities/OrganisationEntity.php",
                 "line": 98
             },
-            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/OrganisationEntity.php",
                 "line": 98,
-                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -570,13 +570,13 @@
                 "file": "app/Recruit/Deletion/Entities/OrganisationEntity.php",
                 "line": 106
             },
-            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/OrganisationEntity.php",
                 "line": 106,
-                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -591,13 +591,13 @@
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 32
             },
-            "message": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 32,
-                "evidence": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -612,13 +612,13 @@
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 44
             },
-            "message": "SQL references recruit_vacancy_requirements without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancy_requirements without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 44,
-                "evidence": "SQL references recruit_vacancy_requirements without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancy_requirements without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -633,13 +633,13 @@
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 92
             },
-            "message": "SQL references recruit_vacancy_requirements without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancy_requirements without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 92,
-                "evidence": "SQL references recruit_vacancy_requirements without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancy_requirements without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -654,13 +654,13 @@
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 97
             },
-            "message": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 97,
-                "evidence": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -675,13 +675,13 @@
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 107
             },
-            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 107,
-                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -696,13 +696,13 @@
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 117
             },
-            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 117,
-                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -717,13 +717,13 @@
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 125
             },
-            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Deletion/Entities/VacancyEntity.php",
                 "line": 125,
-                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -738,13 +738,13 @@
                 "file": "app/Recruit/Repositories/CandidateRepository.php",
                 "line": 327
             },
-            "message": "SQL references recruit_candidates without an obvious tenant ownership condition",
+            "message": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/CandidateRepository.php",
                 "line": 327,
-                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -759,13 +759,13 @@
                 "file": "app/Recruit/Repositories/CandidateRepository.php",
                 "line": 565
             },
-            "message": "SQL references recruit_candidate_tags without an obvious tenant ownership condition",
+            "message": "SQL references recruit_candidate_tags without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/CandidateRepository.php",
                 "line": 565,
-                "evidence": "SQL references recruit_candidate_tags without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_candidate_tags without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -780,13 +780,13 @@
                 "file": "app/Recruit/Repositories/ContactRepository.php",
                 "line": 61
             },
-            "message": "SQL references recruit_contact_roles without an obvious tenant ownership condition",
+            "message": "SQL references recruit_contact_roles without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/ContactRepository.php",
                 "line": 61,
-                "evidence": "SQL references recruit_contact_roles without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_contact_roles without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -801,13 +801,13 @@
                 "file": "app/Recruit/Repositories/ContactRepository.php",
                 "line": 137
             },
-            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/ContactRepository.php",
                 "line": 137,
-                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -822,13 +822,13 @@
                 "file": "app/Recruit/Repositories/ContactRepository.php",
                 "line": 283
             },
-            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/ContactRepository.php",
                 "line": 283,
-                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -843,13 +843,13 @@
                 "file": "app/Recruit/Repositories/ContactRepository.php",
                 "line": 357
             },
-            "message": "SQL references recruit_contact_roles as r without an obvious tenant ownership condition",
+            "message": "SQL references recruit_contact_roles as r without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/ContactRepository.php",
                 "line": 357,
-                "evidence": "SQL references recruit_contact_roles as r without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_contact_roles as r without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -864,13 +864,13 @@
                 "file": "app/Recruit/Repositories/EngagementRepository.php",
                 "line": 233
             },
-            "message": "SQL references recruit_engagements without an obvious tenant ownership condition",
+            "message": "SQL references recruit_engagements without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/EngagementRepository.php",
                 "line": 233,
-                "evidence": "SQL references recruit_engagements without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_engagements without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -885,13 +885,13 @@
                 "file": "app/Recruit/Repositories/EngagementRepository.php",
                 "line": 267
             },
-            "message": "SQL references core_users as u without an obvious tenant ownership condition",
+            "message": "SQL references core_users as u without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/EngagementRepository.php",
                 "line": 267,
-                "evidence": "SQL references core_users as u without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users as u without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -906,13 +906,13 @@
                 "file": "app/Recruit/Repositories/InterviewRepository.php",
                 "line": 148
             },
-            "message": "SQL references recruit_interviews as i without an obvious tenant ownership condition",
+            "message": "SQL references recruit_interviews as i without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/InterviewRepository.php",
                 "line": 148,
-                "evidence": "SQL references recruit_interviews as i without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_interviews as i without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -927,13 +927,13 @@
                 "file": "app/Recruit/Repositories/InterviewRepository.php",
                 "line": 182
             },
-            "message": "SQL references recruit_interviews as i without an obvious tenant ownership condition",
+            "message": "SQL references recruit_interviews as i without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/InterviewRepository.php",
                 "line": 182,
-                "evidence": "SQL references recruit_interviews as i without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_interviews as i without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -948,13 +948,13 @@
                 "file": "app/Recruit/Repositories/OfferRepository.php",
                 "line": 115
             },
-            "message": "SQL references recruit_offers without an obvious tenant ownership condition",
+            "message": "SQL references recruit_offers without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/OfferRepository.php",
                 "line": 115,
-                "evidence": "SQL references recruit_offers without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_offers without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -969,13 +969,13 @@
                 "file": "app/Recruit/Repositories/OrganisationRepository.php",
                 "line": 330
             },
-            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/OrganisationRepository.php",
                 "line": 330,
-                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -990,13 +990,13 @@
                 "file": "app/Recruit/Repositories/VacancyRepository.php",
                 "line": 563
             },
-            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Repositories/VacancyRepository.php",
                 "line": 563,
-                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1011,13 +1011,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 38
             },
-            "message": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 38,
-                "evidence": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1032,13 +1032,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 51
             },
-            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition",
+            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 51,
-                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1053,13 +1053,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 51
             },
-            "message": "SQL references recruit_application_stage_history as sh without an obvious tenant ownership condition",
+            "message": "SQL references recruit_application_stage_history as sh without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 51,
-                "evidence": "SQL references recruit_application_stage_history as sh without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_application_stage_history as sh without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1074,13 +1074,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 60
             },
-            "message": "SQL references recruit_applications without an obvious tenant ownership condition",
+            "message": "SQL references recruit_applications without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 60,
-                "evidence": "SQL references recruit_applications without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_applications without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1095,13 +1095,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 70
             },
-            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition",
+            "message": "SQL references recruit_application_stage_history as sh2 without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 70,
-                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_application_stage_history as sh2 without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1116,13 +1116,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 70
             },
-            "message": "SQL references recruit_application_stage_history as sh2 without an obvious tenant ownership condition",
+            "message": "SQL references recruit_application_stage_history as sh2 without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 70,
-                "evidence": "SQL references recruit_application_stage_history as sh2 without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_application_stage_history as sh2 without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1137,13 +1137,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 70
             },
-            "message": "SQL references recruit_application_stage_history as sh2 without an obvious tenant ownership condition",
+            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 70,
-                "evidence": "SQL references recruit_application_stage_history as sh2 without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1158,13 +1158,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 70
             },
-            "message": "SQL references recruit_application_stage_history as sh without an obvious tenant ownership condition",
+            "message": "SQL references recruit_application_stage_history as sh without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 70,
-                "evidence": "SQL references recruit_application_stage_history as sh without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_application_stage_history as sh without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1179,13 +1179,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 124
             },
-            "message": "SQL references recruit_vacancies as v without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancies as v without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 124,
-                "evidence": "SQL references recruit_vacancies as v without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancies as v without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1200,13 +1200,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 124
             },
-            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition",
+            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 124,
-                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1221,13 +1221,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159
             },
-            "message": "SQL references core_users as u without an obvious tenant ownership condition",
+            "message": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159,
-                "evidence": "SQL references core_users as u without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1242,13 +1242,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159
             },
-            "message": "Cannot reliably establish tenant predicate for recruit_candidates",
+            "message": "SQL references recruit_applications without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159,
-                "evidence": "Cannot reliably establish tenant predicate for recruit_candidates"
+                "evidence": "SQL references recruit_applications without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1263,13 +1263,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159
             },
-            "message": "Cannot reliably establish tenant predicate for recruit_applications",
+            "message": "SQL references recruit_interviews without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159,
-                "evidence": "Cannot reliably establish tenant predicate for recruit_applications"
+                "evidence": "SQL references recruit_interviews without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1284,13 +1284,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159
             },
-            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition",
+            "message": "SQL references recruit_offers without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159,
-                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_offers without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1305,13 +1305,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159
             },
-            "message": "Cannot reliably establish tenant predicate for recruit_interviews",
+            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159,
-                "evidence": "Cannot reliably establish tenant predicate for recruit_interviews"
+                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1326,13 +1326,13 @@
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159
             },
-            "message": "Cannot reliably establish tenant predicate for recruit_offers",
+            "message": "SQL references core_users as u without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "app/Recruit/Services/ReportService.php",
                 "line": 159,
-                "evidence": "Cannot reliably establish tenant predicate for recruit_offers"
+                "evidence": "SQL references core_users as u without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1347,13 +1347,13 @@
                 "file": "bin/backfill-candidate-persons.php",
                 "line": 50
             },
-            "message": "SQL references recruit_candidates without an obvious tenant ownership condition",
+            "message": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "bin/backfill-candidate-persons.php",
                 "line": 50,
-                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1368,13 +1368,13 @@
                 "file": "bin/backfill-candidate-persons.php",
                 "line": 90
             },
-            "message": "SQL references recruit_candidates without an obvious tenant ownership condition",
+            "message": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "bin/backfill-candidate-persons.php",
                 "line": 90,
-                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1389,13 +1389,13 @@
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 28
             },
-            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition",
+            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 28,
-                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1410,13 +1410,13 @@
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 28
             },
-            "message": "SQL references recruit_interviews as i without an obvious tenant ownership condition",
+            "message": "SQL references recruit_interviews as i without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 28,
-                "evidence": "SQL references recruit_interviews as i without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_interviews as i without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1431,13 +1431,13 @@
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 40
             },
-            "message": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 40,
-                "evidence": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1452,13 +1452,13 @@
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 65
             },
-            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition",
+            "message": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 65,
-                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_applications as a without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1473,13 +1473,13 @@
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 65
             },
-            "message": "SQL references recruit_offers as o without an obvious tenant ownership condition",
+            "message": "SQL references recruit_offers as o without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 65,
-                "evidence": "SQL references recruit_offers as o without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_offers as o without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1494,13 +1494,13 @@
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 85
             },
-            "message": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "bin/repair-pipeline-consistency.php",
                 "line": 85,
-                "evidence": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancy_stages without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1515,13 +1515,13 @@
                 "file": "tests/authorization_test.php",
                 "line": 43
             },
-            "message": "SQL references core_users without an obvious tenant ownership condition",
+            "message": "SQL references core_users without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/authorization_test.php",
                 "line": 43,
-                "evidence": "SQL references core_users without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1536,13 +1536,13 @@
                 "file": "tests/authorization_test.php",
                 "line": 71
             },
-            "message": "SQL references core_users without an obvious tenant ownership condition",
+            "message": "SQL references core_users without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/authorization_test.php",
                 "line": 71,
-                "evidence": "SQL references core_users without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1557,13 +1557,13 @@
                 "file": "tests/authorization_test.php",
                 "line": 226
             },
-            "message": "SQL references core_permission_policies without an obvious tenant ownership condition",
+            "message": "SQL references core_permission_policies without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/authorization_test.php",
                 "line": 226,
-                "evidence": "SQL references core_permission_policies without an obvious tenant ownership condition"
+                "evidence": "SQL references core_permission_policies without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1578,13 +1578,13 @@
                 "file": "tests/authorization_test.php",
                 "line": 420
             },
-            "message": "SQL references core_users without an obvious tenant ownership condition",
+            "message": "SQL references core_users without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/authorization_test.php",
                 "line": 420,
-                "evidence": "SQL references core_users without an obvious tenant ownership condition"
+                "evidence": "SQL references core_users without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1599,13 +1599,13 @@
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 271
             },
-            "message": "SQL references recruit_candidates without an obvious tenant ownership condition",
+            "message": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 271,
-                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1620,13 +1620,13 @@
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 276
             },
-            "message": "SQL references recruit_candidates without an obvious tenant ownership condition",
+            "message": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 276,
-                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1641,13 +1641,13 @@
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 292
             },
-            "message": "SQL references recruit_candidates without an obvious tenant ownership condition",
+            "message": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 292,
-                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1662,13 +1662,13 @@
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 508
             },
-            "message": "SQL references recruit_candidates without an obvious tenant ownership condition",
+            "message": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 508,
-                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1683,13 +1683,13 @@
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 517
             },
-            "message": "SQL references recruit_candidates without an obvious tenant ownership condition",
+            "message": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 517,
-                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1704,13 +1704,13 @@
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 526
             },
-            "message": "SQL references recruit_candidates without an obvious tenant ownership condition",
+            "message": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/candidate_repository_tenant_isolation_test.php",
                 "line": 526,
-                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_candidates without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1725,13 +1725,13 @@
                 "file": "tests/interview_scorecard_tenant_isolation_test.php",
                 "line": 244
             },
-            "message": "SQL references recruit_interviews without an obvious tenant ownership condition",
+            "message": "SQL references recruit_interviews without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/interview_scorecard_tenant_isolation_test.php",
                 "line": 244,
-                "evidence": "SQL references recruit_interviews without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_interviews without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1746,13 +1746,13 @@
                 "file": "tests/interview_scorecard_tenant_isolation_test.php",
                 "line": 320
             },
-            "message": "SQL references recruit_interviews without an obvious tenant ownership condition",
+            "message": "SQL references recruit_interviews without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/interview_scorecard_tenant_isolation_test.php",
                 "line": 320,
-                "evidence": "SQL references recruit_interviews without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_interviews without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1767,13 +1767,13 @@
                 "file": "tests/interview_scorecard_tenant_isolation_test.php",
                 "line": 402
             },
-            "message": "SQL references recruit_scorecards without an obvious tenant ownership condition",
+            "message": "SQL references recruit_scorecards without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/interview_scorecard_tenant_isolation_test.php",
                 "line": 402,
-                "evidence": "SQL references recruit_scorecards without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_scorecards without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1788,13 +1788,13 @@
                 "file": "tests/live_search_tenant_isolation_test.php",
                 "line": 99
             },
-            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/live_search_tenant_isolation_test.php",
                 "line": 99,
-                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_contacts without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1809,13 +1809,13 @@
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 258
             },
-            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 258,
-                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1830,13 +1830,13 @@
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 269
             },
-            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 269,
-                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1851,13 +1851,13 @@
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 286
             },
-            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 286,
-                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1872,13 +1872,13 @@
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 316
             },
-            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 316,
-                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1893,13 +1893,13 @@
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 325
             },
-            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 325,
-                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1914,13 +1914,13 @@
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 342
             },
-            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition",
+            "message": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/organisation_repository_tenant_isolation_test.php",
                 "line": 342,
-                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_client_organisations without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1935,13 +1935,13 @@
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 335
             },
-            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 335,
-                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1956,13 +1956,13 @@
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 356
             },
-            "message": "SQL references recruit_vacancy_recruiters without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancy_recruiters without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 356,
-                "evidence": "SQL references recruit_vacancy_recruiters without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancy_recruiters without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1977,13 +1977,13 @@
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 366
             },
-            "message": "SQL references recruit_vacancy_hiring_managers without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancy_hiring_managers without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 366,
-                "evidence": "SQL references recruit_vacancy_hiring_managers without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancy_hiring_managers without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -1998,13 +1998,13 @@
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 520
             },
-            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 520,
-                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -2019,13 +2019,13 @@
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 529
             },
-            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 529,
-                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -2040,13 +2040,13 @@
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 538
             },
-            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 538,
-                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope"
             }
         },
         {
@@ -2061,13 +2061,13 @@
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 743
             },
-            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition",
+            "message": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope",
             "evidence": {
                 "rule": "TENANT-002",
                 "severity": "REVIEW",
                 "file": "tests/vacancy_tenant_isolation_test.php",
                 "line": 743,
-                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition"
+                "evidence": "SQL references recruit_vacancies without an obvious tenant ownership condition in its query scope"
             }
         },
         {
