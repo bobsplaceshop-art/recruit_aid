@@ -36,6 +36,9 @@ use CorporateAid\Recruit\Controllers\ScorecardController;
 use CorporateAid\Recruit\Controllers\OfferController;
 use CorporateAid\Recruit\Controllers\ReportController;
 use CorporateAid\Recruit\Controllers\ExportController;
+use CorporateAid\Platform\Controllers\Cas\CasDashboardController;
+use CorporateAid\Platform\Controllers\Cas\CasDelegationController;
+use CorporateAid\Platform\Controllers\Cas\CasContextController;
 
 /** @var Router $router */
 
@@ -297,3 +300,22 @@ $router->post('/recruit/notifications/read-all',  [NotificationController::class
 
 // ---------- No Access ----------
 $router->get('/no-access', [HomeController::class, 'noAccess'], ['auth']);
+
+// ---------------------------------------------------------------------
+// CAS Platform Surface
+// ---------------------------------------------------------------------
+// All routes require auth. Each route has its own permission middleware.
+// cas.dashboard.access grants ONLY the dashboard page — not any resource
+// reached from it. Delegation management requires cas.rbac.manage_global.
+
+$router->get('/cas/dashboard',  [CasDashboardController::class, 'index'],  ['auth', 'permission:cas.dashboard.access']);
+
+$router->get('/cas/delegations',         [CasDelegationController::class, 'index'],             ['auth', 'permission:cas.rbac.manage_global']);
+$router->get('/cas/delegations/grant',   [CasDelegationController::class, 'grantForm'],         ['auth', 'permission:cas.rbac.manage_global']);
+$router->post('/cas/delegations/grant',  [CasDelegationController::class, 'grant'],             ['auth', 'csrf', 'permission:cas.rbac.manage_global']);
+$router->post('/cas/delegations/{id}/revoke',   [CasDelegationController::class, 'revoke'],            ['auth', 'csrf', 'permission:cas.rbac.manage_global']);
+$router->post('/cas/delegations/{id}/cancel',   [CasDelegationController::class, 'cancelRevocation'],  ['auth', 'csrf', 'permission:cas.rbac.manage_global']);
+
+$router->post('/cas/context/switch', [CasContextController::class, 'switch'], ['auth', 'csrf', 'permission:cas.dashboard.access']);
+$router->post('/cas/context/reset',  [CasContextController::class, 'reset'],  ['auth', 'csrf', 'permission:cas.dashboard.access']);
+
