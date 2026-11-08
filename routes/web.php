@@ -312,6 +312,8 @@ $router->post('/cas/delegations/grant',  [CasDelegationController::class, 'grant
 $router->post('/cas/delegations/{id}/revoke',   [CasDelegationController::class, 'revoke'],            ['auth', 'csrf', 'permission:cas.rbac.manage_global']);
 $router->post('/cas/delegations/{id}/cancel',   [CasDelegationController::class, 'cancelRevocation'],  ['auth', 'csrf', 'permission:cas.rbac.manage_global']);
 
-$router->post('/cas/context/switch', [CasContextController::class, 'switch'], ['auth', 'csrf', 'permission:cas.dashboard.access']);
-$router->post('/cas/context/reset',  [CasContextController::class, 'reset'],  ['auth', 'csrf', 'permission:cas.dashboard.access']);
+$router->get('/cas/context/confirm',  [CasContextController::class, 'showConfirm'], ['auth', 'permission:cas.dashboard.access']);
+$router->post('/cas/context/confirm', [CasContextController::class, 'confirm'],     ['auth', 'csrf', 'permission:cas.dashboard.access', 'ratelimit:cas_context_confirm']);
+$router->post('/cas/context/switch',  [CasContextController::class, 'switch'],      ['auth', 'csrf', 'permission:cas.dashboard.access']);
+$router->post('/cas/context/reset',   [CasContextController::class, 'reset'],       ['auth', 'csrf', 'permission:cas.dashboard.access']);
 
