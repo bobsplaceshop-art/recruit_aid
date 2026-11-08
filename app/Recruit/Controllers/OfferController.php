@@ -12,6 +12,7 @@ use CorporateAid\Core\Request;
 use CorporateAid\Core\Response;
 use CorporateAid\Core\Row;
 use CorporateAid\Core\Session;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Core\View;
 use CorporateAid\Recruit\Models\Offer;
 use CorporateAid\Recruit\Repositories\ApplicationRepository;
@@ -31,14 +32,22 @@ final class OfferController
         $auth = $this->container->get(Auth::class);
         /** @var Database $db */
         $db = $this->container->get(Database::class);
+        /** @var TenantContext $tenant */
+        $tenant = $this->container->get(TenantContext::class);
 
         $q = trim($request->queryStringValue('q', ''));
         $status = trim($request->queryStringValue('status', ''));
         $page = max(1, $request->queryInt('page', 1));
         $perPage = 25;
 
-        $where = ["o.`deleted_at` IS NULL"];
-        $paramsSql = [];
+        $where = [
+            "o.`deleted_at` IS NULL",
+            "o.`tenant_id` = ?",
+            "a.`tenant_id` = o.`tenant_id`",
+            "c.`tenant_id` = o.`tenant_id`",
+            "v.`tenant_id` = o.`tenant_id`",
+        ];
+        $paramsSql = [$tenant->id()];
         if ($q !== '') {
             $where[] = "(c.`first_name` LIKE ? OR c.`last_name` LIKE ? OR v.`title` LIKE ? OR o.`code` LIKE ?)";
             $term = '%' . $q . '%';
@@ -76,7 +85,11 @@ final class OfferController
             LIMIT $perPage OFFSET $offset", $paramObj);
 
         $counts = ['all' => 0, 'draft' => 0, 'sent' => 0, 'accepted' => 0, 'declined' => 0, 'expired' => 0, 'withdrawn' => 0];
-        $statusRows = $db->select("SELECT `status`, COUNT(*) AS n FROM `recruit_offers` WHERE `deleted_at` IS NULL GROUP BY `status`");
+        $statusRows = $db->select(
+            "SELECT `status`, COUNT(*) AS n FROM `recruit_offers`
+             WHERE `tenant_id` = ? AND `deleted_at` IS NULL GROUP BY `status`",
+            PDOParams::positional([$tenant->id()])
+        );
         foreach ($statusRows as $r) {
             $s = Row::str($r, 'status');
             if (isset($counts[$s])) $counts[$s] = Row::int($r, 'n');

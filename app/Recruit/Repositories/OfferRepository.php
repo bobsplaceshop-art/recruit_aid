@@ -28,6 +28,17 @@ final class OfferRepository
         return $row ? Offer::fromRow($row) : null;
     }
 
+    public function findByIdForUpdate(int $id): ?Offer
+    {
+        $row = $this->db->selectOne(
+            "SELECT * FROM `recruit_offers`
+             WHERE `id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL
+             LIMIT 1 FOR UPDATE",
+            PDOParams::positional([$id, $this->tenant->id()])
+        );
+        return $row ? Offer::fromRow($row) : null;
+    }
+
     public function findByCode(string $code, bool $includeDeleted = false): ?Offer
     {
         $sql = "SELECT * FROM `recruit_offers` WHERE `code` = ? AND `tenant_id` = ?";

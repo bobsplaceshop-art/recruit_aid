@@ -60,7 +60,7 @@ final class AdminNotificationRuleController
             'recipientTypes' => $recipientTypes,
             'success'        => is_string($success) ? $success : null,
             'error'          => is_string($error) ? $error : null,
-            'isSuper'        => $auth->user()?->isSuperAdmin() ?? false,
+            'isSuper'        => $auth->can('core.settings.manage'),
         ], 'layouts/app');
 
         return Response::html($html);
@@ -76,8 +76,8 @@ final class AdminNotificationRuleController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        if (!$auth->user()?->isSuperAdmin()) {
-            $session->flash('error', 'Only super administrators can manage notification rules.');
+        if (!$auth->can('core.settings.manage')) {
+            $session->flash('error', 'You do not have permission to manage notification rules.');
             return Response::redirect('/admin/settings/notifications');
         }
 
@@ -135,8 +135,8 @@ final class AdminNotificationRuleController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        if (!$auth->user()?->isSuperAdmin()) {
-            $session->flash('error', 'Only super administrators can manage notification rules.');
+        if (!$auth->can('core.settings.manage')) {
+            $session->flash('error', 'You do not have permission to manage notification rules.');
             return Response::redirect('/admin/settings/notifications');
         }
 
@@ -173,8 +173,8 @@ final class AdminNotificationRuleController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
-        if (!$auth->user()?->isSuperAdmin()) {
-            $session->flash('error', 'Only super administrators can manage notification rules.');
+        if (!$auth->can('core.settings.manage')) {
+            $session->flash('error', 'You do not have permission to manage notification rules.');
             return Response::redirect('/admin/settings/notifications');
         }
 

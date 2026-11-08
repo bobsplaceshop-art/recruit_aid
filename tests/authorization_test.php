@@ -46,17 +46,30 @@ function loadUser(Database $db, int $id): User {
     }
     $u = User::fromRow($row);
 
+    // Mirrors UserRepository::loadRoles() (tenant-scoped, module-filtered).
+    // All fixtures in this test live in tenant 1.
     $roles = $db->select(
-        "SELECT r.slug FROM core_user_roles ur JOIN core_roles r ON r.id = ur.role_id WHERE ur.user_id = ?",
+        "SELECT r.slug FROM core_user_roles ur
+         JOIN core_roles r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
+         WHERE ur.user_id = ? AND ur.tenant_id = 1 AND r.tenant_id = 1
+           AND r.module_key = 'recruit'
+           AND (ur.expires_at IS NULL OR ur.expires_at > NOW())",
         PDOParams::positional([$id])
     );
     $u->roleSlugs = array_map(fn($r) => Row::str($r, 'slug'), $roles);
 
+    // Mirrors UserRepository::loadPermissions() (tenant-scoped, includes
+    // core.* grants from Recruit roles).
     $perms = $db->select(
-        "SELECT p.slug FROM core_user_roles ur
+        "SELECT DISTINCT p.slug FROM core_user_roles ur
+         JOIN core_roles r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
          JOIN core_role_permissions rp ON rp.role_id = ur.role_id
          JOIN core_permissions p ON p.id = rp.permission_id
-         WHERE ur.user_id = ?",
+         WHERE ur.user_id = ? AND ur.tenant_id = 1 AND r.tenant_id = 1
+           AND r.module_key = 'recruit'
+           AND (SUBSTRING_INDEX(p.module, '.', 1) IN ('recruit', 'core'))
+           AND p.is_active = 1
+           AND (ur.expires_at IS NULL OR ur.expires_at > NOW())",
         PDOParams::positional([$id])
     );
     $u->permissionSlugs = array_map(fn($p) => Row::str($p, 'slug'), $perms);
@@ -85,14 +98,17 @@ $unassignedId = $db->insert(
     PDOParams::positional([$tenantId, 'Test Unassigned', 'rbac-test-unassigned@example.test', '$2y$10$dummy'])
 );
 
-$superRoleRow = $db->selectOne("SELECT id FROM core_roles WHERE slug = 'super_admin'");
-if ($superRoleRow === null) {
-    fwrite(STDERR, "FATAL: super_admin role not found\n");
+// Post-migration (0061): super_admin is deleted; CAS authority is a
+// platform role. The 'cas_admin' platform role is seeded by 0061 with
+// all active cas.* permissions. Assign it via core_user_platform_roles.
+$platformRoleRow = $db->selectOne("SELECT id FROM core_platform_roles WHERE slug = 'cas_admin'");
+if ($platformRoleRow === null) {
+    fwrite(STDERR, "FATAL: cas_admin platform role not found (run migration 0061 first)\n");
     exit(2);
 }
-$superRoleId = Row::int($superRoleRow, 'id');
-$db->execute("INSERT INTO core_user_roles (user_id, role_id) VALUES (?, ?)",
-    PDOParams::positional([$superId, $superRoleId]));
+$platformRoleId = Row::int($platformRoleRow, 'id');
+$db->execute("INSERT INTO core_user_platform_roles (user_id, role_id) VALUES (?, ?)",
+    PDOParams::positional([$superId, $platformRoleId]));
 
 $db->execute("INSERT INTO core_user_applications (user_id, module_key, is_default) VALUES (?, 'recruit', 1)",
     PDOParams::positional([$recruiterAssignedId]));
@@ -107,8 +123,8 @@ $viewPermId = Row::int($viewPermRow, 'id');
 
 // Ephemeral role scoped to recruit that grants the permission.
 $db->execute(
-    "INSERT INTO core_roles (name, slug, description, scope, module_key, is_system)
-     VALUES ('RBAC Test Viewer', 'rbac_test_viewer', 'ephemeral', 'app', 'recruit', 0)"
+    "INSERT INTO core_roles (tenant_id, name, slug, description, scope, module_key, is_system)
+     VALUES (1, 'RBAC Test Viewer', 'rbac_test_viewer', 'ephemeral', 'app', 'recruit', 0)"
 );
 $testRoleRow = $db->selectOne("SELECT id FROM core_roles WHERE slug = 'rbac_test_viewer'");
 $testRoleId = Row::int($testRoleRow, 'id');
@@ -136,8 +152,12 @@ ok('Rule 1: null user denied',
 
 $noTenant = clone $superUser;
 $noTenant->tenantId = 0;
-ok('Rule 2: no tenant denied',
-    $authz->allows($noTenant, 'cas.dashboard.access') === false);
+// cas.* permissions are platform-scoped: they do NOT require tenant identity.
+ok('Rule 2: cas.* permission evaluated without tenant identity',
+    $authz->allows($noTenant, 'cas.dashboard.access') === true);
+// Tenant-scoped permissions require tenant identity.
+ok('Rule 2b: tenant permission requires tenant identity',
+    $authz->allows($noTenant, 'recruit.candidates.view') === false);
 
 ok('Rule 3: unknown permission denied',
     $authz->allows($superUser, 'nonexistent.permission.slug') === false);
@@ -172,7 +192,7 @@ try {
         PDOParams::positional([$recruiterAssignedId, $testRoleId])
     );
     if ($roleExists5 === 0) {
-        $db->execute("INSERT INTO core_user_roles (user_id, role_id) VALUES (?, ?)",
+        $db->execute("INSERT INTO core_user_roles (tenant_id, user_id, role_id) VALUES (1, ?, ?)",
             PDOParams::positional([$recruiterAssignedId, $testRoleId]));
         $createdRoleAssignment5 = true;
     }
@@ -201,8 +221,8 @@ try {
     );
     if ($grantExists5 === 0) {
         $db->execute(
-            "INSERT INTO core_user_permissions (user_id, permission_id, granted_by, denied)
-             VALUES (?, ?, ?, 0)",
+            "INSERT INTO core_user_permissions (tenant_id, user_id, permission_id, granted_by, denied)
+             VALUES (1, ?, ?, ?, 0)",
             PDOParams::positional([$recruiterAssignedId, $viewPermId, $superId])
         );
         $createdExplicitGrant5 = true;
@@ -234,7 +254,7 @@ ok('Rule 6: unassigned user denied',
     $authz->allows($unassignedUser, 'recruit.candidates.view') === false);
 
 // Rule 7: explicit denial overrides existing role grant
-$db->execute("INSERT INTO core_user_roles (user_id, role_id) VALUES (?, ?)",
+$db->execute("INSERT INTO core_user_roles (tenant_id, user_id, role_id) VALUES (1, ?, ?)",
     PDOParams::positional([$recruiterAssignedId, $testRoleId]));
 $authz->clearCache();
 $recruiterWithRole = loadUser($db, $recruiterAssignedId);
@@ -245,8 +265,8 @@ ok('Rule 9: role grant alone allows',
 
 // Now insert explicit denial — must override the role grant.
 $db->execute(
-    "INSERT INTO core_user_permissions (user_id, permission_id, granted_by, denied)
-     VALUES (?, ?, ?, 1)",
+    "INSERT INTO core_user_permissions (tenant_id, user_id, permission_id, granted_by, denied)
+     VALUES (1, ?, ?, ?, 1)",
     PDOParams::positional([$recruiterAssignedId, $viewPermId, $superId])
 );
 $authz->clearCache();
@@ -268,8 +288,8 @@ ok('Rule 8 precondition: assigned user without role grant is denied',
     $authz->allows($recruiterBare, 'recruit.candidates.view') === false);
 
 $db->execute(
-    "INSERT INTO core_user_permissions (user_id, permission_id, granted_by, denied)
-     VALUES (?, ?, ?, 0)",
+    "INSERT INTO core_user_permissions (tenant_id, user_id, permission_id, granted_by, denied)
+     VALUES (1, ?, ?, ?, 0)",
     PDOParams::positional([$recruiterAssignedId, $viewPermId, $superId])
 );
 $authz->clearCache();
@@ -281,11 +301,17 @@ $db->execute("DELETE FROM core_user_permissions WHERE user_id = ? AND denied = 0
 $authz->clearCache();
 
 // Rule 10 / 10b / 10c
-ok('Rule 10: super_admin bypass on public',
+ok('Rule 10: platform role grants cas.dashboard.access',
     $authz->allows($superUser, 'cas.dashboard.access') === true);
 
-ok('Rule 10b: super_admin bypass blocked on sensitive',
-    $authz->allows($superUser, 'cas.rbac.delegate_admin') === false);
+ok('Rule 10b: platform role grants cas.rbac.delegate_admin (seeded by 0061)',
+    $authz->allows($superUser, 'cas.rbac.delegate_admin') === true);
+
+ok('Rule 10c: unknown cas.* permission denied',
+    $authz->allows($superUser, 'cas.fake.permission') === false);
+
+ok('Rule 10d: platform role alone does not grant tenant business permissions',
+    $authz->allows($superUser, 'recruit.candidates.view') === false);
 
 // Rule 10c: super_admin bypass blocked on restricted; explicit grant + app assignment bypasses
 $payrollPermRow = $db->selectOne("SELECT id FROM core_permissions WHERE slug = 'hr.payroll.approve'");
@@ -318,8 +344,8 @@ if ($payrollPermRow === null) {
         );
         if ($grantExists === 0) {
             $db->execute(
-                "INSERT INTO core_user_permissions (user_id, permission_id, granted_by, denied)
-                 VALUES (?, ?, ?, 0)",
+                "INSERT INTO core_user_permissions (tenant_id, user_id, permission_id, granted_by, denied)
+                 VALUES (1, ?, ?, ?, 0)",
                 PDOParams::positional([$superId, $payrollPermId, $superId])
             );
             $createdPayrollGrant = true;
@@ -352,8 +378,8 @@ ok('Rule 11: default deny',
 
 // --- Regression A: explicit grant cannot bypass app assignment ---
 $db->execute(
-    "INSERT INTO core_user_permissions (user_id, permission_id, granted_by, denied)
-     VALUES (?, ?, ?, 0)",
+    "INSERT INTO core_user_permissions (tenant_id, user_id, permission_id, granted_by, denied)
+     VALUES (1, ?, ?, ?, 0)",
     PDOParams::positional([$unassignedId, $viewPermId, $superId])
 );
 $authz->clearCache();
@@ -371,8 +397,8 @@ try {
     $authz->clearCache();
     // Grant to make sure it's not the grant path that saves them
     $db->execute(
-        "INSERT INTO core_user_permissions (user_id, permission_id, granted_by, denied)
-         VALUES (?, ?, ?, 0)",
+        "INSERT INTO core_user_permissions (tenant_id, user_id, permission_id, granted_by, denied)
+         VALUES (1, ?, ?, ?, 0)",
         PDOParams::positional([$recruiterAssignedId, $viewPermId, $superId])
     );
     $authz->clearCache();
@@ -392,8 +418,8 @@ try {
 
 // --- Regression C: unknown module ownership fails closed ---
 $db->execute(
-    "INSERT INTO core_user_permissions (user_id, permission_id, granted_by, denied)
-     SELECT ?, id, ?, 0 FROM core_permissions WHERE slug = 'unknownapp.thing.view'",
+    "INSERT INTO core_user_permissions (tenant_id, user_id, permission_id, granted_by, denied)
+     SELECT 1, ?, id, ?, 0 FROM core_permissions WHERE slug = 'unknownapp.thing.view'",
     PDOParams::positional([$recruiterAssignedId, $superId])
 );
 $authz->clearCache();
@@ -410,6 +436,8 @@ ok('Regression D: cas.* works without app assignment',
 echo "\nCleaning up fixtures...\n";
 $db->execute("DELETE FROM core_role_permissions WHERE role_id = ?", PDOParams::positional([$testRoleId]));
 $db->execute("DELETE FROM core_user_roles WHERE user_id IN (?, ?, ?)",
+    PDOParams::positional([$superId, $recruiterAssignedId, $unassignedId]));
+$db->execute("DELETE FROM core_user_platform_roles WHERE user_id IN (?, ?, ?)",
     PDOParams::positional([$superId, $recruiterAssignedId, $unassignedId]));
 $db->execute("DELETE FROM core_user_applications WHERE user_id IN (?, ?, ?)",
     PDOParams::positional([$superId, $recruiterAssignedId, $unassignedId]));

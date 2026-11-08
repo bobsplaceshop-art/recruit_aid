@@ -72,11 +72,6 @@ final class User
         return $this->lockedUntil !== null && strtotime($this->lockedUntil) > time();
     }
 
-    public function isSuperAdmin(): bool
-    {
-        return in_array('super_admin', $this->roleSlugs, true);
-    }
-
     public function hasRole(string $slug): bool
     {
         return in_array($slug, $this->roleSlugs, true);

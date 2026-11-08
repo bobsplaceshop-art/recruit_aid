@@ -46,7 +46,7 @@ final class InterviewController
         $status = trim($request->queryStringValue('status', ''));
         $statusFilter = $status !== '' ? $status : null;
 
-        if ($user->isSuperAdmin()) {
+        if ($user->hasRole('admin')) {
             $interviews = $repo->allWithFilters($statusFilter, 200);
         } else {
             $interviews = $repo->forUserWithFilters($user->id, $statusFilter, 200);

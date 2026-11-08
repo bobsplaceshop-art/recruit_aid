@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Services;
 
 use CorporateAid\Core\Auth;
+use CorporateAid\Core\Database;
+use CorporateAid\Core\TenantContext;
 use CorporateAid\Platform\Modules\EventBus;
 use CorporateAid\Platform\Modules\Events\PersonHiredEvent;
 use CorporateAid\Platform\Support\ActivityLogger;
@@ -18,6 +20,8 @@ use CorporateAid\Recruit\Repositories\VacancyStageRepository;
 final class OfferService
 {
     public function __construct(
+        private Database $db,
+        private TenantContext $tenant,
         private OfferRepository $offers,
         private ApplicationRepository $applications,
         private VacancyStageRepository $stages,
@@ -167,24 +171,56 @@ final class OfferService
     /** @return array{success: bool, error: ?string} */
     public function accept(int $offerId, ?string $responseNotes = null): array
     {
-        $offer = $this->offers->findById($offerId);
-        if ($offer === null) return ['success' => false, 'error' => 'Offer not found.'];
-        if ($offer->status !== 'sent') return ['success' => false, 'error' => 'Only sent offers can be accepted.'];
+        try {
+            $this->db->beginTransaction();
 
-        $this->offers->updateStatus($offerId, 'accepted', $responseNotes);
-        $this->offers->recordHistory($offerId, 'sent', 'accepted', $this->auth?->user()?->id, $responseNotes);
+            // Lock the tenant-owned offer so concurrent acceptance requests
+            // cannot both proceed from the same "sent" state.
+            $offer = $this->offers->findByIdForUpdate($offerId);
 
-        // Close the hire loop: application → hired, candidate → hired,
-        // vacancy → filled if positions_count reached.
-        $this->finalizeHire($offer->applicationId);
+            if ($offer === null) {
+                $this->db->rollBack();
+                return ['success' => false, 'error' => 'Offer not found.'];
+            }
 
-        $this->activity->log(
-            'offer.accepted',
-            'offers',
-            'Candidate accepted offer ' . $offer->code,
-            'offer',
-            $offerId
-        );
+            if ($offer->status !== 'sent') {
+                $this->db->rollBack();
+                return ['success' => false, 'error' => 'Only sent offers can be accepted.'];
+            }
+
+            // Complete the hire workflow and write its outbox event in the
+            // same transaction as the offer status and history.
+            $this->finalizeHire($offer->applicationId);
+
+            $this->offers->updateStatus($offerId, 'accepted', $responseNotes);
+            $this->offers->recordHistory(
+                $offerId,
+                'sent',
+                'accepted',
+                $this->auth?->user()?->id,
+                $responseNotes
+            );
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            return [
+                'success' => false,
+                'error' => 'Offer acceptance could not be completed. Please try again.',
+            ];
+        }
+
+        try {
+            $this->activity->log(
+                'offer.accepted',
+                'offers',
+                'Candidate accepted offer ' . $offer->code,
+                'offer',
+                $offerId
+            );
+        } catch (\Throwable $e) {
+            error_log('Offer acceptance activity logging failed for offer ID ' . $offerId . '.');
+        }
 
         return ['success' => true, 'error' => null];
     }
@@ -268,10 +304,14 @@ final class OfferService
     private function finalizeHire(int $applicationId): void
     {
         $application = $this->applications->findById($applicationId);
-        if ($application === null) return;
+        if ($application === null) {
+            throw new \RuntimeException('The offer application could not be found for this tenant.');
+        }
 
         $candidate = $this->candidates->findById($application->candidateId);
-        if ($candidate === null) return;
+        if ($candidate === null) {
+            throw new \RuntimeException('The offer candidate could not be found for this tenant.');
+        }
 
         // 1. Move the application to the terminal 'Hired' stage (if any)
         $stages = $this->stages->forVacancy($application->vacancyId);
@@ -300,10 +340,8 @@ final class OfferService
 
         // 4. Dispatch the cross-module event
         if ($candidate->personId !== null) {
-            $user = $this->auth?->user();
-            $tenantId = $user->tenantId ?? 1;
             $this->events?->dispatch(PersonHiredEvent::TYPE, [
-                'tenant_id'    => $tenantId,
+                'tenant_id'    => $this->tenant->id(),
                 'person_id'    => $candidate->personId,
                 'candidate_id' => $candidate->id
             ]);

@@ -27,16 +27,16 @@ final class AuthorizationService
     /** @var array<string, array{module:string, sensitivity:string, is_active:bool}> */
     private array $permissionCache = [];
 
-    /** @var array<int, array<string, bool>> userId => (module_key => true) */
+    /** @var array<string, array<string, bool>> tenant:user => (module_key => true) */
     private array $assignedAppsCache = [];
 
-    /** @var array<int, array<int, array{module_key:string, allowed:array<int,string>, denied:array<int,string>, expires_at:?string}>> */
+    /** @var array<string, array<int, array{module_key:string, allowed:array<int,string>, denied:array<int,string>, expires_at:?string}>> tenant:user => delegations */
     private array $delegationsCache = [];
 
-    /** @var array<int, array<int, string>> userId => list of denied permission slugs */
+    /** @var array<string, array<int, string>> tenant:user => denied permission slugs */
     private array $userDenialsCache = [];
 
-    /** @var array<int, array<int, string>> userId => list of explicit grants */
+    /** @var array<string, array<int, string>> tenant:user => explicit grants */
     private array $userGrantsCache = [];
 
     /** @var array<string, bool> module_key => is registered in core_modules */
@@ -93,15 +93,22 @@ final class AuthorizationService
             return false;
         }
 
-        // Rule 2: no tenant context -> DENY
-        $tenantId = $user->tenantId;
-        if ($tenantId <= 0) {
+        // Rule 2: permission must exist and be active.
+        $perm = $this->getPermission($permission);
+        if ($perm === null || !$perm['is_active']) {
             return false;
         }
 
-        // Rule 3: permission not registered -> DENY
-        $perm = $this->getPermission($permission);
-        if ($perm === null || !$perm['is_active']) {
+        // CAS platform permissions are evaluated independently from
+        // tenant membership, tenant roles and tenant direct grants.
+        // A platform assignment never grants access to Recruit Aid data.
+        if (str_starts_with($permission, 'cas.')) {
+            return $this->hasPlatformPermission($user->id, $permission);
+        }
+
+        // Tenant-owned permissions require an exact active tenant match.
+        $tenantId = $this->tenant->id();
+        if ($tenantId <= 0 || $user->tenantId <= 0 || $user->tenantId !== $tenantId) {
             return false;
         }
 
@@ -136,22 +143,17 @@ final class AuthorizationService
         }
 
         // Rule 7: explicit user denial -> DENY (overrides grants + roles)
-        if (in_array($permission, $this->getUserDenials($user->id), true)) {
+        if (in_array($permission, $this->getUserDenials($tenantId, $user->id), true)) {
             return false;
         }
 
         // Rule 8: explicit user grant -> ALLOW (assigned user, no denial)
-        if (in_array($permission, $this->getUserGrants($user->id), true)) {
+        if (in_array($permission, $this->getUserGrants($tenantId, $user->id), true)) {
             return true;
         }
 
         // Rule 9: role-based grant -> ALLOW
         if (in_array($permission, $user->permissionSlugs, true)) {
-            return true;
-        }
-
-        // Rule 10: super_admin bypass - only for public sensitivity
-        if ($user->isSuperAdmin() && $perm['sensitivity'] === 'public') {
             return true;
         }
 
@@ -247,12 +249,17 @@ final class AuthorizationService
 
     private function isAppAssigned(int $userId, string $moduleKey): bool
     {
-        if (isset($this->assignedAppsCache[$userId])) {
-            return isset($this->assignedAppsCache[$userId][$moduleKey]);
+        $tenantId = $this->tenant->id();
+        $cacheKey = $tenantId . ':' . $userId;
+
+        if (isset($this->assignedAppsCache[$cacheKey])) {
+            return isset($this->assignedAppsCache[$cacheKey][$moduleKey]);
         }
 
         $rows = $this->db->select(
-            "SELECT `module_key` FROM `core_user_applications` WHERE `user_id` = ?",
+            "SELECT `module_key`
+             FROM `core_user_applications`
+             WHERE `user_id` = ?",
             PDOParams::positional([$userId])
         );
 
@@ -260,7 +267,7 @@ final class AuthorizationService
         foreach ($rows as $r) {
             $apps[Row::str($r, 'module_key')] = true;
         }
-        $this->assignedAppsCache[$userId] = $apps;
+        $this->assignedAppsCache[$cacheKey] = $apps;
         return isset($apps[$moduleKey]);
     }
 
@@ -275,47 +282,83 @@ final class AuthorizationService
     }
 
     /** @return string[] */
-    private function getUserDenials(int $userId): array
+    private function getUserDenials(int $tenantId, int $userId): array
     {
-        if (isset($this->userDenialsCache[$userId])) {
-            return $this->userDenialsCache[$userId];
+        $cacheKey = $tenantId . ':' . $userId;
+        if (isset($this->userDenialsCache[$cacheKey])) {
+            return $this->userDenialsCache[$cacheKey];
         }
 
         $rows = $this->db->select(
             "SELECT p.`slug`
              FROM `core_user_permissions` up
              JOIN `core_permissions` p ON p.`id` = up.`permission_id`
-             WHERE up.`user_id` = ?
+             WHERE up.`tenant_id` = ?
+               AND up.`user_id` = ?
                AND up.`denied` = 1
                AND (up.`expires_at` IS NULL OR up.`expires_at` > NOW())",
-            PDOParams::positional([$userId])
+            PDOParams::positional([$tenantId, $userId])
         );
 
         $out = array_map(static fn($r) => Row::str($r, 'slug'), $rows);
-        $this->userDenialsCache[$userId] = $out;
+        $this->userDenialsCache[$cacheKey] = $out;
         return $out;
     }
 
     /** @return string[] */
-    private function getUserGrants(int $userId): array
+    private function getUserGrants(int $tenantId, int $userId): array
     {
-        if (isset($this->userGrantsCache[$userId])) {
-            return $this->userGrantsCache[$userId];
+        $cacheKey = $tenantId . ':' . $userId;
+        if (isset($this->userGrantsCache[$cacheKey])) {
+            return $this->userGrantsCache[$cacheKey];
         }
 
         $rows = $this->db->select(
             "SELECT p.`slug`
              FROM `core_user_permissions` up
              JOIN `core_permissions` p ON p.`id` = up.`permission_id`
-             WHERE up.`user_id` = ?
+             WHERE up.`tenant_id` = ?
+               AND up.`user_id` = ?
                AND up.`denied` = 0
                AND (up.`expires_at` IS NULL OR up.`expires_at` > NOW())",
-            PDOParams::positional([$userId])
+            PDOParams::positional([$tenantId, $userId])
         );
 
         $out = array_map(static fn($r) => Row::str($r, 'slug'), $rows);
-        $this->userGrantsCache[$userId] = $out;
+        $this->userGrantsCache[$cacheKey] = $out;
         return $out;
+    }
+
+    /**
+     * Check a global CAS permission through platform role assignments only.
+     * Tenant roles and direct tenant grants are deliberately excluded.
+     */
+    private function hasPlatformPermission(int $userId, string $permission): bool
+    {
+        if ($userId <= 0) {
+            return false;
+        }
+
+        return $this->db->scalarInt(
+            "SELECT COUNT(*)
+             FROM `core_user_platform_roles` upr
+             JOIN `core_platform_roles` pr
+               ON pr.`id` = upr.`role_id`
+             JOIN `core_platform_role_permissions` prp
+               ON prp.`role_id` = pr.`id`
+             JOIN `core_permissions` p
+               ON p.`id` = prp.`permission_id`
+             JOIN `core_users` u
+               ON u.`id` = upr.`user_id`
+             WHERE upr.`user_id` = ?
+               AND p.`slug` = ?
+               AND p.`scope` = 'global'
+               AND p.`is_active` = 1
+               AND (upr.`expires_at` IS NULL OR upr.`expires_at` > NOW())
+               AND u.`status` = 'active'
+               AND u.`deleted_at` IS NULL",
+            PDOParams::positional([$userId, $permission])
+        ) > 0;
     }
 
     /**
@@ -327,16 +370,28 @@ final class AuthorizationService
      */
     public function getActiveDelegations(int $userId): array
     {
-        if (isset($this->delegationsCache[$userId])) {
-            return $this->delegationsCache[$userId];
+        $tenantId = $this->tenant->id();
+
+        if ($tenantId <= 0 || $userId <= 0) {
+            return [];
+        }
+
+        $cacheKey = $tenantId . ':' . $userId;
+
+        if (array_key_exists($cacheKey, $this->delegationsCache)) {
+            return $this->delegationsCache[$cacheKey];
         }
 
         $rows = $this->db->select(
-            "SELECT `module_key`, `allowed_permissions_json`, `denied_permissions_json`, `expires_at`
-             FROM `core_admin_delegations`
-             WHERE `user_id` = ? AND `revoked_at` IS NULL
-               AND (`expires_at` IS NULL OR `expires_at` > NOW())",
-            PDOParams::positional([$userId])
+            "SELECT d.`module_key`, d.`allowed_permissions_json`, d.`denied_permissions_json`, d.`expires_at`
+             FROM `core_admin_delegations` d
+             INNER JOIN `core_users` u
+                ON u.`id` = d.`user_id`
+               AND u.`tenant_id` = d.`tenant_id`
+             WHERE d.`tenant_id` = ? AND d.`user_id` = ?
+               AND d.`revoked_at` IS NULL
+               AND (d.`expires_at` IS NULL OR d.`expires_at` > NOW())",
+            PDOParams::positional([$tenantId, $userId])
         );
 
         $out = [];
@@ -349,7 +404,7 @@ final class AuthorizationService
             ];
         }
 
-        $this->delegationsCache[$userId] = $out;
+        $this->delegationsCache[$cacheKey] = $out;
         return $out;
     }
 }

@@ -19,22 +19,178 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         private CodeGenerator $codes
     ) {}
 
+    private function tenantId(): int
+    {
+        $tenantId = $this->tenant->id();
+
+        if ($tenantId <= 0) {
+            throw new \RuntimeException('An active tenant is required.');
+        }
+
+        return $tenantId;
+    }
+
+    private function positiveId(mixed $value, string $field): int
+    {
+        if (is_int($value) && $value > 0) {
+            return $value;
+        }
+
+        if (is_string($value) && $value !== '' && ctype_digit($value)) {
+            $id = filter_var($value, FILTER_VALIDATE_INT);
+
+            if ($id !== false && $id > 0) {
+                return $id;
+            }
+        }
+
+        throw new \InvalidArgumentException("Invalid {$field} supplied.");
+    }
+
+    private function nullableId(mixed $value, string $field): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return $this->positiveId($value, $field);
+    }
+
+    private function assertTenantOrganisation(int $organisationId): void
+    {
+        $tenantId = $this->tenantId();
+
+        $exists = $this->db->scalarInt(
+            "SELECT COUNT(*) FROM `recruit_client_organisations`
+             WHERE `id` = ?
+               AND `tenant_id` = ?
+               AND `deleted_at` IS NULL",
+            PDOParams::positional([$organisationId, $tenantId])
+        );
+
+        if ($exists !== 1) {
+            throw new \InvalidArgumentException(
+                'The selected client organisation is unavailable.'
+            );
+        }
+    }
+
+    private function assertTenantEngagement(
+        int $engagementId,
+        int $organisationId
+    ): void {
+        $tenantId = $this->tenantId();
+
+        $exists = $this->db->scalarInt(
+            "SELECT COUNT(*) FROM `recruit_engagements`
+             WHERE `id` = ?
+               AND `client_organisation_id` = ?
+               AND `tenant_id` = ?
+               AND `deleted_at` IS NULL",
+            PDOParams::positional([$engagementId, $organisationId, $tenantId])
+        );
+
+        if ($exists !== 1) {
+            throw new \InvalidArgumentException(
+                'The selected engagement does not belong to this client organisation and tenant.'
+            );
+        }
+    }
+
+    private function assertTenantRecruiter(int $userId): void
+    {
+        $tenantId = $this->tenantId();
+
+        $exists = $this->db->scalarInt(
+            "SELECT COUNT(*) FROM `core_users`
+             WHERE `id` = ?
+               AND `tenant_id` = ?
+               AND `status` = 'active'
+               AND `deleted_at` IS NULL",
+            PDOParams::positional([$userId, $tenantId])
+        );
+
+        if ($exists !== 1) {
+            throw new \InvalidArgumentException(
+                'The selected recruiter is not an active user in this tenant.'
+            );
+        }
+    }
+
+    private function assertTenantContact(
+        int $contactId,
+        int $organisationId
+    ): void {
+        $tenantId = $this->tenantId();
+
+        $exists = $this->db->scalarInt(
+            "SELECT COUNT(*) FROM `recruit_client_contacts`
+             WHERE `id` = ?
+               AND `client_organisation_id` = ?
+               AND `tenant_id` = ?
+               AND `deleted_at` IS NULL",
+            PDOParams::positional([$contactId, $organisationId, $tenantId])
+        );
+
+        if ($exists !== 1) {
+            throw new \InvalidArgumentException(
+                'The selected hiring manager does not belong to this client organisation and tenant.'
+            );
+        }
+    }
+
+    private function assertTenantUser(int $userId): void
+    {
+        $this->assertTenantRecruiter($userId);
+    }
+
+    private function assertTenantVacancy(int $vacancyId): void
+    {
+        $tenantId = $this->tenantId();
+
+        $exists = $this->db->scalarInt(
+            "SELECT COUNT(*) FROM `recruit_vacancies`
+             WHERE `id` = ?
+               AND `tenant_id` = ?
+               AND `deleted_at` IS NULL",
+            PDOParams::positional([$vacancyId, $tenantId])
+        );
+
+        if ($exists !== 1) {
+            throw new \InvalidArgumentException(
+                'The vacancy is unavailable in the active tenant.'
+            );
+        }
+    }
+
     public function findById(int $id): ?Vacancy
     {
         $row = $this->db->selectOne(
-            "SELECT * FROM `recruit_vacancies` WHERE `id` = ? AND `tenant_id` = ? LIMIT 1",
-            PDOParams::positional([$id, $this->tenant->id()])
+            "SELECT * FROM `recruit_vacancies`
+             WHERE `id` = ? AND `tenant_id` = ?
+             LIMIT 1",
+            PDOParams::positional([$id, $this->tenantId()])
         );
+
         return $row ? Vacancy::fromRow($row) : null;
     }
 
     public function findByCode(string $code, bool $includeDeleted = false): ?Vacancy
     {
-        $sql = "SELECT * FROM `recruit_vacancies` WHERE `code` = ? AND `tenant_id` = ?";
-        if (!$includeDeleted) $sql .= " AND `deleted_at` IS NULL";
+        $sql = "SELECT * FROM `recruit_vacancies`
+                WHERE `code` = ? AND `tenant_id` = ?";
+
+        if (!$includeDeleted) {
+            $sql .= " AND `deleted_at` IS NULL";
+        }
+
         $sql .= " LIMIT 1";
 
-        $row = $this->db->selectOne($sql, PDOParams::positional([$code, $this->tenant->id()]));
+        $row = $this->db->selectOne(
+            $sql,
+            PDOParams::positional([$code, $this->tenantId()])
+        );
+
         return $row ? Vacancy::fromRow($row) : null;
     }
 
@@ -45,7 +201,7 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     public function paginate(array $filters = [], int $page = 1, int $perPage = 25): array
     {
         $where = ['`tenant_id` = ?'];
-        $params = [$this->tenant->id()];
+        $params = [$this->tenantId()];
 
         if (empty($filters['include_deleted'])) {
             $where[] = "`deleted_at` IS NULL";
@@ -87,10 +243,14 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             $paramObj
         );
 
-        $page    = max(1, $page);
+        $page = max(1, $page);
         $perPage = max(1, min(100, $perPage));
         $totalPages = max(1, (int) ceil($total / $perPage));
-        if ($page > $totalPages) $page = $totalPages;
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
         $offset = ($page - 1) * $perPage;
 
         $rows = $this->db->select(
@@ -112,11 +272,20 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     /** @return Vacancy[] */
     public function forOrganisation(int $clientOrganisationId, bool $includeDeleted = false): array
     {
-        $sql = "SELECT * FROM `recruit_vacancies` WHERE `client_organisation_id` = ? AND `tenant_id` = ?";
-        if (!$includeDeleted) $sql .= " AND `deleted_at` IS NULL";
+        $sql = "SELECT * FROM `recruit_vacancies`
+                WHERE `client_organisation_id` = ? AND `tenant_id` = ?";
+
+        if (!$includeDeleted) {
+            $sql .= " AND `deleted_at` IS NULL";
+        }
+
         $sql .= " ORDER BY `created_at` DESC";
 
-        $rows = $this->db->select($sql, PDOParams::positional([$clientOrganisationId, $this->tenant->id()]));
+        $rows = $this->db->select(
+            $sql,
+            PDOParams::positional([$clientOrganisationId, $this->tenantId()])
+        );
+
         return array_map([Vacancy::class, 'fromRow'], $rows);
     }
 
@@ -125,10 +294,13 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     {
         $rows = $this->db->select(
             "SELECT * FROM `recruit_vacancies`
-             WHERE `engagement_id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL
+             WHERE `engagement_id` = ?
+               AND `tenant_id` = ?
+               AND `deleted_at` IS NULL
              ORDER BY `created_at` DESC",
-            PDOParams::positional([$engagementId, $this->tenant->id()])
+            PDOParams::positional([$engagementId, $this->tenantId()])
         );
+
         return array_map([Vacancy::class, 'fromRow'], $rows);
     }
 
@@ -140,7 +312,7 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
                AND `tenant_id` = ?
                AND `status` NOT IN ('draft','cancelled','closed')
                AND `deleted_at` IS NULL",
-            PDOParams::positional([$engagementId, $this->tenant->id()])
+            PDOParams::positional([$engagementId, $this->tenantId()])
         );
     }
 
@@ -151,26 +323,74 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             "SELECT `status`, COUNT(*) AS n FROM `recruit_vacancies`
              WHERE `tenant_id` = ? AND `deleted_at` IS NULL
              GROUP BY `status`",
-            PDOParams::positional([$this->tenant->id()])
+            PDOParams::positional([$this->tenantId()])
         );
+
         $counts = [
             'all' => 0, 'draft' => 0, 'pending_approval' => 0, 'open' => 0,
             'sourcing' => 0, 'screening' => 0, 'shortlisting' => 0, 'client_review' => 0,
             'interviewing' => 0, 'reference_check' => 0, 'offer' => 0,
             'filled' => 0, 'on_hold' => 0, 'cancelled' => 0, 'closed' => 0,
         ];
+
         foreach ($rows as $row) {
-            $s = Row::str($row, 'status');
-            $n = Row::int($row, 'n');
-            $counts[$s] = $n;
-            $counts['all'] += $n;
+            $status = Row::str($row, 'status');
+            $count = Row::int($row, 'n');
+            $counts[$status] = $count;
+            $counts['all'] += $count;
         }
+
         return $counts;
     }
 
     /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
+        $tenantId = $this->tenantId();
+
+        $organisationId = $this->positiveId(
+            $data['client_organisation_id'] ?? null,
+            'client organisation ID'
+        );
+
+        $engagementId = $this->nullableId(
+            $data['engagement_id'] ?? null,
+            'engagement ID'
+        );
+
+        $recruiterId = $this->nullableId(
+            $data['recruiter_id'] ?? null,
+            'recruiter ID'
+        );
+
+        $hiringManagerId = $this->nullableId(
+            $data['hiring_manager_contact_id'] ?? null,
+            'hiring manager contact ID'
+        );
+
+        $createdBy = $this->nullableId(
+            $data['created_by'] ?? null,
+            'creator ID'
+        );
+
+        $this->assertTenantOrganisation($organisationId);
+
+        if ($engagementId !== null) {
+            $this->assertTenantEngagement($engagementId, $organisationId);
+        }
+
+        if ($recruiterId !== null) {
+            $this->assertTenantRecruiter($recruiterId);
+        }
+
+        if ($hiringManagerId !== null) {
+            $this->assertTenantContact($hiringManagerId, $organisationId);
+        }
+
+        if ($createdBy !== null) {
+            $this->assertTenantUser($createdBy);
+        }
+
         $sql = "INSERT INTO `recruit_vacancies`
             (`tenant_id`, `code`, `client_organisation_id`, `engagement_id`, `title`, `department`,
              `country_code`, `city`, `work_mode`, `employment_type`, `seniority`,
@@ -186,10 +406,10 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         return $this->db->insert($sql, PDOParams::positional([
-            $this->tenant->id(),
+            $tenantId,
             $data['code'],
-            $data['client_organisation_id'],
-            $data['engagement_id'] ?? null,
+            $organisationId,
+            $engagementId,
             $data['title'],
             $data['department'] ?? null,
             $data['country_code'] ?? null,
@@ -200,8 +420,8 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             $data['positions_count'] ?? 1,
             $data['opening_date'] ?? null,
             $data['target_hire_date'] ?? null,
-            $data['recruiter_id'] ?? null,
-            $data['hiring_manager_contact_id'] ?? null,
+            $recruiterId,
+            $hiringManagerId,
             $data['salary_min'] ?? null,
             $data['salary_max'] ?? null,
             $data['currency'] ?? null,
@@ -216,7 +436,7 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             $data['client_notes'] ?? null,
             $data['status'] ?? 'draft',
             !empty($data['is_public']) ? 1 : 0,
-            $data['created_by'] ?? null,
+            $createdBy,
         ]));
     }
 
@@ -226,8 +446,38 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
      */
     public function update(int $id, array $data): array
     {
+        $tenantId = $this->tenantId();
         $existing = $this->findById($id);
-        if (!$existing) throw new \RuntimeException('Vacancy not found.');
+
+        if (!$existing || $existing->isDeleted()) {
+            throw new \RuntimeException('Vacancy not found.');
+        }
+
+        $organisationId = $existing->clientOrganisationId;
+
+        $engagementId = array_key_exists('engagement_id', $data)
+            ? $this->nullableId($data['engagement_id'], 'engagement ID')
+            : $existing->engagementId;
+
+        $recruiterId = array_key_exists('recruiter_id', $data)
+            ? $this->nullableId($data['recruiter_id'], 'recruiter ID')
+            : $existing->recruiterId;
+
+        $hiringManagerId = array_key_exists('hiring_manager_contact_id', $data)
+            ? $this->nullableId($data['hiring_manager_contact_id'], 'hiring manager contact ID')
+            : $existing->hiringManagerContactId;
+
+        if ($engagementId !== null) {
+            $this->assertTenantEngagement($engagementId, $organisationId);
+        }
+
+        if ($recruiterId !== null) {
+            $this->assertTenantRecruiter($recruiterId);
+        }
+
+        if ($hiringManagerId !== null) {
+            $this->assertTenantContact($hiringManagerId, $organisationId);
+        }
 
         $allowed = [
             'engagement_id', 'title', 'department', 'country_code', 'city',
@@ -244,9 +494,12 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         $changes = [];
 
         foreach ($allowed as $col) {
-            if (!array_key_exists($col, $data)) continue;
+            if (!array_key_exists($col, $data)) {
+                continue;
+            }
 
             $newVal = $data[$col];
+
             $prop = match ($col) {
                 'engagement_id'             => 'engagementId',
                 'country_code'              => 'countryCode',
@@ -266,33 +519,52 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
                 'is_public'                 => 'isPublic',
                 default                     => $col,
             };
-            $oldVal = $existing->$prop ?? null;
 
+            $oldVal = $existing->$prop ?? null;
             $newForCompare = $newVal;
+
             if (in_array($col, ['skills', 'languages'], true)) {
-                $newForCompare = !empty($newVal) ? (is_array($newVal) ? $newVal : (is_string($newVal) ? json_decode($newVal, true) : [])) : [];
+                $newForCompare = !empty($newVal)
+                    ? (is_array($newVal) ? $newVal : (is_string($newVal) ? json_decode($newVal, true) : []))
+                    : [];
+
                 $oldVal = $col === 'skills' ? $existing->skills : $existing->languages;
             }
-            if ($col === 'is_public') $newForCompare = (bool) $newVal;
+
+            if ($col === 'is_public') {
+                $newForCompare = (bool) $newVal;
+            }
 
             if ($oldVal != $newForCompare) {
                 $changes[$col] = ['old' => $oldVal, 'new' => $newForCompare];
             }
 
             $sets[] = "`{$col}` = ?";
+
             if (in_array($col, ['skills', 'languages'], true)) {
                 $newVal = !empty($newVal) ? json_encode($newVal) : null;
             }
-            if ($col === 'is_public') $newVal = !empty($newVal) ? 1 : 0;
+
+            if ($col === 'is_public') {
+                $newVal = !empty($newVal) ? 1 : 0;
+            }
+
             $params[] = $newVal;
         }
 
-        if (empty($sets)) return [];
+        if (empty($sets)) {
+            return [];
+        }
 
         $params[] = $id;
-        $params[] = $this->tenant->id();
+        $params[] = $tenantId;
+
         $this->db->execute(
-            "UPDATE `recruit_vacancies` SET " . implode(', ', $sets) . " WHERE `id` = ? AND `tenant_id` = ?",
+            "UPDATE `recruit_vacancies`
+             SET " . implode(', ', $sets) . "
+             WHERE `id` = ?
+               AND `tenant_id` = ?
+               AND `deleted_at` IS NULL",
             PDOParams::positional($params)
         );
 
@@ -302,60 +574,95 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     public function softDelete(int $id): void
     {
         $this->db->execute(
-            "UPDATE `recruit_vacancies` SET `deleted_at` = NOW() WHERE `id` = ? AND `tenant_id` = ?",
-            PDOParams::positional([$id, $this->tenant->id()])
+            "UPDATE `recruit_vacancies`
+             SET `deleted_at` = NOW()
+             WHERE `id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL",
+            PDOParams::positional([$id, $this->tenantId()])
         );
     }
 
     public function restore(int $id): void
     {
         $this->db->execute(
-            "UPDATE `recruit_vacancies` SET `deleted_at` = NULL WHERE `id` = ? AND `tenant_id` = ?",
-            PDOParams::positional([$id, $this->tenant->id()])
+            "UPDATE `recruit_vacancies`
+             SET `deleted_at` = NULL
+             WHERE `id` = ? AND `tenant_id` = ? AND `deleted_at` IS NOT NULL",
+            PDOParams::positional([$id, $this->tenantId()])
         );
     }
 
     public function nextCode(): string
     {
-        return $this->codes->nextForTenant('rec_vacancy_code', 'VAC', $this->tenant->id());
+        return $this->codes->nextForTenant(
+            'rec_vacancy_code',
+            'VAC',
+            $this->tenantId()
+        );
     }
 
     /** @return VacancyRequirement[] */
     public function requirementsFor(int $vacancyId, ?string $type = null): array
     {
-        $sql = "SELECT * FROM `recruit_vacancy_requirements` WHERE `vacancy_id` = ? AND `tenant_id` = ?";
-        $params = [$vacancyId, $this->tenant->id()];
+        $sql = "SELECT * FROM `recruit_vacancy_requirements`
+                WHERE `vacancy_id` = ? AND `tenant_id` = ?";
+
+        $params = [$vacancyId, $this->tenantId()];
+
         if ($type !== null) {
             $sql .= " AND `type` = ?";
             $params[] = $type;
         }
+
         $sql .= " ORDER BY `sort_order` ASC, `id` ASC";
 
         $rows = $this->db->select($sql, PDOParams::positional($params));
+
         return array_map([VacancyRequirement::class, 'fromRow'], $rows);
     }
 
     /** @param array<string, mixed> $items */
     public function syncRequirements(int $vacancyId, array $items): void
     {
-        $validTypes = ['responsibility','requirement','preferred','skill','language'];
+        $this->assertTenantVacancy($vacancyId);
+
+        $validTypes = ['responsibility', 'requirement', 'preferred', 'skill', 'language'];
+        $normalized = [];
+
+        foreach ($validTypes as $type) {
+            $values = $items[$type] ?? [];
+
+            if (!is_array($values)) {
+                continue;
+            }
+
+            foreach ($values as $value) {
+                $valueStr = is_scalar($value) ? trim((string) $value) : '';
+
+                if ($valueStr !== '') {
+                    $normalized[$type][] = $valueStr;
+                }
+            }
+        }
+
+        $tenantId = $this->tenantId();
 
         $this->db->execute(
-            "DELETE FROM `recruit_vacancy_requirements` WHERE `vacancy_id` = ? AND `tenant_id` = ?",
-            PDOParams::positional([$vacancyId, $this->tenant->id()])
+            "DELETE FROM `recruit_vacancy_requirements`
+             WHERE `vacancy_id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$vacancyId, $tenantId])
         );
 
         $order = 0;
+
         foreach ($validTypes as $type) {
-            if (empty($items[$type]) || !is_array($items[$type])) continue;
-            foreach ($items[$type] as $value) {
-                $valueStr = is_scalar($value) ? trim((string) $value) : '';
-                if ($valueStr === '') continue;
+            foreach ($normalized[$type] ?? [] as $value) {
                 $this->db->execute(
-                    "INSERT INTO `recruit_vacancy_requirements` (`tenant_id`, `vacancy_id`, `type`, `value`, `sort_order`)
+                    "INSERT INTO `recruit_vacancy_requirements`
+                     (`tenant_id`, `vacancy_id`, `type`, `value`, `sort_order`)
                      VALUES (?, ?, ?, ?, ?)",
-                    PDOParams::positional([$this->tenant->id(), $vacancyId, $type, $valueStr, $order])
+                    PDOParams::positional([$tenantId, $vacancyId, $type, $value, $order])
                 );
+
                 $order++;
             }
         }
@@ -371,7 +678,9 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
             'permission'       => 'recruit.vacancies.view',
             'baseFilters'      => ['v.`deleted_at` IS NULL'],
             'joins'            => [
-                'INNER JOIN `recruit_client_organisations` o ON o.`id` = v.`client_organisation_id` AND o.`tenant_id` = v.`tenant_id`',
+                'INNER JOIN `recruit_client_organisations` o
+                 ON o.`id` = v.`client_organisation_id`
+                 AND o.`tenant_id` = v.`tenant_id`',
             ],
             'rowView'          => 'vacancies/_row',
             'extraColumns'     => ['o.name AS organisation_name', 'o.code AS organisation_code'],

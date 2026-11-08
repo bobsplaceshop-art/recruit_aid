@@ -46,6 +46,7 @@
         "phpstan/phpstan": "^2.3"
     },
     "scripts": {
-        "analyse": "phpstan analyse --memory-limit=2G --no-progress --error-format=raw"
+        "analyse": "phpstan analyse --memory-limit=2G --no-progress --error-format=raw",
+        "test": "php tools/phpunit/phpunit-11.5.57.phar"
     }
 }

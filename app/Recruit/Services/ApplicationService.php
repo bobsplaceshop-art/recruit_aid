@@ -261,8 +261,6 @@ final class ApplicationService
 
         if (!$user->can('recruit.pipeline.advance')) return false;
 
-        if ($user->isSuperAdmin()) return true;
-
         $vacancy = $this->vacancies->findById($vacancyId);
         if ($vacancy === null) return false;
 

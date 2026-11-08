@@ -113,21 +113,40 @@ final class UserRepository
 
     public function attachRoleBySlug(int $userId, string $roleSlug): void
     {
+        $tenantId = $this->tenant->id();
+        if ($tenantId <= 0) {
+            throw new RuntimeException('An active tenant is required to assign a role.');
+        }
+
         $this->db->execute(
-            "INSERT IGNORE INTO `core_user_roles` (`user_id`, `role_id`)
-             SELECT ?, `id` FROM `core_roles` WHERE `slug` = ?",
-            PDOParams::positional([$userId, $roleSlug])
+            "INSERT IGNORE INTO `core_user_roles` (`tenant_id`, `user_id`, `role_id`)
+             SELECT ?, ?, r.`id`
+             FROM `core_roles` r
+             JOIN `core_users` u
+               ON u.`id` = ?
+              AND u.`tenant_id` = r.`tenant_id`
+             WHERE r.`tenant_id` = ?
+               AND r.`module_key` = 'recruit'
+               AND r.`slug` = ?",
+            PDOParams::positional([$tenantId, $userId, $userId, $tenantId, $roleSlug])
         );
     }
 
     public function loadRoles(User $user): User
     {
+        $tenantId = $this->tenant->id();
         $rows = $this->db->select(
             "SELECT r.`slug`
              FROM `core_roles` r
-             JOIN `core_user_roles` ur ON ur.`role_id` = r.`id`
-             WHERE ur.`user_id` = ?",
-            PDOParams::positional([$user->id])
+             JOIN `core_user_roles` ur
+               ON ur.`role_id` = r.`id`
+              AND ur.`tenant_id` = r.`tenant_id`
+             WHERE ur.`user_id` = ?
+               AND ur.`tenant_id` = ?
+               AND r.`tenant_id` = ?
+               AND r.`module_key` = 'recruit'
+               AND (ur.`expires_at` IS NULL OR ur.`expires_at` > NOW())",
+            PDOParams::positional([$user->id, $tenantId, $tenantId])
         );
         $user->roleSlugs = array_map(static fn ($r) => Row::str($r, 'slug'), $rows);
         return $user;
@@ -135,13 +154,23 @@ final class UserRepository
 
     public function loadPermissions(User $user): User
     {
+        $tenantId = $this->tenant->id();
         $rows = $this->db->select(
             "SELECT DISTINCT p.`slug`
              FROM `core_permissions` p
              JOIN `core_role_permissions` rp ON rp.`permission_id` = p.`id`
              JOIN `core_user_roles` ur ON ur.`role_id` = rp.`role_id`
-             WHERE ur.`user_id` = ?",
-            PDOParams::positional([$user->id])
+             JOIN `core_roles` r
+               ON r.`id` = ur.`role_id`
+              AND r.`tenant_id` = ur.`tenant_id`
+             WHERE ur.`user_id` = ?
+               AND ur.`tenant_id` = ?
+               AND r.`tenant_id` = ?
+               AND r.`module_key` = 'recruit'
+               AND (SUBSTRING_INDEX(p.`module`, '.', 1) IN ('recruit', 'core'))
+               AND p.`is_active` = 1
+               AND (ur.`expires_at` IS NULL OR ur.`expires_at` > NOW())",
+            PDOParams::positional([$user->id, $tenantId, $tenantId])
         );
         $user->permissionSlugs = array_map(static fn ($r) => Row::str($r, 'slug'), $rows);
         return $user;
@@ -166,8 +195,14 @@ final class UserRepository
             "SELECT u.`id`, u.`name`, u.`email`,
                     GROUP_CONCAT(r.`slug` ORDER BY r.`slug` SEPARATOR ',') AS role_slugs
              FROM `core_users` u
-             LEFT JOIN `core_user_roles` ur ON ur.`user_id` = u.`id`
-             LEFT JOIN `core_roles` r ON r.`id` = ur.`role_id`
+             LEFT JOIN `core_user_roles` ur
+               ON ur.`user_id` = u.`id`
+              AND ur.`tenant_id` = u.`tenant_id`
+              AND (ur.`expires_at` IS NULL OR ur.`expires_at` > NOW())
+             LEFT JOIN `core_roles` r
+               ON r.`id` = ur.`role_id`
+              AND r.`tenant_id` = u.`tenant_id`
+              AND r.`module_key` = 'recruit'
              WHERE u.`deleted_at` IS NULL
                AND u.`tenant_id` = ?
                AND u.`status` = 'active'
@@ -187,9 +222,18 @@ final class UserRepository
         $rows = $this->db->select(
             "SELECT DISTINCT u.`id`
              FROM `core_users` u
-             JOIN `core_user_roles` ur ON ur.`user_id` = u.`id`
-             JOIN `core_role_permissions` rp ON rp.`role_id` = ur.`role_id`
+             JOIN `core_user_roles` ur
+               ON ur.`user_id` = u.`id`
+              AND ur.`tenant_id` = u.`tenant_id`
+              AND (ur.`expires_at` IS NULL OR ur.`expires_at` > NOW())
+             JOIN `core_roles` r
+               ON r.`id` = ur.`role_id`
+              AND r.`tenant_id` = u.`tenant_id`
+              AND r.`module_key` = 'recruit'
+             JOIN `core_role_permissions` rp ON rp.`role_id` = r.`id`
              JOIN `core_permissions` p ON p.`id` = rp.`permission_id`
+                                        AND p.`module_key` = 'recruit'
+                                        AND p.`is_active` = 1
              WHERE u.`deleted_at` IS NULL
                AND u.`tenant_id` = ?
                AND u.`status` = 'active'
@@ -208,8 +252,14 @@ final class UserRepository
         $rows = $this->db->select(
             "SELECT DISTINCT u.`id`
              FROM `core_users` u
-             JOIN `core_user_roles` ur ON ur.`user_id` = u.`id`
-             JOIN `core_roles` r ON r.`id` = ur.`role_id`
+             JOIN `core_user_roles` ur
+               ON ur.`user_id` = u.`id`
+              AND ur.`tenant_id` = u.`tenant_id`
+              AND (ur.`expires_at` IS NULL OR ur.`expires_at` > NOW())
+             JOIN `core_roles` r
+               ON r.`id` = ur.`role_id`
+              AND r.`tenant_id` = u.`tenant_id`
+              AND r.`module_key` = 'recruit'
              WHERE u.`deleted_at` IS NULL
                AND u.`tenant_id` = ?
                AND u.`status` = 'active'
@@ -239,10 +289,16 @@ final class UserRepository
             $roleRows = $this->db->select(
                 "SELECT r.`slug`
                  FROM `core_roles` r
-                 JOIN `core_user_roles` ur ON ur.`role_id` = r.`id`
+                 JOIN `core_user_roles` ur
+                   ON ur.`role_id` = r.`id`
+                  AND ur.`tenant_id` = r.`tenant_id`
                  WHERE ur.`user_id` = ?
+                   AND ur.`tenant_id` = ?
+                   AND r.`tenant_id` = ?
+                   AND r.`module_key` = 'recruit'
+                   AND (ur.`expires_at` IS NULL OR ur.`expires_at` > NOW())
                  ORDER BY r.`name` ASC",
-                PDOParams::positional([$userId])
+                PDOParams::positional([$userId, $this->tenant->id(), $this->tenant->id()])
             );
             $roles = array_map(fn($r) => Row::str($r, 'slug'), $roleRows);
 
@@ -280,24 +336,60 @@ final class UserRepository
      */
     public function syncRoles(int $userId, array $roleIds): void
     {
+        $tenantId = $this->tenant->id();
+        if ($tenantId <= 0) {
+            throw new RuntimeException('An active tenant is required to synchronize roles.');
+        }
+
+        $userExists = $this->db->scalarInt(
+            "SELECT COUNT(*) FROM `core_users`
+             WHERE `id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL",
+            PDOParams::positional([$userId, $tenantId])
+        );
+        if ($userExists !== 1) {
+            throw new RuntimeException('User does not belong to the active tenant.');
+        }
+
+        $roleIds = array_values(array_unique(array_filter(
+            array_map('intval', $roleIds),
+            static fn (int $id): bool => $id > 0
+        )));
+
+        if ($roleIds !== []) {
+            $placeholders = implode(',', array_fill(0, count($roleIds), '?'));
+            $validCount = $this->db->scalarInt(
+                "SELECT COUNT(*)
+                 FROM `core_roles`
+                 WHERE `tenant_id` = ?
+                   AND `module_key` = 'recruit'
+                   AND `id` IN ({$placeholders})",
+                PDOParams::positional(array_merge([$tenantId], $roleIds))
+            );
+
+            if ($validCount !== count($roleIds)) {
+                throw new RuntimeException('One or more roles do not belong to this tenant and application.');
+            }
+        }
+
         $this->db->execute(
-            "DELETE FROM `core_user_roles` WHERE `user_id` = ?",
-            PDOParams::positional([$userId])
+            "DELETE FROM `core_user_roles`
+             WHERE `tenant_id` = ? AND `user_id` = ?",
+            PDOParams::positional([$tenantId, $userId])
         );
 
-        if (empty($roleIds)) {
+        if ($roleIds === []) {
             return;
         }
 
         $values = [];
         $params = [];
-        foreach ($roleIds as $rid) {
-            $values[] = "(?, ?)";
-            $params[] = $userId;
-            $params[] = $rid;
+        foreach ($roleIds as $roleId) {
+            $values[] = "(?, ?, ?)";
+            array_push($params, $tenantId, $userId, $roleId);
         }
 
-        $sql = "INSERT INTO `core_user_roles` (`user_id`, `role_id`) VALUES " . implode(', ', $values);
+        $sql = "INSERT INTO `core_user_roles` (`tenant_id`, `user_id`, `role_id`) VALUES "
+             . implode(', ', $values);
         $this->db->execute($sql, PDOParams::positional($params));
     }
 
@@ -308,8 +400,10 @@ final class UserRepository
     public function roleIdsForUser(int $userId): array
     {
         $rows = $this->db->select(
-            "SELECT `role_id` FROM `core_user_roles` WHERE `user_id` = ?",
-            PDOParams::positional([$userId])
+            "SELECT `role_id`
+             FROM `core_user_roles`
+             WHERE `user_id` = ? AND `tenant_id` = ?",
+            PDOParams::positional([$userId, $this->tenant->id()])
         );
         return array_map(fn($r) => Row::int($r, 'role_id'), $rows);
     }
@@ -323,12 +417,20 @@ final class UserRepository
         $rows = $this->db->select(
             "SELECT u.`id`, u.`name`, u.`email`
              FROM `core_users` u
-             JOIN `core_user_roles` ur ON ur.`user_id` = u.`id`
+             JOIN `core_user_roles` ur
+               ON ur.`user_id` = u.`id`
+              AND ur.`tenant_id` = u.`tenant_id`
+             JOIN `core_roles` r
+               ON r.`id` = ur.`role_id`
+              AND r.`tenant_id` = ur.`tenant_id`
+              AND r.`module_key` = 'recruit'
              WHERE ur.`role_id` = ?
+               AND ur.`tenant_id` = ?
+               AND (ur.`expires_at` IS NULL OR ur.`expires_at` > NOW())
                AND u.`tenant_id` = ?
                AND u.`deleted_at` IS NULL
              ORDER BY u.`name` ASC",
-            PDOParams::positional([$roleId, $this->tenant->id()])
+            PDOParams::positional([$roleId, $this->tenant->id(), $this->tenant->id()])
         );
 
         return array_map(static fn(array $r) => [

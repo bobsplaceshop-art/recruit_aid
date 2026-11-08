@@ -50,14 +50,17 @@ final class VacancyValidator
         if (!$this->lookups->isValid('work_mode', $wm)) {
             $errors['work_mode'][] = 'Invalid work mode.';
         }
+
         $et = Row::str($input, 'employment_type', 'permanent');
         if (!$this->lookups->isValid('employment_type', $et)) {
             $errors['employment_type'][] = 'Invalid employment type.';
         }
+
         $sen = Row::str($input, 'seniority', 'mid');
         if (!$this->lookups->isValid('seniority', $sen)) {
             $errors['seniority'][] = 'Invalid seniority.';
         }
+
         $status = Row::str($input, 'status', 'draft');
         if (!in_array($status, self::VALID_STATUSES, true)) {
             $errors['status'][] = 'Invalid status.';
@@ -69,19 +72,23 @@ final class VacancyValidator
         }
 
         $opening = trim(Row::str($input, 'opening_date'));
-        $target  = trim(Row::str($input, 'target_hire_date'));
+        $target = trim(Row::str($input, 'target_hire_date'));
+
         if ($opening !== '' && !$this->isValidDate($opening)) {
             $errors['opening_date'][] = 'Opening date must be a valid date (YYYY-MM-DD).';
         }
+
         if ($target !== '' && !$this->isValidDate($target)) {
             $errors['target_hire_date'][] = 'Target hire date must be a valid date (YYYY-MM-DD).';
         }
+
         if ($opening !== '' && $target !== '' && $opening > $target) {
             $errors['target_hire_date'][] = 'Target hire date must be on or after the opening date.';
         }
 
         $smin = Row::nullableFloat($input, 'salary_min');
         $smax = Row::nullableFloat($input, 'salary_max');
+
         if ($smin !== null && $smax !== null && $smax < $smin) {
             $errors['salary_max'][] = 'Maximum must be greater than or equal to minimum.';
         }
@@ -91,24 +98,28 @@ final class VacancyValidator
             $errors['currency'][] = 'Currency must be a 3-letter ISO code (e.g. KES, USD).';
         }
 
-        // Required assignment checks
-        $recruiterIds = is_array($input['recruiter_ids'] ?? null)
-            ? array_filter(
-                array_map(static fn(mixed $v): int => is_scalar($v) ? (int) $v : 0, $input['recruiter_ids']),
-                static fn(int $v): bool => $v > 0
-            )
-            : [];
-        $leadRecruiter = is_numeric($input['recruiter_id'] ?? null) ? (int) $input['recruiter_id'] : 0;
-        if ($leadRecruiter <= 0) {
-            $errors['recruiter_id'][] = 'A lead recruiter is required.';
+        // Lead recruiter must be a positive integer or digit-only string.
+        $leadRecruiter = $this->positiveInteger($input['recruiter_id'] ?? null);
+
+        if ($leadRecruiter === null) {
+            $errors['recruiter_id'][] = 'A valid lead recruiter is required.';
         }
 
-        $hmIds = is_array($input['hiring_manager_contact_ids'] ?? null)
-            ? array_filter(
-                array_map(static fn(mixed $v): int => is_scalar($v) ? (int) $v : 0, $input['hiring_manager_contact_ids']),
-                static fn(int $v): bool => $v > 0
-            )
-            : [];
+        // Validate the complete recruiter picker array without silently
+        // discarding malformed entries.
+        $recruiterIds = $this->validateIdArray(
+            $input['recruiter_ids'] ?? [],
+            'recruiter_ids',
+            $errors
+        );
+
+        // Validate the complete hiring-manager picker array.
+        $hmIds = $this->validateIdArray(
+            $input['hiring_manager_contact_ids'] ?? [],
+            'hiring_manager_contact_ids',
+            $errors
+        );
+
         if (empty($hmIds)) {
             $errors['hiring_manager_contact_ids'][] = 'At least one hiring manager is required.';
         }
@@ -168,9 +179,60 @@ final class VacancyValidator
         ];
     }
 
+    /**
+     * Accept only actual integers or digit-only strings.
+     */
+    private function positiveInteger(mixed $value): ?int
+    {
+        if (is_int($value)) {
+            return $value > 0 ? $value : null;
+        }
+
+        if (!is_string($value) || $value === '' || !ctype_digit($value)) {
+            return null;
+        }
+
+        $validated = filter_var($value, FILTER_VALIDATE_INT);
+
+        return $validated !== false && $validated > 0
+            ? $validated
+            : null;
+    }
+
+    /**
+     * @param array<string, string[]> $errors
+     * @return int[]
+     */
+    private function validateIdArray(
+        mixed $values,
+        string $field,
+        array &$errors
+    ): array {
+        if (!is_array($values)) {
+            $errors[$field][] = 'Invalid selection format.';
+            return [];
+        }
+
+        $ids = [];
+
+        foreach ($values as $value) {
+            $id = $this->positiveInteger($value);
+
+            if ($id === null) {
+                $errors[$field][] = 'Every selected ID must be a positive integer.';
+                continue;
+            }
+
+            $ids[] = $id;
+        }
+
+        return array_values(array_unique($ids));
+    }
+
     private function isValidDate(string $d): bool
     {
         $dt = \DateTimeImmutable::createFromFormat('Y-m-d', $d);
+
         return $dt !== false && $dt->format('Y-m-d') === $d;
     }
 
@@ -180,12 +242,21 @@ final class VacancyValidator
         if (is_string($value)) {
             $value = array_map('trim', explode(',', $value));
         }
-        if (!is_array($value)) return [];
+
+        if (!is_array($value)) {
+            return [];
+        }
+
         $out = [];
+
         foreach ($value as $v) {
             $str = trim(is_scalar($v) ? (string) $v : '');
-            if ($str !== '') $out[] = $str;
+
+            if ($str !== '') {
+                $out[] = $str;
+            }
         }
+
         return array_values(array_unique($out));
     }
 }

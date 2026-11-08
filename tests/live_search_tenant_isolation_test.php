@@ -141,28 +141,51 @@ try {
         ]
     );
 
+    // Post-migration (0061): core_roles is tenant-scoped. The existing
+    // 'recruiter' role is in tenant 1. Create a per-tenant clone for tenant 2
+    // so both users can have a role in their own tenant. The test does not
+    // assert on permissions; the role is scaffolding to satisfy invariants.
     $roleStatement = $pdo->prepare(
-        "SELECT id FROM core_roles WHERE slug = 'recruiter' LIMIT 1"
+        "SELECT id FROM core_roles WHERE slug = 'recruiter' AND tenant_id = 1 LIMIT 1"
     );
     $roleStatement->execute();
     $recruiterRoleId = (int) $roleStatement->fetchColumn();
 
-    check($recruiterRoleId > 0, 'Existing Recruiter role found.');
+    check($recruiterRoleId > 0, 'Existing Recruiter role found in tenant 1.');
 
-    foreach ([$userOneId, $userTwoId] as $userId) {
-        $pdo->prepare(
-            "INSERT INTO core_user_roles (user_id, role_id)
-             VALUES (?, ?)"
-        )->execute([$userId, $recruiterRoleId]);
+    $recruiterRoleTwoId = insert(
+        $pdo,
+        "INSERT INTO core_roles (tenant_id, name, slug, scope, module_key, is_system)
+         VALUES (?, ?, ?, 'app', 'recruit', 0)",
+        [$tenantTwo, 'Recruiter (test clone)', 'recruiter_' . $suffix]
+    );
 
-        $pdo->prepare(
-            "INSERT INTO core_user_applications
-                (user_id, module_key, is_default)
-             VALUES (?, 'recruit', 1)"
-        )->execute([$userId]);
-    }
+    // Copy tenant-1 recruiter permissions to the tenant-2 clone so downstream
+    // service checks find the same set.
+    $pdo->prepare(
+        "INSERT INTO core_role_permissions (role_id, permission_id)
+         SELECT ?, rp.permission_id FROM core_role_permissions rp WHERE rp.role_id = ?"
+    )->execute([$recruiterRoleTwoId, $recruiterRoleId]);
 
-    check(true, 'Temporary users assigned the existing Recruiter role.');
+    $pdo->prepare(
+        "INSERT INTO core_user_roles (tenant_id, user_id, role_id) VALUES (?, ?, ?)"
+    )->execute([$tenantOne, $userOneId, $recruiterRoleId]);
+
+    $pdo->prepare(
+        "INSERT INTO core_user_roles (tenant_id, user_id, role_id) VALUES (?, ?, ?)"
+    )->execute([$tenantTwo, $userTwoId, $recruiterRoleTwoId]);
+
+    $pdo->prepare(
+        "INSERT INTO core_user_applications (user_id, module_key, is_default)
+         VALUES (?, 'recruit', 1)"
+    )->execute([$userOneId]);
+
+    $pdo->prepare(
+        "INSERT INTO core_user_applications (user_id, module_key, is_default)
+         VALUES (?, 'recruit', 1)"
+    )->execute([$userTwoId]);
+
+    check(true, 'Temporary users assigned per-tenant Recruiter roles.');
 
     $orgIds = [];
 

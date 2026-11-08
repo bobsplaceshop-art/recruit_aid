@@ -84,7 +84,7 @@ final class AdminSettingsController
             'settings' => $values,
             'success'  => is_string($success) ? $success : null,
             'error'    => is_string($error) ? $error : null,
-            'isSuper'  => $auth->user()?->isSuperAdmin() ?? false,
+            'isSuper'  => $auth->can('core.settings.manage'),
         ], 'layouts/app');
 
         return Response::html($html);
@@ -109,9 +109,9 @@ final class AdminSettingsController
             return Response::redirect('/login');
         }
 
-        // ---- Gate 1: super_admin only ----
-        if (!$user->isSuperAdmin()) {
-            $session->flash('error', 'Only super administrators can change security settings.');
+        // ---- Gate 1: tenant admin only ----
+        if (!$user->can('core.settings.manage')) {
+            $session->flash('error', 'You do not have permission to change security settings.');
             return Response::redirect('/admin/settings/security');
         }
 
@@ -152,7 +152,7 @@ final class AdminSettingsController
         $auth = $this->container->get(Auth::class);
 
         $user = $auth->user();
-        if ($user === null || !$user->isSuperAdmin()) {
+        if ($user === null || !$user->can('core.settings.manage')) {
             return Response::redirect('/login');
         }
 

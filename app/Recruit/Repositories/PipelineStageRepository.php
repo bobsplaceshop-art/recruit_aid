@@ -16,28 +16,73 @@ final class PipelineStageRepository
         private TenantContext $tenant
     ) {}
 
+    private function tenantId(): int
+    {
+        return $this->tenant->id();
+    }
+
+    private function assertTenantOrganisation(int $organisationId): void
+    {
+        $exists = $this->db->scalarInt(
+            "SELECT COUNT(*)
+             FROM `recruit_client_organisations`
+             WHERE `id` = ?
+               AND `tenant_id` = ?
+               AND `deleted_at` IS NULL",
+            PDOParams::positional([$organisationId, $this->tenantId()])
+        );
+
+        if ($exists !== 1) {
+            throw new \InvalidArgumentException(
+                'The selected organisation does not belong to the active tenant or is unavailable.'
+            );
+        }
+    }
+
     /** @return PipelineStage[] */
     public function forOrganisation(?int $organisationId): array
     {
+        if ($organisationId !== null) {
+            if ($organisationId <= 0) {
+                throw new \InvalidArgumentException('Organisation ID must be positive.');
+            }
+
+            $this->assertTenantOrganisation($organisationId);
+        }
+
         $rows = $this->db->select(
-            "SELECT * FROM `recruit_pipeline_stages`
+            "SELECT *
+             FROM `recruit_pipeline_stages`
              WHERE `tenant_id` = ?
                AND `deleted_at` IS NULL
-               AND (`organisation_id` IS NULL OR `organisation_id` = ?)
+               AND (
+                    `client_organisation_id` IS NULL
+                    OR `client_organisation_id` = ?
+               )
              ORDER BY `sort_order` ASC, `id` ASC",
-            PDOParams::positional([$this->tenant->id(), $organisationId])
+            PDOParams::positional([$this->tenantId(), $organisationId])
         );
 
         $byKey = [];
-        foreach ($rows as $r) {
-            $key = Row::str($r, 'key_slug');
-            if (!isset($byKey[$key]) || $r['organisation_id'] !== null) {
-                $byKey[$key] = $r;
+
+        foreach ($rows as $row) {
+            $key = Row::str($row, 'key_slug');
+            $stageOrganisationId = Row::nullableInt($row, 'client_organisation_id');
+
+            if (
+                !isset($byKey[$key])
+                || $stageOrganisationId !== null
+            ) {
+                $byKey[$key] = $row;
             }
         }
 
         $merged = array_values($byKey);
-        usort($merged, fn ($a, $b) => Row::int($a, 'sort_order') <=> Row::int($b, 'sort_order'));
+
+        usort(
+            $merged,
+            fn ($a, $b) => Row::int($a, 'sort_order') <=> Row::int($b, 'sort_order')
+        );
 
         return array_map([PipelineStage::class, 'fromRow'], $merged);
     }
@@ -45,11 +90,15 @@ final class PipelineStageRepository
     public function findById(int $id): ?PipelineStage
     {
         $row = $this->db->selectOne(
-            "SELECT * FROM `recruit_pipeline_stages`
-             WHERE `id` = ? AND `tenant_id` = ? AND `deleted_at` IS NULL
+            "SELECT *
+             FROM `recruit_pipeline_stages`
+             WHERE `id` = ?
+               AND `tenant_id` = ?
+               AND `deleted_at` IS NULL
              LIMIT 1",
-            PDOParams::positional([$id, $this->tenant->id()])
+            PDOParams::positional([$id, $this->tenantId()])
         );
+
         return $row ? PipelineStage::fromRow($row) : null;
     }
 }

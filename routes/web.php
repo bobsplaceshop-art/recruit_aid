@@ -230,8 +230,8 @@ $router->post('/recruit/admin/roles-perm/permissions',    [RoleController::class
 
 // Legacy redirect
 $router->get('/recruit/admin/roles', function (Request $req, array $params): Response {
-    return Response::redirect('/admin/roles-perm');
-}, ['auth', 'permission:core.settings.manage']);
+    return Response::redirect('/recruit/admin/roles-perm');
+}, ['app_access:recruit', 'auth', 'permission:core.settings.manage']);
 
 // Custom fields (field builder)
 $router->get('/recruit/admin/lookups',                          [LookupController::class, 'index'],  ['app_access:recruit', 'auth', 'permission:core.settings.manage']);

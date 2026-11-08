@@ -236,7 +236,7 @@ final class App
         $c->singleton(PersonService::class,               fn() => new PersonService($c->get(PersonRepository::class)));
 
         $c->singleton(EventBus::class,                    fn() => new EventBus($c->get(Database::class)));
-        $c->singleton(RoleRepository::class,              fn() => new RoleRepository($c->get(Database::class)));
+        $c->singleton(RoleRepository::class,              fn() => new RoleRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(LookupRepository::class,            fn() => new LookupRepository($c->get(Database::class)));
         $c->singleton(
             LiveSearchService::class,
@@ -258,7 +258,7 @@ final class App
         $c->singleton(PipelineStageRepository::class,     fn() => new PipelineStageRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(ContactRepository::class,           fn() => new ContactRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
         $c->singleton(EngagementRepository::class,        fn() => new EngagementRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
-        $c->singleton(EngagementAssignmentRepository::class, fn() => new EngagementAssignmentRepository($c->get(Database::class)));
+        $c->singleton(EngagementAssignmentRepository::class, fn() => new EngagementAssignmentRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyRepository::class,           fn() => new VacancyRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
         $c->singleton(CandidateRepository::class,         fn() => new CandidateRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
         $c->singleton(VacancyStageRepository::class,      fn() => new VacancyStageRepository($c->get(Database::class), $c->get(TenantContext::class)));
@@ -408,6 +408,8 @@ final class App
         ));
 
         $c->singleton(OfferService::class, fn() => new OfferService(
+            $c->get(Database::class),
+            $c->get(TenantContext::class),
             $c->get(OfferRepository::class),
             $c->get(ApplicationRepository::class),
             $c->get(VacancyStageRepository::class),

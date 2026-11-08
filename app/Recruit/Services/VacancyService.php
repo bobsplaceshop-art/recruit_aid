@@ -48,8 +48,14 @@ final class VacancyService
         $cfErrors = $this->cfValidator->validate('vacancy', $cfValues);
 
         $allErrors = $this->flattenErrors($baseErrors, $cfErrors);
+
         if (!empty($allErrors)) {
-            return ['id' => 0, 'vacancy' => null, 'errors' => $allErrors, 'capacity_warning' => null];
+            return [
+                'id' => 0,
+                'vacancy' => null,
+                'errors' => $allErrors,
+                'capacity_warning' => null,
+            ];
         }
 
         $normalized = $this->validator->normalize($input);
@@ -57,7 +63,6 @@ final class VacancyService
         $normalized['code'] = $this->vacancies->nextCode();
         $normalized['created_by'] = $this->auth?->user()?->id;
 
-        // Capacity check — if this vacancy is active and linked to an engagement
         $capacityWarning = null;
         $statusRaw = $normalized['status'] ?? 'draft';
         $status = is_scalar($statusRaw) ? (string) $statusRaw : 'draft';
@@ -66,9 +71,11 @@ final class VacancyService
         if ($isActive && !empty($normalized['engagement_id'])) {
             $engIdRaw = $normalized['engagement_id'];
             $engId = is_numeric($engIdRaw) ? (int) $engIdRaw : 0;
-            $eng = $this->engagements->findById($engId);
+            $eng = $engId > 0 ? $this->engagements->findById($engId) : null;
+
             if ($eng) {
                 $currentActive = $this->vacancies->activeCountForEngagement($eng->id);
+
                 if ($currentActive >= $eng->agreedActiveRoleCapacity) {
                     $capacityWarning = [
                         'engagement_code' => $eng->code,
@@ -80,32 +87,42 @@ final class VacancyService
             }
         }
 
-        $id = $this->vacancies->create($normalized);
+        $id = 0;
+        $vacancy = null;
 
-        // Sync recruiters + hiring managers pivot
-        $this->syncAssignments($id, $input);
+        $this->db->beginTransaction();
 
-        // Clone pipeline stages for the new vacancy
-        $this->stages->cloneForOrganisation($id, $organisationId);
+        try {
+            $id = $this->vacancies->create($normalized);
 
-        // Save requirements
-        $requirements = $this->validator->extractRequirements($input);
-        $this->vacancies->syncRequirements($id, $requirements);
+            $this->syncAssignments($id, $input);
 
-        if (!empty($cfValues)) {
-            $this->cfSaver->save('vacancy', $id, $cfValues);
+            $this->stages->cloneForOrganisation($id, $organisationId);
+
+            $requirements = $this->validator->extractRequirements($input);
+            $this->vacancies->syncRequirements($id, $requirements);
+
+            if (!empty($cfValues)) {
+                $this->cfSaver->save('vacancy', $id, $cfValues);
+            }
+
+            $vacancy = $this->vacancies->findById($id);
+
+            if ($vacancy === null) {
+                throw new \RuntimeException(
+                    'Vacancy was created but could not be retrieved.'
+                );
+            }
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
         }
 
-        $vacancy = $this->vacancies->findById($id);
-        if ($vacancy === null) {
-            return ['id' => $id, 'vacancy' => null, 'errors' => ['Vacancy was created but could not be retrieved.'], 'capacity_warning' => null];
-        }
-
-        $this->activity->log(
+        $this->logActivitySafely(
             'vacancy.created',
-            'vacancies',
             'Created vacancy ' . $vacancy->title . ' (' . $vacancy->code . ')',
-            'vacancy',
             $id
         );
 
@@ -124,8 +141,13 @@ final class VacancyService
     public function update(int $id, array $input): array
     {
         $existing = $this->vacancies->findById($id);
-        if (!$existing) {
-            return ['success' => false, 'errors' => ['Vacancy not found.'], 'changes' => []];
+
+        if (!$existing || $existing->isDeleted()) {
+            return [
+                'success' => false,
+                'errors' => ['Vacancy not found.'],
+                'changes' => [],
+            ];
         }
 
         $baseErrors = $this->validator->validate($input);
@@ -133,71 +155,108 @@ final class VacancyService
         $cfErrors = $this->cfValidator->validate('vacancy', $cfValues);
 
         $allErrors = $this->flattenErrors($baseErrors, $cfErrors);
+
         if (!empty($allErrors)) {
-            return ['success' => false, 'errors' => $allErrors, 'changes' => []];
+            return [
+                'success' => false,
+                'errors' => $allErrors,
+                'changes' => [],
+            ];
         }
 
         $normalized = $this->validator->normalize($input);
-        $changes = $this->vacancies->update($id, $normalized);
+        $changes = [];
 
-        // Sync recruiters + hiring managers pivot
-        $this->syncAssignments($id, $input);
+        $this->db->beginTransaction();
 
-        $requirements = $this->validator->extractRequirements($input);
-        $this->vacancies->syncRequirements($id, $requirements);
+        try {
+            $changes = $this->vacancies->update($id, $normalized);
 
-        if (!empty($cfValues)) {
-            $this->cfSaver->save('vacancy', $id, $cfValues);
+            $this->syncAssignments($id, $input);
+
+            $requirements = $this->validator->extractRequirements($input);
+            $this->vacancies->syncRequirements($id, $requirements);
+
+            if (!empty($cfValues)) {
+                $this->cfSaver->save('vacancy', $id, $cfValues);
+            }
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
         }
 
         if (!empty($changes)) {
             $summary = $this->summarizeChanges($changes);
-            $this->activity->log(
+
+            $this->logActivitySafely(
                 'vacancy.updated',
-                'vacancies',
                 'Updated vacancy ' . $existing->title . ' (' . $existing->code . '): ' . $summary,
-                'vacancy',
                 $id,
                 ['changes' => $changes]
             );
         }
 
-        return ['success' => true, 'errors' => [], 'changes' => $changes];
+        return [
+            'success' => true,
+            'errors' => [],
+            'changes' => $changes,
+        ];
     }
 
     public function archive(int $id, ?string $reason = null): DeletionResult
     {
         $vacancy = $this->vacancies->findById($id);
-        if (!$vacancy) return DeletionResult::failure('Vacancy not found.');
+
+        if (!$vacancy) {
+            return DeletionResult::failure('Vacancy not found.');
+        }
 
         $entity = new VacancyEntity($vacancy, $this->db);
+
         return $this->deletion->archive($entity, $reason);
     }
 
     public function restore(int $id): DeletionResult
     {
         $vacancy = $this->vacancies->findById($id);
-        if (!$vacancy) return DeletionResult::failure('Vacancy not found.');
+
+        if (!$vacancy) {
+            return DeletionResult::failure('Vacancy not found.');
+        }
 
         $entity = new VacancyEntity($vacancy, $this->db);
+
         return $this->deletion->restore($entity);
     }
 
     public function inspectDelete(int $id): DeletionResult
     {
         $vacancy = $this->vacancies->findById($id);
-        if (!$vacancy) return DeletionResult::failure('Vacancy not found.');
+
+        if (!$vacancy) {
+            return DeletionResult::failure('Vacancy not found.');
+        }
 
         $entity = new VacancyEntity($vacancy, $this->db);
+
         return $this->deletion->inspect($entity);
     }
 
-    public function delete(int $id, string $typedPhrase, ?string $reason = null): DeletionResult
-    {
+    public function delete(
+        int $id,
+        string $typedPhrase,
+        ?string $reason = null
+    ): DeletionResult {
         $vacancy = $this->vacancies->findById($id);
-        if (!$vacancy) return DeletionResult::failure('Vacancy not found.');
+
+        if (!$vacancy) {
+            return DeletionResult::failure('Vacancy not found.');
+        }
 
         $entity = new VacancyEntity($vacancy, $this->db);
+
         return $this->deletion->delete($entity, $typedPhrase, $reason);
     }
 
@@ -211,12 +270,19 @@ final class VacancyService
     private function flattenErrors(array $baseErrors, array $cfErrors): array
     {
         $out = [];
+
         foreach ($baseErrors as $msgs) {
-            foreach ($msgs as $m) $out[] = $m;
+            foreach ($msgs as $message) {
+                $out[] = $message;
+            }
         }
+
         foreach ($cfErrors as $msgs) {
-            foreach ($msgs as $m) $out[] = $m;
+            foreach ($msgs as $message) {
+                $out[] = $message;
+            }
         }
+
         return $out;
     }
 
@@ -224,51 +290,148 @@ final class VacancyService
     private function summarizeChanges(array $changes): string
     {
         $parts = [];
+
         foreach ($changes as $field => $change) {
             $old = $this->formatValue($change['old']);
             $new = $this->formatValue($change['new']);
+
             $parts[] = $field . ': "' . $old . '" → "' . $new . '"';
         }
+
         return implode(', ', $parts);
     }
 
-    private function formatValue(mixed $v): string
+    private function formatValue(mixed $value): string
     {
-        if (is_array($v)) {
-            $strs = [];
-            foreach ($v as $part) {
-                if (is_scalar($part)) $strs[] = (string) $part;
+        if (is_array($value)) {
+            $strings = [];
+
+            foreach ($value as $part) {
+                if (is_scalar($part)) {
+                    $strings[] = (string) $part;
+                }
             }
-            return implode(', ', $strs);
+
+            return implode(', ', $strings);
         }
-        if (is_bool($v)) return $v ? 'yes' : 'no';
-        if ($v === null) return '(empty)';
-        return is_scalar($v) ? (string) $v : '';
+
+        if (is_bool($value)) {
+            return $value ? 'yes' : 'no';
+        }
+
+        if ($value === null) {
+            return '(empty)';
+        }
+
+        return is_scalar($value) ? (string) $value : '';
     }
+
     /**
-     * Sync the recruiters pivot + hiring managers (if the multi-hm
-     * table doesn't exist yet, hiring_manager_contact_id on the
-     * vacancy row is updated via the vacancy update() call).
+     * Activity logging must not turn a committed operation into an apparent
+     * failure. Logging is deliberately performed after the transaction.
+     *
+     * @param array<string, mixed>|null $metadata
+     */
+    private function logActivitySafely(
+        string $event,
+        string $description,
+        int $vacancyId,
+        ?array $metadata = null
+    ): void {
+        try {
+            $this->activity->log(
+                $event,
+                'vacancies',
+                $description,
+                'vacancy',
+                $vacancyId,
+                $metadata
+            );
+        } catch (\Throwable) {
+            // The vacancy transaction has already committed.
+            // Activity logging must not reverse or misreport that result.
+        }
+    }
+
+    private function positiveInteger(mixed $value, string $field): int
+    {
+        if (is_int($value) && $value > 0) {
+            return $value;
+        }
+
+        if (is_string($value) && $value !== '' && ctype_digit($value)) {
+            $parsed = filter_var($value, FILTER_VALIDATE_INT);
+
+            if ($parsed !== false && $parsed > 0) {
+                return $parsed;
+            }
+        }
+
+        throw new \InvalidArgumentException(
+            "Invalid {$field} supplied to vacancy assignment."
+        );
+    }
+
+    /**
+     * Sync the recruiter and hiring-manager assignments.
      *
      * @param array<string, mixed> $input
      */
     private function syncAssignments(int $vacancyId, array $input): void
     {
-        $lead = is_numeric($input['recruiter_id'] ?? null) ? (int) $input['recruiter_id'] : 0;
-        $others = is_array($input['recruiter_ids'] ?? null)
-            ? array_map(static fn(mixed $v): int => is_scalar($v) ? (int) $v : 0, $input['recruiter_ids'])
-            : [];
-        $others = array_filter($others, static fn($v) => $v > 0);
-        if ($lead > 0) {
-            array_unshift($others, $lead);
-        }
-        $this->recruiters->sync($vacancyId, array_values(array_unique($others)), $lead);
+        $lead = $this->positiveInteger(
+            $input['recruiter_id'] ?? null,
+            'lead recruiter ID'
+        );
 
-        // Sync hiring managers pivot
-        $hmIds = is_array($input['hiring_manager_contact_ids'] ?? null)
-            ? array_map(static fn(mixed $v): int => is_scalar($v) ? (int) $v : 0, $input['hiring_manager_contact_ids'])
-            : [];
-        $hmIds = array_values(array_filter($hmIds, static fn(int $v): bool => $v > 0));
-        $this->hiringManagers->sync($vacancyId, $hmIds, $this->auth?->user()?->id);
+        $rawRecruiterIds = $input['recruiter_ids'] ?? [];
+
+        if (!is_array($rawRecruiterIds)) {
+            throw new \InvalidArgumentException(
+                'Recruiter assignments must be supplied as a list.'
+            );
+        }
+
+        $recruiterIds = [];
+
+        foreach ($rawRecruiterIds as $value) {
+            $recruiterIds[] = $this->positiveInteger(
+                $value,
+                'recruiter ID'
+            );
+        }
+
+        array_unshift($recruiterIds, $lead);
+
+        $recruiterIds = array_values(array_unique($recruiterIds));
+
+        $this->recruiters->sync($vacancyId, $recruiterIds, $lead);
+
+        $rawHiringManagerIds = $input['hiring_manager_contact_ids'] ?? [];
+
+        if (!is_array($rawHiringManagerIds)) {
+            throw new \InvalidArgumentException(
+                'Hiring manager assignments must be supplied as a list.'
+            );
+        }
+
+        $hiringManagerIds = [];
+
+        foreach ($rawHiringManagerIds as $value) {
+            $hiringManagerIds[] = $this->positiveInteger(
+                $value,
+                'hiring manager contact ID'
+            );
+        }
+
+        $hiringManagerIds = array_values(array_unique($hiringManagerIds));
+
+        $assignedBy = $this->auth?->user()?->id;
+
+        $this->hiringManagers->sync(
+            $vacancyId,
+            $hiringManagerIds,
+            $assignedBy
+        );
     }
 }

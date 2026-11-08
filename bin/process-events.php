@@ -1,22 +1,20 @@
 <?php
 declare(strict_types=1);
 
-if (PHP_SAPI !== 'cli') {
-    fwrite(STDERR, "This script must be run from the command line.\n");
-    exit(1);
-}
+/**
+ * Process queued module events using the application's registered listeners.
+ *
+ * Usage: php bin/process-events.php
+ */
 
-$basePath = dirname(__DIR__);
-$autoload = $basePath . '/vendor/autoload.php';
-if (!is_file($autoload)) {
-    fwrite(STDERR, "Missing vendor/autoload.php.\n");
-    exit(1);
-}
-require $autoload;
+require __DIR__ . '/../vendor/autoload.php';
 
-$cliConfig = require $basePath . '/config/cli.php';
-$database = new CorporateAid\Core\Database(CorporateAid\Core\DatabaseConfig::fromArray($cliConfig['database']));
-$bus = new CorporateAid\Platform\Modules\EventBus($database);
+$app = CorporateAid\Core\App::boot(dirname(__DIR__));
+$container = $app->container();
+
+/** @var CorporateAid\Platform\Modules\EventBus $bus */
+$bus = $container->get(CorporateAid\Platform\Modules\EventBus::class);
 
 $processed = $bus->processPending(100);
+
 echo "Processed {$processed} events.\n";

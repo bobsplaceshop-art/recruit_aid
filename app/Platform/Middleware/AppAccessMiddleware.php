@@ -26,11 +26,6 @@ final class AppAccessMiddleware
             return Response::redirect('/login');
         }
 
-        // Super admins bypass the assignment check
-        if ($auth->can('cas.dashboard.access')) {
-            return $next($request);
-        }
-
         $assigned = $auth->getAssignedApplications();
         if (!in_array($this->moduleKey, $assigned, true)) {
             return Response::redirect('/no-access');

@@ -43,3 +43,19 @@ phpstan-baseline.neon
 *()
 *.bak.*
 phpstan_raw.txt
+
+# Backup files from prior sessions (safety copies; recoverable from git history)
+*.bak
+*.debug-backup
+*.pre_*.bak
+
+# Schema dumps (regenerate via bin/migrate.php + SHOW CREATE TABLE)
+db_schema*.sql
+
+# PHPUnit caches and vendored phar (use composer's phpunit)
+.phpunit.cache/
+tools/phpunit/*.phar
+
+# Old test artifacts that predate git history
+tests/*.debug-backup
+tests/*.pre_*.bak
