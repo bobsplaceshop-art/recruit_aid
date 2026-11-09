@@ -38,6 +38,7 @@ use CorporateAid\Recruit\Controllers\ExportController;
 use CorporateAid\Platform\Controllers\Cas\CasDashboardController;
 use CorporateAid\Platform\Controllers\Cas\CasDelegationController;
 use CorporateAid\Platform\Controllers\Cas\CasContextController;
+use CorporateAid\Platform\Controllers\Cas\CasTenantController;
 
 /** @var Router $router */
 
@@ -316,4 +317,15 @@ $router->get('/cas/context/confirm',  [CasContextController::class, 'showConfirm
 $router->post('/cas/context/confirm', [CasContextController::class, 'confirm'],     ['auth', 'csrf', 'permission:cas.dashboard.access', 'ratelimit:cas_context_confirm']);
 $router->post('/cas/context/switch',  [CasContextController::class, 'switch'],      ['auth', 'csrf', 'permission:cas.dashboard.access']);
 $router->post('/cas/context/reset',   [CasContextController::class, 'reset'],       ['auth', 'csrf', 'permission:cas.dashboard.access']);
+
+// Tenant lifecycle management. Requires cas.tenants.manage.
+$router->get('/cas/tenants',              [CasTenantController::class, 'index'],      ['auth', 'permission:cas.tenants.manage']);
+$router->get('/cas/tenants/create',       [CasTenantController::class, 'createForm'], ['auth', 'permission:cas.tenants.manage']);
+$router->post('/cas/tenants',             [CasTenantController::class, 'create'],     ['auth', 'csrf', 'permission:cas.tenants.manage']);
+$router->get('/cas/tenants/{id}',         [CasTenantController::class, 'show'],       ['auth', 'permission:cas.tenants.manage']);
+$router->get('/cas/tenants/{id}/edit',    [CasTenantController::class, 'editForm'],   ['auth', 'permission:cas.tenants.manage']);
+$router->post('/cas/tenants/{id}',        [CasTenantController::class, 'update'],     ['auth', 'csrf', 'permission:cas.tenants.manage']);
+$router->post('/cas/tenants/{id}/suspend',[CasTenantController::class, 'suspend'],    ['auth', 'csrf', 'permission:cas.tenants.manage']);
+$router->post('/cas/tenants/{id}/archive',[CasTenantController::class, 'archive'],    ['auth', 'csrf', 'permission:cas.tenants.manage']);
+$router->post('/cas/tenants/{id}/restore',[CasTenantController::class, 'restore'],    ['auth', 'csrf', 'permission:cas.tenants.manage']);
 

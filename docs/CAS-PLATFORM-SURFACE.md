@@ -1,6 +1,6 @@
 # CAS Suit — Platform Surface
 
-**Status:** Shipped. 10 routes, 3 controllers, 3 views.
+**Status:** Shipped. 19 routes, 4 controllers, 6 views.
 **Last revised:** 2026-11-09 (post-0067)
 
 **See also:**
@@ -313,7 +313,76 @@ an audit row with action='context.reset'.
 
 ---
 
-## 8. What the Platform Surface Does NOT Do
+## 8. Tenant Management
+
+The /cas/tenants/* routes provide full tenant lifecycle management.
+All are gated by `cas.tenants.manage` (a platform permission, seeded
+by migration 0068 and granted to cas_admin).
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | /cas/tenants | List tenants (filterable by status) |
+| GET | /cas/tenants/create | Create form |
+| POST | /cas/tenants | Create a tenant |
+| GET | /cas/tenants/{id} | Tenant detail + status actions |
+| GET | /cas/tenants/{id}/edit | Edit form |
+| POST | /cas/tenants/{id} | Update mutable fields |
+| POST | /cas/tenants/{id}/suspend | Active -> suspended |
+| POST | /cas/tenants/{id}/archive | Active or suspended -> archived (sets deleted_at) |
+| POST | /cas/tenants/{id}/restore | Archived -> active (clears deleted_at) |
+
+### 8.1 The `code` column is immutable
+
+A tenant's `code` (UNIQUE) is set at creation and never edited. It's a
+tenant identity key, not a display label. If a tenant rebrands, only
+`name` and branding change. This matches the convention for
+`core_users.email` — identity fields are not casually editable.
+
+If a future need arises to change a tenant's code (e.g., a rename flow
+with redirect handling), it would be a separate migration with an
+explicit audit path — not the same `update()` call.
+
+### 8.2 Status transitions
+
+The status enum has three values: `active`, `suspended`, `archived`.
+
+- **active -> suspended** via `/suspend`. Users lose access; data
+  preserved. Reversible via `/restore` (which transitions back to active).
+- **active or suspended -> archived** via `/archive`. Sets
+  `deleted_at = NOW()`. The tenant is excluded from default listings
+  but remains queryable via `findById()`. Reversible via `/restore`.
+- **archived -> active** via `/restore`. Clears `deleted_at`.
+
+There is no hard delete. Archived tenants remain in the database. A
+future purge migration or CLI command could implement eventual
+deletion for GDPR purposes — out of scope today.
+
+### 8.3 Audit trail
+
+Every tenant mutation writes to `core_rbac_audit_logs` via
+`RbacAuditLogger`:
+
+- `tenant.create` — after create
+- `tenant.update` — after update (before/after in before_json/after_json)
+- `tenant.suspend` — after suspend
+- `tenant.archive` — after archive
+- `tenant.restore` — after restore
+
+The `tenant_id` field on the audit row is the tenant being modified
+(NOT the actor's home tenant). This is different from the context
+switch case where `tenant_id` is the effective tenant — the semantics
+are "the tenant this action affects."
+
+### 8.4 Dashboard integration
+
+The dashboard at /cas/dashboard shows a "Manage tenants" button that
+links to /cas/tenants. The aggregate counts on the dashboard
+(active / suspended / archived) are recomputed from
+`TenantRepository::countByStatus()` — no caching, always accurate.
+
+---
+
+## 9. What the Platform Surface Does NOT Do
 
 The /cas/* surface is intentionally narrow. It does not:
 
@@ -322,21 +391,15 @@ The /cas/* surface is intentionally narrow. It does not:
 - Manage tenant users. That's the tenant's own admin UI at
   /recruit/admin/users (tenant-scoped user management).
 - Manage platform roles. That's still pre-existing admin settings.
-- Create or suspend tenants. That's a deferred feature (see §9).
 
 The surface's purpose is: platform administration, delegation
 management, and context switching. Everything else stays where it was.
 
 ---
 
-## 9. Deferred Work
+## 10. Deferred Work
 
 Two operational capabilities are planned but not implemented:
-
-**/cas/tenants CRUD**
-- Create, suspend, archive, and restore tenants.
-- Tenant metadata editing (name, code, branding).
-- Would be gated by a cas.tenants.manage permission (new).
 
 **cas_analytics_* tables**
 - Pre-aggregated metrics refreshed on a schedule.
@@ -357,7 +420,7 @@ complete; these are operational additions.
 
 ---
 
-## 10. References
+## 11. References
 
 - docs/RBAC-ARCHITECTURE.md — the four-axis doctrine
 - docs/PERMISSIONS.md — the six RBAC tables

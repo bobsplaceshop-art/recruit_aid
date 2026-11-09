@@ -40,6 +40,7 @@ use CorporateAid\Platform\Authorization\PlatformOwnerService;
 use CorporateAid\Platform\LiveSearch\LiveSearchService;
 use CorporateAid\Platform\LiveSearch\LiveSearchable;
 use CorporateAid\Platform\Repositories\UserRepository;
+use CorporateAid\Platform\Repositories\TenantRepository;
 use CorporateAid\Platform\Shared\Repositories\PersonRepository;
 use CorporateAid\Platform\Shared\Services\PersonService;
 use CorporateAid\Platform\Repositories\PasswordResetRepository;
@@ -235,6 +236,7 @@ final class App
 
         // ---------- Repositories ----------
         $c->singleton(UserRepository::class,              fn() => new UserRepository($c->get(Database::class), $c->get(TenantContext::class)));
+        $c->singleton(TenantRepository::class,            fn() => new TenantRepository($c->get(Database::class)));
         $c->singleton(PersonRepository::class,            fn() => new PersonRepository($c->get(Database::class)));
         $c->singleton(PersonService::class,               fn() => new PersonService($c->get(PersonRepository::class)));
 

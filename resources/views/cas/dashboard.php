@@ -3,6 +3,11 @@
 
 <p>Home tenant: <?= (int) $home_tenant_id ?> · Effective tenant: <?= (int) $effective_tenant_id ?></p>
 
+<div style="display:flex;gap:1rem;margin:1rem 0;">
+    <a href="/cas/tenants" class="ra-btn ra-btn-outline">Manage tenants</a>
+    <a href="/cas/delegations" class="ra-btn ra-btn-outline">Manage delegations</a>
+</div>
+
 <h2>Tenant Summary</h2>
 <ul>
     <li>Active: <?= (int) ($status_totals['active'] ?? 0) ?></li>
