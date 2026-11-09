@@ -17,6 +17,136 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.8.0-alpha] — 2026-11-09
+
+The "four-axis authorization" release. Complete RBAC overhaul:
+tenant-scoped roles, platform/tenant role separation, support
+delegations for cross-tenant access, step-up re-authentication on
+privileged context switches, append-only audit trail for every RBAC
+mutation, and contractual platform owner designation.
+
+### Added
+
+**Four-axis authorization model**
+- `AuthorizationService::allows()` restructured to distinguish identity
+  path (home tenant) from cross-tenant delegation path
+- `cas.*` short-circuits before tenant identity — platform permissions
+  do not require a tenant context
+- `getActiveDelegations()` joins `core_users` to verify user-tenant match
+- Per-tenant caches for denials, grants, app assignments
+
+**Tenant-aware RBAC (migrations 0061, 0062, 0063)**
+- `core_roles`, `core_user_roles`, `core_user_permissions`,
+  `core_notification_rules`, `core_notifications` gain `tenant_id
+  NOT NULL` with composite FKs (user-tenant, role-tenant must match)
+- `super_admin` role removed; platform authority via
+  `core_user_platform_roles` with `cas_admin` seeded from 0061
+- `core.settings.manage` restored to the `admin` tenant role via 0063
+
+**Support delegations (migrations 0064, 0065)**
+- `core_support_delegations` table — explicit, expiring, auditable
+  cross-tenant access grants
+- `module_key` scoping (a delegation to `recruit` doesn't grant `hr`)
+- `allowed_permissions_json` / `denied_permissions_json` (materialized
+  at grant time from the scope ceiling)
+- Asymmetric revocation: developer immediate, tenant admin 24-hour
+  cooling-off window
+- `SupportDelegationService`: grant, revoke, cancelPendingRevocation,
+  activeFor, permits
+
+**Step-up re-authentication**
+- `/cas/context/switch` requires `Session::hasRecentReauth(window)` —
+  password prompt via `/cas/context/confirm` if not fresh
+- Rate-limited at 3 attempts / 15 minutes per IP
+- `/cas/context/reset` (de-escalation) does not require re-auth
+
+**RBAC audit trail**
+- Every context switch, delegation grant, revoke, and cancel writes to
+  `core_rbac_audit_logs` via `RbacAuditLogger`
+- Append-only at application level (no DB triggers, matching
+  `core_audit_logs` convention)
+- before_json / after_json capture state changes where applicable
+
+**Platform owner designation (migration 0067)**
+- `platform_owners` table — contractual developer identity, distinct
+  from `cas_admin`
+- `PlatformOwnerService::isOwner()` read-only check
+- Only a platform owner can grant `cas_developer` delegations and
+  cancel pending tenant revocations
+- Bootstrapped via DB/CLI only — the web app has no write path
+
+**Platform surface (`/cas/*` routes)**
+- `/cas/dashboard` — aggregate tenant metrics only, no PII
+- `/cas/delegations` (list / grant / revoke / cancel)
+- `/cas/context` (switch / confirm / reset)
+- 10 routes, 3 controllers, 3 views
+- Every route has a `permission:` middleware (enforced by RG-02 test)
+
+### Changed
+
+- **BREAKING:** `super_admin` role removed. Any external integration
+  checking that slug must migrate to `cas.*` permission checks.
+- **BREAKING:** `core_roles`, `core_user_roles`, etc. are now
+  tenant-scoped. Cross-tenant role assignment is prevented by composite
+  FK.
+- `User::isSuperAdmin()` removed. Call sites replaced with
+  `can('core.settings.manage')` or `hasRole('admin')`.
+- `AuthorizationService` Rule 10 (super_admin bypass) removed.
+- `UserRepository::loadPermissions()` includes `core.*` grants from
+  Recruit roles (SUBSTRING_INDEX on `module`).
+- `UserRepository::findById()` uses `TenantContext::homeId()` so a
+  platform admin with an effective-tenant override can still be loaded.
+- `Auth::login()` clears any effective-tenant override.
+- `TenantContext` gains `homeId()` / `id()` split and `setEffective()`.
+
+### Removed
+
+- `app/Platform/Controllers/UserManagementController.php` — the
+  `/users` and `/users/update` routes were reachable by any
+  authenticated user with no permission check. The controller had
+  hardcoded `tenant_id = 1` and no tenant scoping on update. Deleting
+  it closes the last outstanding security finding from the original
+  audit; tenant-scoped user management continues at
+  `/recruit/admin/users` (AdminUserController).
+- `resources/views/portal/users.php` — legacy view for the deleted
+  controller.
+
+### Security
+
+- SEC-001: OfferController queries tenant-scoped
+- SEC-002: PersonHiredHandler validates payload against DB
+- SEC-011: EventBus SKIP LOCKED inside transaction
+- SEC-023: EventBus dispatch writes to outbox only (removed
+  dispatch-then-execute double-run)
+- SEC-025: bin/process-events.php boots the app so listeners register
+- SEC-030: AuthorizationService Rule 2 enforces user-tenant match;
+  getActiveDelegations tenant-scoped
+- UserManagementController removal (last audit finding)
+
+### Tests
+
+- 31 PHPUnit tests, 126 assertions, 0 skips
+- 24 CLI authorization assertions
+- New test classes: `PlatformAuthorityTest`, `TenantAuthorityTest`,
+  `CrossTenantBoundaryTest`, `PlatformSurfaceTest`,
+  `SupportDelegationTest`, `RbacAuditTest`
+- All acceptance criteria documented in `docs/RBAC-TESTING.md`
+- Isolation suites (7) covering repository-level tenant boundaries
+  unchanged and passing
+
+### Documentation
+
+- `docs/RBAC-ARCHITECTURE.md` — rewritten: four-axis model, actual
+  precedence chain, audit table schema, breaking-change notes
+- `docs/PERMISSIONS.md` — rewritten: six RBAC tables, no super-admin
+  bypass, delegation and audit references
+- `docs/RBAC-TESTING.md` — extended with AUDIT and PO acceptance
+  criteria; PlatformSurfaceTest un-skipped
+- `docs/CAS-PLATFORM-SURFACE.md` — new: the /cas/* surface, ten routes,
+  delegation lifecycle, context switching, deferred items
+
+---
+
 ## [0.7.0-alpha] — 2026-10-29
 
 The "permissions and file uploads" release. Granular role-based access

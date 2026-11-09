@@ -133,15 +133,32 @@ Full taxonomy: `docs/NAMING-CONVENTION.md` §1.
 - Session security (HttpOnly, SameSite, rotation, idle timeout)
 - CSRF protection on all POST/PUT/PATCH/DELETE
 - Password hashing with Argon2id
-- 7 seeded roles, 45+ permissions
+- 45+ permissions across tenant and platform scopes
 - Granular permission middleware with human-friendly slugs
+- **Four-axis authorization model** — home tenant, platform authority, tenant authority, developer cross-tenant access (see docs/RBAC-ARCHITECTURE.md §4)
+- **Tenant-scoped roles** — core_roles has tenant_id NOT NULL; composite FKs enforce role-user tenant consistency
+- **Platform roles** — cas_admin and cas_developer via core_platform_roles (separate from tenant roles)
+- **Central authorization service** — AuthorizationService::allows() is the only decision point; User::can() and Auth::can() delegate to it
 - **Roles CRUD** — create, edit (name/description), delete with guards
 - **Permission matrix** — role selector + checkbox grid with human-readable labels
-- **User management** — full CRUD with role assignment
-- **Bidirectional role membership** — role edit shows assigned users with inline Remove; user edit shows role checkboxes
+- **User management** — full CRUD with role assignment (tenant-scoped at /recruit/admin/users)
 - **Dynamic sidebar** — nav items hidden based on the user's permissions
 - **Branded 403 page** — shield icon, message, required permission, Back / Go-back
-- **Only `super_admin` is a system role** — all others are renameable/deleteable starting templates
+- **No super_admin role** — deleted in migration 0061. Platform authority is granted via core_platform_roles, not a super-user role name.
+
+### CAS Platform Surface ✅
+
+The /cas/* routes expose platform-level operations, isolated from any
+single tenant's business data.
+
+- **Dashboard** at /cas/dashboard — aggregate tenant metrics only; no PII
+- **Support delegations** at /cas/delegations — explicit, expiring, auditable cross-tenant access grants
+- **Context switching** at /cas/context/switch — changes the effective tenant, requires step-up re-auth
+- **Asymmetric revocation** — developer revokes immediately; tenant admin revocations have a 24-hour cooling-off window
+- **Step-up re-authentication** on privileged context changes (password + rate-limited)
+- **Full audit trail** — every RBAC mutation writes to core_rbac_audit_logs (append-only)
+- **platform_owners** — contractual developer designation, bootstrapped via DB/CLI, never UI-written
+- See docs/CAS-PLATFORM-SURFACE.md for the full surface reference
 
 ### Design System ✅
 

@@ -428,6 +428,25 @@ by event, with toggles for each channel and add/remove capability.
 - **Config split:** `config/local.php` (web) uses the limited user;
   `config/cli.php` uses the elevated user
 
+### 12.1 RBAC-specific conventions
+
+- **Tenant-scoped RBAC tables** have `tenant_id NOT NULL` with
+  composite FKs (`(user_id, tenant_id)` → `core_users(id, tenant_id)`,
+  `(role_id, tenant_id)` → `core_roles(id, tenant_id)`).
+- **Platform RBAC tables** (`core_platform_roles`, etc.) are global —
+  no `tenant_id`.
+- **Delegation tables** use JSON native type for permission lists
+  (`allowed_permissions_json JSON NOT NULL`, `denied_permissions_json
+  JSON NULL`), matching `core_admin_delegations`.
+- **Audit tables** are append-only at application level — no DB
+  triggers, no `ON UPDATE` / `ON DELETE` protections. The logger
+  service never issues UPDATE or DELETE.
+- **Contractual designations** (`platform_owners`) are bootstrapped
+  via DB/CLI, never assigned through the web UI.
+
+See `docs/RBAC-ARCHITECTURE.md` §4 for the four-axis model, and
+`docs/CAS-PLATFORM-SURFACE.md` for the /cas/* platform surface.
+
 ---
 
 ## 13. Route Organization

@@ -1,73 +1,138 @@
 # Recruit Aid — Permissions System
 
-**Status:** Complete
-**Last revised:** 2026-10-29
+**Status:** Shipped. Six tables. Four-axis model.
+**Last revised:** 2026-11-09 (post-0067)
+
+**See also:**
+- docs/RBAC-ARCHITECTURE.md — the design and doctrine (four-axis model)
+- docs/RBAC-TESTING.md — what's proven by what test
+- docs/CAS-PLATFORM-SURFACE.md — the /cas/* platform surface
 
 ---
 
 ## 1. Overview
 
-RBAC with granular permission assignment. Every user has roles; every role has permissions; every permission gates one action.
+RBAC with granular permission assignment across four independent
+dimensions:
 
-Fully database-driven — admins create roles, assign permissions, and assign users, all through the UI.
+- **Tenant authority** — a user's roles within their home tenant.
+- **Platform authority** — cas.* permissions granted via platform
+  roles, independent of any tenant.
+- **Developer cross-tenant access** — explicit, expiring, audited
+  support delegations to another tenant's data.
+- **Contractual platform owner** — the developer designation in
+  platform_owners, distinct from a regular cas_admin.
+
+Every user has a home tenant. No user is tenantless. Permission
+decisions are made centrally by AuthorizationService::allows().
 
 ---
 
-## 2. The Four Tables
+## 2. The Six RBAC Tables
+
+| Table | Purpose | Scoped by |
+|---|---|---|
+| core_roles | Tenant-scoped role definitions | tenant_id |
+| core_permissions | The permission catalogue (45+ seeded) | global |
+| core_role_permissions | Pivot: which roles have which permissions | via core_roles |
+| core_user_roles | Pivot: which users have which roles | tenant_id |
+| core_platform_roles | Platform-scoped roles (cas_admin, cas_developer) | global |
+| core_platform_role_permissions | Pivot: platform roles -> cas.* permissions | global |
+| core_user_platform_roles | Assignments of platform roles to users | global |
+
+**Plus the delegations and audit tables:**
 
 | Table | Purpose |
 |---|---|
-| `core_roles` | Role definitions. Only `super_admin` is `is_system=1`. |
-| `core_permissions` | All available permissions (45+ seeded). |
-| `core_role_permissions` | Pivot: which roles have which permissions. |
-| `core_user_roles` | Pivot: which users have which roles. |
+| core_admin_delegations | Explicit grants of app-admin powers (existing, underused) |
+| core_support_delegations | Explicit cross-tenant support grants (active) |
+| core_permission_policies | Per-tenant denies that override role grants |
+| core_rbac_audit_logs | Append-only audit of every RBAC mutation |
+| platform_owners | Contractual developer designation (bootstrapped, not UI-written) |
 
 ---
 
 ## 3. Permission Slug Format
 
-```
-{module}.{entity}.{action}
-```
+    {namespace}.{entity}.{action}
 
-Examples: `core.users.view`, `recruit.organisations.create`, `recruit.vacancies.delete`
+Examples:
+- core.users.view — tenant-scoped permission granted via tenant roles
+- recruit.candidates.create — tenant-scoped permission
+- cas.dashboard.access — platform-scoped permission, granted via
+  core_user_platform_roles only
+
+**Namespace ownership:**
+- cas.* and core.* — CAS Core owns these. No application may
+  register them.
+- recruit.* — Recruit Aid owns these.
+- hr.* — HR Aid owns these.
 
 ---
 
 ## 4. Three Enforcement Layers
 
-**Server-side:** Routes declare `permission:slug` middleware. `PermissionMiddleware` throws `HttpException::forbidden()` on failure.
+**Server-side:** Routes declare permission:slug middleware.
+PermissionMiddleware throws HttpException::forbidden() (rendered as
+the branded 403 page) on failure.
 
-**Sidebar:** Links wrapped in `$user->can('permission')`.
+**Sidebar:** Links wrapped in $user->can('permission').
 
-**Action buttons:** Create/Edit/Delete wrapped in `$user->can('permission')`.
+**Action buttons:** Create/Edit/Delete wrapped in
+$user->can('permission').
+
+**UI hiding is not security.** Every route has a permission middleware.
+The sidebar hiding is UX, not enforcement.
 
 ---
 
-## 5. Super Admin Bypass
+## 5. No Super Admin Bypass
 
-`User::can()` returns `true` for `super_admin` on any permission. That's why `super_admin` is the only system role.
+The previous doctrine had a "super_admin bypass" in Rule 10 of the
+authorization chain. **That role was deleted by migration 0061.** The
+bypass was removed.
+
+Instead:
+- Platform permissions (cas.*) are granted via core_platform_roles.
+  They are evaluated independently of tenant roles.
+- A cas_admin who is not in platform_owners cannot grant
+  cas_developer delegations.
+- Every access requires an actual grant path. There is no "super user"
+  who can do everything by role name.
+
+See docs/RBAC-ARCHITECTURE.md §4.1 for the cas_admin / cas_developer
+distinction.
 
 ---
 
 ## 6. Admin UI
 
-**Create role:** `/admin/roles-perm/roles/create`
+The tenant admin UI at /recruit/admin/roles-perm/* manages the tenant's
+roles, permissions, and users.
 
-**Assign permissions:** `/admin/roles-perm/permissions?role_id=X` (role selector + checkbox matrix)
+- **Create role:** /recruit/admin/roles-perm/roles/create
+- **Assign permissions:** /recruit/admin/roles-perm/permissions?role_id=X
+  (role selector + checkbox matrix)
+- **Assign users to role:** user edit form, or role edit page's
+  "Users with this role" table with inline Remove
+- **Delete role:** guarded — blocked if is_system=1 or users assigned.
+  Uses flash + redirect, not 500.
 
-**Assign users to role:** Two paths — user edit form, or role edit page's 'Users with this role' table with inline Remove.
-
-**Delete role:** Guarded — blocked if `is_system=1` or users assigned. Uses flash + redirect, not 500.
+The platform admin UI at /cas/* manages delegations, tenant context,
+and platform-level operations. See docs/CAS-PLATFORM-SURFACE.md.
 
 ---
 
 ## 7. Adding Permissions for a New Module
 
-1. Insert into `core_permissions` (new `module` value = new group in matrix)
-2. Declare routes with `permission:module.entity.action`
-3. Wrap sidebar links in `$user->can('...')`
-4. Wrap action buttons in `$user->can('...')`
+1. **Register the permission** in the module's getPermissionDefinitions()
+   or via a migration insert into core_permissions (new module value
+   = new group in the matrix).
+2. **Declare routes** with permission:{module}.{entity}.{action}.
+3. **Wrap sidebar links** in $user->can('...').
+4. **Wrap action buttons** in $user->can('...').
+5. **Add a test** — see docs/RBAC-TESTING.md for the acceptance-criteria
+   pattern.
 
 ---
 
@@ -78,138 +143,111 @@ Examples: `core.users.view`, `recruit.organisations.create`, `recruit.vacancies.
 
 ---
 
-## 9. References
+## 9. Debugging a Denial
 
-- `docs/NAMING-CONVENTION.md` §6 — slug format
-- `app/Platform/Middleware/PermissionMiddleware.php`
-- `app/Platform/Models/User.php` — `can()` method
-- `app/Platform/Repositories/RoleRepository.php`
-- `app/Platform/Repositories/UserRepository.php`
-- `app/Recruit/Controllers/Admin/RoleController.php`
-- `app/Recruit/Controllers/Admin/AdminUserController.php`
+When $user->can('some.permission') returns false unexpectedly:
 
+1. **Does the permission exist?**
+   SELECT * FROM core_permissions WHERE slug = '...'
+2. **Is it active?** is_active = 1
+3. **Is the module enabled?** SELECT is_enabled FROM core_module_state WHERE module_key = '...'
+4. **Is the user assigned to the module?**
+   SELECT * FROM core_user_applications WHERE user_id = ? AND module_key = '...'
+5. **Is there a policy denial?**
+   SELECT * FROM core_permission_policies WHERE tenant_id = ? AND permission_slug = '...'
+6. **Does the user have a role granting it?**
+   SELECT r.slug FROM core_user_roles ur JOIN core_roles r ON ...
+     JOIN core_role_permissions rp ON ...
+     WHERE ur.user_id = ?
+7. **Is there an explicit denial?**
+   SELECT * FROM core_user_permissions WHERE user_id = ? AND denied = 1
 
----
-
-## 10. CAS Suit RBAC Extension (Batch 33)
-
-The legacy RBAC system described above remains active. The following
-sections document the extension that brings it to CAS Suit enterprise
-grade.
-
-**Status:** Design approved. Implementation in batches 33.1 -> 33.4.
-**See also:** docs/RBAC-ARCHITECTURE.md for the full design.
-
----
-
-## 11. The Central Principle
-
-> CAS Suit owns the security foundation. Individual applications own
-> their operational permissions. Administrators receive explicitly
-> delegated authority. All permission decisions are enforced centrally.
-
-This means:
-- Recruit Aid owns recruit.* permissions.
-- HR Aid owns hr.* permissions.
-- CAS Core owns cas.* and core.* permissions.
-- No application may register a permission under a foreign namespace.
+For cas.* permissions, the check is different — the permission is
+granted via core_user_platform_roles, not tenant roles. See
+AuthorizationService::hasPlatformPermission().
 
 ---
 
-## 12. The New Tables
+## 10. The AuthorizationService
 
-| Table | Purpose |
+app/Platform/Authorization/AuthorizationService.php is the ONLY code
+path that answers "can this user do X?". User::can() and Auth::can()
+delegate to it.
+
+See docs/RBAC-ARCHITECTURE.md §5.1 for the full precedence chain.
+
+---
+
+## 11. Support Delegations
+
+Support delegations (core_support_delegations) allow a cas_admin or
+tenant principal to act on a specific tenant's data within a specific
+module, without changing their home tenant. Full lifecycle in
+docs/CAS-PLATFORM-SURFACE.md.
+
+Key properties:
+- **Scope ceiling:** read_only / read_write / full. Destructive
+  actions (delete, manage) require explicit opt-in even under full.
+- **cas.\* not grantable:** rejected at grant time.
+- **Asymmetric revocation:** developer revokes immediately; tenant
+  admin revocations go through a 24-hour cooling-off window during
+  which the developer can cancel.
+- **Audited:** every grant, revoke, and cancel writes to
+  core_rbac_audit_logs.
+
+---
+
+## 12. Sensitive Data
+
+Permissions carry a sensitivity classification. It affects the legacy
+super_admin bypass (now removed) but does not gate access on its own —
+the actual enforcement is the permission check.
+
+| Class | Meaning |
 |---|---|
-| core_permission_registrations | The registry of what each module claims it owns |
-| core_admin_delegations | Explicit, scoped, expiring grants of app admin powers |
-| core_permission_policies | Global restrictions that override role grants |
-| core_rbac_audit_logs | Append-only record of every RBAC mutation |
+| public | Admin ops, dashboards |
+| sensitive | PII, salary, individual records |
+| restricted | Payroll approval, GDPR erase |
 
-Additionally, core_permissions gains sensitivity, registered_version, and is_active.
-core_roles gains is_system and template_slug.
-core_user_roles gains assigned_by, assigned_at, expires_at.
-
----
-
-## 13. The AuthorizationService
-
-app/Platform/Authorization/AuthorizationService.php becomes the ONLY code path that answers "can this user do X?". It replaces direct calls to User::can().
-
-User::can() and Auth::can() will delegate to it.
-
-### Precedence (first match wins)
-
-1. User null -> DENY
-2. No tenant context -> DENY
-3. Permission not registered in core_permissions -> DENY
-4. Owning module disabled -> DENY
-5. Module not assigned to user -> DENY
-6. Permission matches a global policy DENY -> DENY
-7. Explicit user denial -> DENY
-8. Explicit user grant -> ALLOW
-9. Role grant (with valid app assignment) -> ALLOW
-10. Super admin bypass (only for sensitivity = 'public') -> ALLOW
-11. Default -> DENY
+**Sensitivity is metadata for policy design, not an enforcement
+mechanism.** Enforcement comes from the permission grant path. A user
+with recruit.candidates.view can view candidates whether the
+permission is marked sensitive or public.
 
 ---
 
-## 14. Delegation Model
-
-A global admin holding cas.rbac.delegate_admin can appoint an application admin:
-
-AdminDelegationService::delegate(
-    userId: 7,
-    moduleKey: 'hr',
-    grantedBy: 1,
-    expiresAt: '2027-12-31',
-    allowed: ['hr.users.manage', 'hr.roles.manage'],
-    denied:  ['hr.payroll.approve']
-);
-
-**Rule:** You cannot grant a permission you don't hold.
-If the admin tries, UnauthorizedDelegationException is thrown.
-
-The delegation is checked on every action via
-AdminDelegationService::canDo($userId, $permission) and is
-audited in core_rbac_audit_logs.
-
----
-
-## 15. Sensitive Data
-
-Permissions are classified:
-
-| Class | Meaning | Super admin bypass? |
-|---|---|---|
-| public | Admin ops, dashboards | Yes |
-| sensitive | PII, salary, individual records | No |
-| restricted | Payroll approval, GDPR erase | No, + special audit |
-
-**This closes the gap** where a global admin could read payroll or
-beneficiary data without explicit permission.
-
----
-
-## 16. Threat Model
+## 13. Threat Model
 
 Escalation paths closed:
 
-- App admin cannot create a role with cas.* permissions.
-- App admin cannot assign a role to themselves.
-- App admin cannot edit roles outside their module.
-- Cross-tenant role reference is prevented by FK + WHERE clauses.
-- Expired delegations immediately stop working.
-- UI hiding is not security; every route has middleware.
+- **App admin cannot create a role with cas.\* permissions** —
+  namespace enforcement in the role editor.
+- **App admin cannot assign a role to themselves** — self-grant
+  rejection.
+- **App admin cannot edit roles outside their tenant** — tenant-scoped
+  RoleRepository.
+- **Cross-tenant role reference is prevented** — composite FKs on
+  core_user_roles (user-tenant and role-tenant must match).
+- **Expired delegations immediately stop working** — activeFor()
+  filters by expires_at > NOW().
+- **cas.\* cannot be delegated** — rejected at grant time.
+- **Platform owner is contractual** — platform_owners is not
+  UI-writable.
+- **Step-up re-auth on context switch** — prevents session-hijack
+  tenant hopping.
+- **Every RBAC mutation is audited** — append-only log.
+- **UI hiding is not security** — every route has middleware.
 
 ---
 
-## 17. Rollout Plan
+## 14. References
 
-| Batch | Scope |
-|---|---|
-| 33.1 | Schema + backfill |
-| 33.2 | AuthorizationService + rewiring |
-| 33.3 | Delegation + audit |
-| 33.4 | Global RBAC UI |
-
-Until 33.2 ships, Auth::can() behaviour is unchanged. All route, middleware and controller code continues working as-is.
+- docs/RBAC-ARCHITECTURE.md — the design and doctrine
+- docs/RBAC-TESTING.md — acceptance-criteria-to-test map
+- docs/CAS-PLATFORM-SURFACE.md — the /cas/* platform surface
+- app/Platform/Authorization/AuthorizationService.php — the central decision
+- app/Platform/Authorization/SupportDelegationService.php — delegation lifecycle
+- app/Platform/Authorization/PlatformOwnerService.php — developer designation
+- app/Platform/Support/RbacAuditLogger.php — audit trail writer
+- app/Platform/Middleware/PermissionMiddleware.php — route-level enforcement
+- app/Platform/Models/User.php — can() delegates to AuthorizationService

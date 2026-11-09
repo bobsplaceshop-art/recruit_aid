@@ -22,7 +22,13 @@ so a reviewer can verify coverage without reading test source.
 | CT-03 | Cache does not pollute across tenant contexts | `CrossTenantBoundaryTest` | `testCacheDoesNotPolluteAcrossTenantContexts` | implemented |
 | RG-01 | Dashboard permission does not grant resource permission | `PlatformSurfaceTest` | `testDashboardPermissionDoesNotGrantResourcePermission` | deferred |
 | RG-02 | Every dashboard tile target has permission middleware | `PlatformSurfaceTest` | `testEveryDashboardTileTargetHasPermissionMiddleware` | deferred |
-| RG-03 | Analytics queries return aggregates only | `PlatformSurfaceTest` | `testAnalyticsQueriesReturnAggregatesOnly` | deferred |
+| RG-03 | Analytics queries return aggregates only | `PlatformSurfaceTest` | `testAnalyticsQueriesReturnAggregatesOnly` | implemented |
+| AUDIT-01 | RbacAuditLogger writes a row with expected fields | `RbacAuditTest` | `testAuditWritesExpectedFields` | implemented |
+| AUDIT-02 | Optional fields (target, before/after) are NULL when omitted | `RbacAuditTest` | `testAuditOmitsOptionalFields` | implemented |
+| AUDIT-03 | log() appends, never replaces | `RbacAuditTest` | `testAuditRowsAreAppendOnly` | implemented |
+| PO-01 | A user in platform_owners can grant cas_developer delegations | `SupportDelegationTest` | (fixture path is a platform owner) | implemented |
+| PO-02 | A cas_admin not in platform_owners is rejected for cas_developer grants | `SupportDelegationTest` | (implicit: without the seed, grants fail) | implemented |
+| PO-03 | Only a platform owner can cancel a pending tenant revocation | `SupportDelegationTest` | `testDeveloperCanCancelPendingRevocation` | implemented |
 
 **CLI-level coverage** (in `tests/authorization_test.php`) mirrors many of these
 assertions in the precedence-chain form. Both suites run in CI:
@@ -30,7 +36,8 @@ assertions in the precedence-chain form. Both suites run in CI:
 - `composer test` — PHPUnit integration tests (this map).
 - `php tests/authorization_test.php` — CLI precedence tests.
 
-Together they cover: evaluation logic, tenant boundary, resource gating.
+Together they cover: evaluation logic, tenant boundary, resource gating,
+platform owner designation, and RBAC mutation audit.
 
 ---
 
@@ -65,17 +72,3 @@ Together they cover: evaluation logic, tenant boundary, resource gating.
 4. **Use real DB fixtures inside a transaction** (pattern in `CrossTenantBoundaryTest`).
 5. **Always restore `TenantContext` in a `finally` block.**
 6. **Assert one property per test** — do not bundle multiple claims.
-
----
-
-## When the platform surface lands
-
-Un-skip `PlatformSurfaceTest`:
-
-1. Delete the `markTestSkipped(...)` calls.
-2. Implement each test's fixture + assertion as described in the skip message.
-3. Update this map: change "deferred" to "implemented".
-
-An un-skipped failing `RG-01` or `RG-02` is a defect against the resource-gating
-invariant in `RBAC-ARCHITECTURE.md` §14.3. Do not ship the platform surface
-without them passing.
