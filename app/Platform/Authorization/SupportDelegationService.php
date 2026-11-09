@@ -58,7 +58,10 @@ final class SupportDelegationService
     /** Actions that full scope does NOT auto-grant. Require explicit opt-in. */
     private const DESTRUCTIVE_SUFFIXES = ['delete', 'manage', 'purge', 'restore'];
 
-    public function __construct(private Database $db) {}
+    public function __construct(
+        private Database $db,
+        private PlatformOwnerService $owners
+    ) {}
 
     /**
      * @param array{
@@ -201,7 +204,9 @@ final class SupportDelegationService
      */
     public function cancelPendingRevocation(int $delegationId, int $cancelledByUserId): void
     {
-        $this->assertUserIsCasAdmin($cancelledByUserId);
+        // Only the contractual platform owner can cancel a pending tenant
+        // revocation (the asymmetric-revocation escape hatch from §14.5).
+        $this->assertUserIsPlatformOwner($cancelledByUserId);
 
         $row = $this->db->selectOne(
             "SELECT `revocation_state` FROM `core_support_delegations`
@@ -340,7 +345,10 @@ final class SupportDelegationService
     private function assertGrantorAuthorized(string $grantorType, int $grantedBy, int $tenantId): void
     {
         if ($grantorType === 'cas_developer') {
-            $this->assertUserIsCasAdmin($grantedBy);
+            // Per RBAC-ARCHITECTURE.md §14.1, only the contractual platform
+            // owner can grant cas_developer delegations. A cas_admin operator
+            // who is not in platform_owners must fall back to tenant_admin.
+            $this->assertUserIsPlatformOwner($grantedBy);
             return;
         }
         // tenant_admin: must have an active tenant role in this tenant.
@@ -387,6 +395,16 @@ final class SupportDelegationService
         if (!$this->isCasAdmin($userId)) {
             throw new InvalidArgumentException(
                 "User {$userId} does not hold a cas_admin platform role."
+            );
+        }
+    }
+
+    private function assertUserIsPlatformOwner(int $userId): void
+    {
+        if (!$this->owners->isOwner($userId)) {
+            throw new InvalidArgumentException(
+                "User {$userId} is not a designated platform owner — only the "
+                . "contractual developer can perform this action."
             );
         }
     }

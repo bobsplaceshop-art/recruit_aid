@@ -36,6 +36,7 @@ use CorporateAid\Platform\Modules\ModuleRegistrar;
 use CorporateAid\Platform\Modules\EventBus;
 use CorporateAid\Platform\Authorization\AuthorizationService;
 use CorporateAid\Platform\Authorization\SupportDelegationService;
+use CorporateAid\Platform\Authorization\PlatformOwnerService;
 use CorporateAid\Platform\LiveSearch\LiveSearchService;
 use CorporateAid\Platform\LiveSearch\LiveSearchable;
 use CorporateAid\Platform\Repositories\UserRepository;
@@ -278,7 +279,14 @@ final class App
         $c->singleton(Auth::class, fn() => new Auth($c->get(UserRepository::class), $c->get(Session::class)));
         $c->singleton(
             SupportDelegationService::class,
-            fn() => new SupportDelegationService($c->get(Database::class))
+            fn() => new SupportDelegationService(
+                $c->get(Database::class),
+                $c->get(PlatformOwnerService::class)
+            )
+        );
+        $c->singleton(
+            PlatformOwnerService::class,
+            fn() => new PlatformOwnerService($c->get(Database::class))
         );
 
         // ---------- Support ----------

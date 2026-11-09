@@ -98,6 +98,17 @@ final class SupportDelegationTest extends TestCase
             PDOParams::positional([self::$devUserId, Row::int($casAdminRoleRow, 'id')])
         );
 
+        // Designate the dev fixture user as the platform owner. Production
+        // never writes to platform_owners from the web app — this is a
+        // test bootstrap, matching what a manual seed or CLI command
+        // would do. Without this, all cas_developer grants in this test
+        // file are correctly rejected by SupportDelegationService.
+        self::$db->execute(
+            "INSERT INTO `platform_owners` (`user_id`, `designation`, `contract_reference`)
+             VALUES (?, 'Test Developer', 'TEST-SD-FIXTURE')",
+            PDOParams::positional([self::$devUserId])
+        );
+
         // tenant_admin user in tenant B with an active role there
         self::$tenantAdminId = self::$db->insert(
             "INSERT INTO `core_users`
