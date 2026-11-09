@@ -13,6 +13,7 @@ use CorporateAid\Core\View;
 use CorporateAid\Platform\Services\SystemSettingService;
 use CorporateAid\Platform\Support\Hasher;
 use CorporateAid\Platform\Support\RateLimiter;
+use CorporateAid\Platform\Support\RbacAuditLogger;
 
 /**
  * Developer context activation.
@@ -22,10 +23,8 @@ use CorporateAid\Platform\Support\RateLimiter;
  * The effective-tenant override is a privileged state change — it lets a
  * cas_admin see another tenant's data. Per RBAC-ARCHITECTURE.md §14.5,
  * activation must be an explicit, audited event. This controller enforces
- * step-up re-authentication within the configured window.
- *
- * The reset route does NOT require re-auth — returning to the home tenant
- * is a de-escalation, not a privileged action.
+ * step-up re-authentication and writes an audit row on every effective-
+ * tenant change.
  */
 final class CasContextController
 {
@@ -51,7 +50,6 @@ final class CasContextController
             return Response::redirect('/cas/dashboard');
         }
 
-        // Step-up gate: require recent re-auth before flipping effective tenant.
         $reauthWindow = $settings->getInt('security.session.reauth_window_minutes', 15);
         if (!$session->hasRecentReauth($reauthWindow)) {
             return Response::redirect('/cas/context/confirm?tenant_id=' . $tenantId);
@@ -59,7 +57,20 @@ final class CasContextController
 
         /** @var TenantContext $tenant */
         $tenant = $this->container->get(TenantContext::class);
+        /** @var RbacAuditLogger $audit */
+        $audit = $this->container->get(RbacAuditLogger::class);
+
+        $previousEffective = $tenant->id();
         $tenant->setEffective($tenantId);
+
+        $audit->log(
+            tenantId: $tenantId,
+            action: 'context.switch',
+            actorId: $auth->user()?->id,
+            before: ['effective_tenant' => $previousEffective],
+            after: ['effective_tenant' => $tenantId]
+        );
+
         $session->flash('success', "Acting as tenant #{$tenantId}.");
         return Response::redirect('/cas/dashboard');
     }
@@ -130,7 +141,20 @@ final class CasContextController
 
         /** @var TenantContext $tenant */
         $tenant = $this->container->get(TenantContext::class);
+        /** @var RbacAuditLogger $audit */
+        $audit = $this->container->get(RbacAuditLogger::class);
+
+        $previousEffective = $tenant->id();
         $tenant->setEffective($tenantId);
+
+        $audit->log(
+            tenantId: $tenantId,
+            action: 'context.switch',
+            actorId: $user->id,
+            before: ['effective_tenant' => $previousEffective],
+            after: ['effective_tenant' => $tenantId]
+        );
+
         $session->flash('success', "Acting as tenant #{$tenantId}.");
         return Response::redirect('/cas/dashboard');
     }
@@ -138,12 +162,26 @@ final class CasContextController
     /** @param array<string, string> $params */
     public function reset(Request $request, array $params = []): Response
     {
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
         /** @var TenantContext $tenant */
         $tenant = $this->container->get(TenantContext::class);
         /** @var Session $session */
         $session = $this->container->get(Session::class);
+        /** @var RbacAuditLogger $audit */
+        $audit = $this->container->get(RbacAuditLogger::class);
 
+        $previousEffective = $tenant->id();
         $tenant->setEffective($tenant->homeId());
+
+        $audit->log(
+            tenantId: $tenant->homeId(),
+            action: 'context.reset',
+            actorId: $auth->user()?->id,
+            before: ['effective_tenant' => $previousEffective],
+            after: ['effective_tenant' => $tenant->homeId()]
+        );
+
         $session->flash('success', 'Returned to home tenant.');
         return Response::redirect('/cas/dashboard');
     }

@@ -13,13 +13,15 @@ use CorporateAid\Core\Row;
 use CorporateAid\Core\Session;
 use CorporateAid\Core\View;
 use CorporateAid\Platform\Authorization\SupportDelegationService;
+use CorporateAid\Platform\Support\RbacAuditLogger;
 use InvalidArgumentException;
 
 /**
  * Manage support delegations. Requires cas.rbac.manage_global.
  *
  * The AuthorizationService enforces the delegation grant on every decision.
- * This controller is the CRUD wrapper.
+ * This controller is the CRUD wrapper and writes audit rows for every
+ * mutation.
  */
 final class CasDelegationController
 {
@@ -95,24 +97,46 @@ final class CasDelegationController
         $session = $this->container->get(Session::class);
         /** @var SupportDelegationService $delegations */
         $delegations = $this->container->get(SupportDelegationService::class);
+        /** @var RbacAuditLogger $audit */
+        $audit = $this->container->get(RbacAuditLogger::class);
 
         $user = $auth->user();
         if ($user === null) {
             return Response::redirect('/login');
         }
 
+        $targetTenantId = (int) $request->input('tenant_id', 0);
+        $targetUserId   = (int) $request->input('user_id', 0);
+        $moduleKey      = (string) $request->input('module_key', 'recruit');
+        $reason         = (string) $request->input('reason', '');
+
         try {
-            $delegations->grant([
-                'user_id'            => (int) $request->input('user_id', 0),
-                'tenant_id'          => (int) $request->input('tenant_id', 0),
-                'module_key'         => (string) $request->input('module_key', 'recruit'),
+            $delegationId = $delegations->grant([
+                'user_id'            => $targetUserId,
+                'tenant_id'          => $targetTenantId,
+                'module_key'         => $moduleKey,
                 'granted_by_user_id' => $user->id,
                 'granted_by_type'    => $user->tenantId === 1 ? 'cas_developer' : 'tenant_admin',
                 'scope'              => (string) $request->input('scope', 'read_only'),
-                'reason'             => (string) $request->input('reason', ''),
+                'reason'             => $reason,
                 'expires_at'         => (string) $request->input('expires_at', ''),
                 'denied_permissions' => $this->parseList($request->input('denied_permissions', '')),
             ]);
+
+            $audit->log(
+                tenantId: $targetTenantId,
+                action: 'delegation.grant',
+                actorId: $user->id,
+                targetType: 'support_delegation',
+                targetId: $delegationId,
+                moduleKey: $moduleKey,
+                after: [
+                    'target_user_id' => $targetUserId,
+                    'scope'          => (string) $request->input('scope', 'read_only'),
+                    'reason'         => $reason,
+                ]
+            );
+
             $session->flash('success', 'Delegation created.');
         } catch (InvalidArgumentException $e) {
             $session->flash('error', $e->getMessage());
@@ -131,14 +155,34 @@ final class CasDelegationController
         $session = $this->container->get(Session::class);
         /** @var SupportDelegationService $delegations */
         $delegations = $this->container->get(SupportDelegationService::class);
+        /** @var Database $db */
+        $db = $this->container->get(Database::class);
+        /** @var RbacAuditLogger $audit */
+        $audit = $this->container->get(RbacAuditLogger::class);
 
         $user = $auth->user();
         if ($user === null) {
             return Response::redirect('/login');
         }
 
+        $delegationId = (int) ($params['id'] ?? 0);
+        $delegationRow = $db->selectOne(
+            "SELECT `tenant_id`, `module_key` FROM `core_support_delegations` WHERE `id` = ? LIMIT 1",
+            PDOParams::positional([$delegationId])
+        );
+
         try {
-            $delegations->revoke((int) ($params['id'] ?? 0), $user->id);
+            $delegations->revoke($delegationId, $user->id);
+
+            $audit->log(
+                tenantId: $delegationRow !== null ? Row::int($delegationRow, 'tenant_id') : 0,
+                action: 'delegation.revoke',
+                actorId: $user->id,
+                targetType: 'support_delegation',
+                targetId: $delegationId,
+                moduleKey: $delegationRow !== null ? Row::str($delegationRow, 'module_key') : null
+            );
+
             $session->flash('success', 'Revocation recorded.');
         } catch (InvalidArgumentException $e) {
             $session->flash('error', $e->getMessage());
@@ -156,14 +200,34 @@ final class CasDelegationController
         $session = $this->container->get(Session::class);
         /** @var SupportDelegationService $delegations */
         $delegations = $this->container->get(SupportDelegationService::class);
+        /** @var Database $db */
+        $db = $this->container->get(Database::class);
+        /** @var RbacAuditLogger $audit */
+        $audit = $this->container->get(RbacAuditLogger::class);
 
         $user = $auth->user();
         if ($user === null) {
             return Response::redirect('/login');
         }
 
+        $delegationId = (int) ($params['id'] ?? 0);
+        $delegationRow = $db->selectOne(
+            "SELECT `tenant_id`, `module_key` FROM `core_support_delegations` WHERE `id` = ? LIMIT 1",
+            PDOParams::positional([$delegationId])
+        );
+
         try {
-            $delegations->cancelPendingRevocation((int) ($params['id'] ?? 0), $user->id);
+            $delegations->cancelPendingRevocation($delegationId, $user->id);
+
+            $audit->log(
+                tenantId: $delegationRow !== null ? Row::int($delegationRow, 'tenant_id') : 0,
+                action: 'delegation.cancel',
+                actorId: $user->id,
+                targetType: 'support_delegation',
+                targetId: $delegationId,
+                moduleKey: $delegationRow !== null ? Row::str($delegationRow, 'module_key') : null
+            );
+
             $session->flash('success', 'Pending revocation cancelled.');
         } catch (InvalidArgumentException $e) {
             $session->flash('error', $e->getMessage());
@@ -172,6 +236,7 @@ final class CasDelegationController
         return Response::redirect('/cas/delegations');
     }
 
+    /** @return list<string> */
     private function parseList(mixed $raw): array
     {
         if (!is_string($raw) || trim($raw) === '') {

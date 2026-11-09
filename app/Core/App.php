@@ -62,6 +62,7 @@ use CorporateAid\Platform\Services\NotificationService;
 use CorporateAid\Platform\Services\NotificationRuleService;
 use CorporateAid\Platform\Services\DashboardService;
 use CorporateAid\Platform\Support\ActivityLogger;
+use CorporateAid\Platform\Support\RbacAuditLogger;
 use CorporateAid\Platform\CustomFields\CustomFieldRenderer;
 use CorporateAid\Platform\CustomFields\CustomFieldValueSaver;
 use CorporateAid\Platform\CustomFields\CustomFieldValueValidator;
@@ -296,6 +297,7 @@ final class App
         $c->singleton(EmailLayout::class, fn() => new EmailLayout());
         $c->singleton(EmailRenderer::class, fn() => new EmailRenderer($c->get(EmailTemplateRepository::class), $c->get(EmailLayout::class)));
         $c->singleton(ActivityLogger::class, fn() => new ActivityLogger($c->get(Database::class), $c->get(Auth::class)));
+        $c->singleton(RbacAuditLogger::class, fn() => new RbacAuditLogger($c->get(Database::class)));
         $c->singleton(ActivityRepository::class, fn() => new ActivityRepository($c->get(Database::class)));
         $c->singleton(ActivityTimelineService::class, fn() => new ActivityTimelineService($c->get(ActivityRepository::class), $c->get(View::class)));
 
