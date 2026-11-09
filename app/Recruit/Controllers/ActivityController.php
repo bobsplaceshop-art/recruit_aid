@@ -37,6 +37,23 @@ final class ActivityController
             throw HttpException::notFound();
         }
 
+        // Per-entity authorization. Route-level `permission:` middleware
+        // cannot express this because the required permission depends on
+        // the entity type in the URL path. Mirrors the pattern in
+        // FileController::serve() — the polymorphism dictates where the
+        // check must live.
+        $permissionMap = [
+            'organisation' => 'recruit.organisations.view',
+            'contact'      => 'recruit.contacts.view',
+            'engagement'   => 'recruit.engagements.view',
+            'vacancy'      => 'recruit.vacancies.view',
+        ];
+        /** @var Auth $auth */
+        $auth = $this->container->get(Auth::class);
+        if (!$auth->can($permissionMap[$entityType])) {
+            throw HttpException::forbidden();
+        }
+
         $entity = $this->loadEntity($entityType, $entityId);
         if ($entity === null) {
             throw HttpException::notFound();

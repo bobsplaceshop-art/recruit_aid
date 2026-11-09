@@ -207,7 +207,7 @@ $router->get('/recruit/files/{uuid}', [FileController::class, 'serve'], ['app_ac
 // ---------------------------------------------------------------------
 // Administration
 // ---------------------------------------------------------------------
-$router->get('/recruit/admin', [AdminHomeController::class, 'index'], ['app_access:recruit', 'auth']);
+$router->get('/recruit/admin', [AdminHomeController::class, 'index'], ['app_access:recruit', 'auth', 'permission:core.settings.manage']);
 
 // User accounts
 $router->get('/recruit/admin/users',              [AdminUserController::class, 'index'],  ['app_access:recruit', 'auth', 'permission:core.users.view']);
