@@ -25,6 +25,7 @@ use CorporateAid\Recruit\Controllers\GlobalActivityController;
 use CorporateAid\Recruit\Controllers\GlobalSearchController;
 use CorporateAid\Recruit\Controllers\LiveSearchController;
 use CorporateAid\Recruit\Controllers\ComingSoonController;
+use CorporateAid\Recruit\Controllers\TaskController;
 use CorporateAid\Recruit\Controllers\EngagementController;
 use CorporateAid\Recruit\Controllers\FileController;
 use CorporateAid\Recruit\Controllers\VacancyController;
@@ -55,7 +56,12 @@ $router->get('/health', [HomeController::class, 'health']);
 // These render a branded "Coming Soon" page instead of a 404.
 // When a feature ships, replace the route with the real controller.
 
-$router->get('/recruit/tasks',        [ComingSoonController::class, 'tasks'],        ['app_access:recruit', 'auth']);
+$router->get('/recruit/tasks',                 [TaskController::class, 'index'],      ['app_access:recruit', 'auth', 'permission:recruit.tasks.view']);
+$router->get('/recruit/tasks/create',          [TaskController::class, 'createForm'], ['app_access:recruit', 'auth', 'permission:recruit.tasks.create']);
+$router->post('/recruit/tasks',                [TaskController::class, 'create'],     ['app_access:recruit', 'auth', 'permission:recruit.tasks.create', 'csrf']);
+$router->post('/recruit/tasks/{id}/complete',  [TaskController::class, 'complete'],   ['app_access:recruit', 'auth', 'permission:recruit.tasks.edit', 'csrf']);
+$router->post('/recruit/tasks/{id}/reopen',    [TaskController::class, 'reopen'],     ['app_access:recruit', 'auth', 'permission:recruit.tasks.edit', 'csrf']);
+$router->post('/recruit/tasks/{id}/delete',    [TaskController::class, 'delete'],     ['app_access:recruit', 'auth', 'permission:recruit.tasks.delete', 'csrf']);
 $router->get('/recruit/calendar',     [ComingSoonController::class, 'calendar'],     ['app_access:recruit', 'auth']);
 $router->get('/recruit/documents',    [ComingSoonController::class, 'documents'],    ['app_access:recruit', 'auth']);
 $router->get('/recruit/admin/audit',  [ComingSoonController::class, 'audit'],        ['app_access:recruit', 'auth', 'permission:core.settings.manage']);

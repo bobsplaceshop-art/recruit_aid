@@ -29,6 +29,12 @@ so a reviewer can verify coverage without reading test source.
 | PO-01 | A user in platform_owners can grant cas_developer delegations | `SupportDelegationTest` | (fixture path is a platform owner) | implemented |
 | PO-02 | A cas_admin not in platform_owners is rejected for cas_developer grants | `SupportDelegationTest` | (implicit: without the seed, grants fail) | implemented |
 | PO-03 | Only a platform owner can cancel a pending tenant revocation | `SupportDelegationTest` | `testDeveloperCanCancelPendingRevocation` | implemented |
+| TC-01 | Task create inserts an open task, tenant-scoped | `TaskCrudTest` | `testCreateInsertsOpenTask` | implemented |
+| TC-02 | Task create accepts a valid entity reference | `TaskCrudTest` | `testCreateWithValidEntity` | implemented |
+| TC-03 | Task create rejects a non-existent entity | `TaskCrudTest` | `testCreateWithNonExistentEntityThrows` | implemented |
+| TC-04 | Complete sets status and completed_at | `TaskCrudTest` | `testCompleteSetsStatusAndCompletedAt` | implemented |
+| TC-05 | Reopen clears completed_at and returns to open | `TaskCrudTest` | `testReopenClearsCompletedAt` | implemented |
+| TC-06 | Delete soft-deletes and excludes from findAll | `TaskCrudTest` | `testDeleteSoftDeletesAndExcludesFromList` | implemented |
 
 **CLI-level coverage** (in `tests/authorization_test.php`) mirrors many of these
 assertions in the precedence-chain form. Both suites run in CI:

@@ -222,6 +222,19 @@ single tenant's business data.
 - Engagement / contact dropdowns filtered by organisation
 - Full CRUD, sequence counter (`VAC-000001`)
 
+### Tasks Module ✅
+
+- Full task management at `/recruit/tasks`
+- Tasks attach to any entity (candidate, vacancy, application, interview, offer) or stand alone
+- Fields: title, description, priority (low/normal/high), due date, assignee
+- Statuses: open / completed / cancelled
+- Actions: create, complete, reopen, soft-delete
+- Filterable list: by status, priority, due date (overdue/today/next 7 days), assignee
+- Per-user overdue and open counts shown on the list header
+- Four permissions: `recruit.tasks.view`, `recruit.tasks.create`, `recruit.tasks.edit`, `recruit.tasks.delete`
+- Every mutation writes to the activity timeline for the attached entity
+- Replaces the previous "coming soon" placeholder at `/recruit/tasks`
+
 ### Settings Hub ✅
 
 - System settings with server-side validation

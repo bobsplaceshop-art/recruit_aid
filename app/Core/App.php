@@ -25,6 +25,7 @@ use CorporateAid\Platform\Repositories\EmailTemplateRepository;
 use CorporateAid\Platform\Repositories\EntityFileRepository;
 use CorporateAid\Recruit\Repositories\OrganisationRepository;
 use CorporateAid\Recruit\Repositories\PipelineStageRepository;
+use CorporateAid\Recruit\Repositories\TaskRepository;
 use CorporateAid\Platform\Repositories\RoleRepository;
 use CorporateAid\Platform\Repositories\ActivityRepository;
 use CorporateAid\Platform\Services\ActivityTimelineService;
@@ -57,6 +58,7 @@ use CorporateAid\Recruit\Services\ApplicationService;
 use CorporateAid\Recruit\Services\InterviewService;
 use CorporateAid\Recruit\Services\OfferService;
 use CorporateAid\Recruit\Services\ReportService;
+use CorporateAid\Recruit\Services\TaskService;
 use CorporateAid\Platform\Services\SystemSettingService;
 use CorporateAid\Platform\Export\CsvExporter;
 use CorporateAid\Platform\Services\FileService;
@@ -266,6 +268,7 @@ final class App
         $c->singleton(EngagementAssignmentRepository::class, fn() => new EngagementAssignmentRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyRepository::class,           fn() => new VacancyRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
         $c->singleton(CandidateRepository::class,         fn() => new CandidateRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
+        $c->singleton(TaskRepository::class,              fn() => new TaskRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyStageRepository::class,      fn() => new VacancyStageRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyRecruiterRepository::class,   fn() => new VacancyRecruiterRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyHiringManagerRepository::class, fn() => new VacancyHiringManagerRepository($c->get(Database::class), $c->get(TenantContext::class)));
@@ -436,6 +439,14 @@ final class App
             $c->get(EmailService::class),
             $c->get(Auth::class),
             $c->get(EventBus::class)
+        ));
+
+        $c->singleton(TaskService::class, fn() => new TaskService(
+            $c->get(TaskRepository::class),
+            $c->get(ActivityLogger::class),
+            $c->get(Database::class),
+            $c->get(TenantContext::class),
+            $c->get(Auth::class)
         ));
 
         $c->singleton(ReportService::class, fn() => new ReportService(

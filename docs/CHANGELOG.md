@@ -17,6 +17,24 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### Added
+
+**Tasks module (RA-1)**
+- `/recruit/tasks` — full task management replacing the coming-soon placeholder.
+- Tasks attach to an entity (candidate, vacancy, application, interview, offer) or stand alone.
+- Fields: title, description, priority (low/normal/high), due date, assignee.
+- Statuses: open / completed / cancelled.
+- Actions: create, complete, reopen, soft-delete.
+- Four permissions: `recruit.tasks.view`, `recruit.tasks.create`, `recruit.tasks.edit`, `recruit.tasks.delete`.
+- Granted to admin, recruitment_manager, recruiter (all four); researcher (view + create only).
+- `recruit_tasks` table with tenant scoping, composite-indexes for tenant+status, tenant+assignee, tenant+entity, tenant+due.
+- Every mutation writes to `core_activities` via `ActivityLogger`.
+- Six acceptance tests (TC-01 through TC-06) in `TaskCrudTest`.
+
+---
+
 ## [0.8.0-alpha] — 2026-11-09
 
 The "four-axis authorization" release. Complete RBAC overhaul:

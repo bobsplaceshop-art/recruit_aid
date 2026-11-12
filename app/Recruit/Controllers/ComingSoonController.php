@@ -46,12 +46,6 @@ final class ComingSoonController
     }
 
     /** @param array<string, string> $params */
-    public function tasks(Request $r, array $params = []): Response
-    {
-        return $this->render('Tasks', 'Assign follow-ups to recruiters and hiring managers. Track what needs doing and by when.');
-    }
-
-    /** @param array<string, string> $params */
     public function calendar(Request $r, array $params = []): Response
     {
         return $this->render('Calendar', 'A unified calendar for interviews, deadlines, and check-ins across every engagement and vacancy.');
