@@ -93,6 +93,25 @@ The current implementation of `AuthorizationService::allows()`:
 3. **Rule 3** — `cas.*` short-circuit: evaluate via
    `hasPlatformPermission(user.id, permission)`. Tenant identity is
    **never checked** for platform permissions.
+
+   **Rule 3b — Developer super-administrator exception.** If
+   `PlatformOwnerService::isOwner(user.id)` is true **and** the
+   permission is tenant-domain (registered `scope = 'app'` in
+   `core_permissions`), → ALLOW. This grants the contractual platform
+   owner tenant-domain access across all modules and all tenants,
+   independent of home tenant, effective tenant, tenant roles, and
+   support delegations.
+
+   Rule 3b does **not** grant platform-domain (`scope = 'global'`)
+   permissions. Those are governed by Rule 3 (`cas.*`) or by the
+   tenant-scoped rules for any `core.*` permission. A Developer is not
+   assumed to hold every platform permission; they are assumed to hold
+   tenant-domain authority over the environments they are contractually
+   responsible for.
+
+   Rule 3b itself performs **no audit write**. Audit obligations for
+   Developer access are governed by §9.4 (below), not by per-check
+   writes inside `allows()`.
 4. **Rule 4** — no active tenant context (`tenantId <= 0`) → DENY.
 5. **Rule 4a** — `resolveApplication()` returns `invalid` → DENY
    (fail closed on unknown ownership).
@@ -115,8 +134,23 @@ The current implementation of `AuthorizationService::allows()`:
 
 The earlier "Rule 10 (super admin bypass)" from the pre-migration
 doctrine is **removed**. The super_admin role was deleted by migration
-0061; its function is split between the `cas.*` platform path (Rule 3)
-and the platform owner distinction (`platform_owners`).
+0061.
+
+Developer super-administrator authority (Rule 3b) is a **separate,
+contractual concept**: a user in `platform_owners` has implicit
+tenant-domain access to every registered module, in every tenant. This
+is not a role, not a permission, and not a delegation. It is the
+platform owner's contractual authority, documented in
+`docs/CAS-PLATFORM-SURFACE.md` §3 and enforced by membership in
+`platform_owners` (migration 0067; write path is DB/CLI only, per
+migration 0067's header comment).
+
+Rule 3b preserves the distinction between **tenant-domain
+permissions** (registered with `scope = 'app'`, e.g.
+`recruit.candidates.view`) and **platform-domain permissions**
+(registered with `scope = 'global'`, e.g. `core.settings.manage`,
+`cas.rbac.manage_global`). A Developer does **not** gain platform-domain
+permissions by virtue of Rule 3b.
 
 ---
 
@@ -208,6 +242,35 @@ user-facing action.
 - `delegation.revoke` — support delegation revoked (asymmetric path)
 - `delegation.cancel` — pending revocation cancelled
 
+### 9.4 Developer super-administrator audit obligations
+
+Developer access under Rule 3b has two distinct audit obligations, at
+different volumes and different chokepoints:
+
+**9.4(a) — Mandatory RBAC mutations.** Every Developer action that
+configures the platform or the RBAC model writes a
+`core_rbac_audit_logs` row via `RbacAuditLogger`. This includes:
+delegation grant/revoke/cancel (`CasDelegationController`), context
+switch/reset (`CasContextController`), and tenant lifecycle mutations
+(`CasTenantController`). These are already implemented; this section
+documents the obligation so future controllers must extend it, not
+bypass it.
+
+**9.4(b) — Access-decision audit (deferred).** Reading tenant business
+data via Rule 3b should be audited once per request via a middleware
+that fires on GET when the acting user is a platform owner. This is
+deferred to a future batch (§14.5) and is not required for Rule 3b to
+be **correct** — it is required for Rule 3b to be **forensically
+complete**.
+
+**Per-check audit inside `AuthorizationService::allows()` is
+explicitly rejected.** A single page request triggers dozens of
+`allows()` calls. Per-check audit writes would degrade
+`core_rbac_audit_logs` from a forensic record to a noise log, and would
+serialise Developer page loads on INSERT. The correct pattern is
+per-request audit at the controller/middleware boundary, not per-check
+audit inside the authorization service.
+
 ---
 
 ## 10. Threat Model
@@ -274,8 +337,18 @@ assertions, 0 skips.
 This section states the invariants the four-axis model enforces. Every
 invariant is backed by a test — see `docs/RBAC-TESTING.md`.
 
-### 14.1 The four dimensions
-See §4.
+### 14.1 The five dimensions
+
+See §4 for the first four. Rule 3b adds a fifth:
+
+| Dimension | What it governs | Storage |
+|---|---|---|
+| **Developer super-administrator authority** | Tenant-domain access across all tenants | `platform_owners` |
+
+Developer authority is **not** a role, **not** a permission, and **not**
+a delegation. It is membership in `platform_owners`. It grants
+tenant-domain access under Rule 3b; it does not grant platform-domain
+permissions (§5.1, §9.4).
 
 ### 14.2 The precedence chain
 See §5.1.
@@ -317,3 +390,17 @@ security:
   manually today. A future signed CLI command or admin-only direct-DB
   operation would formalize it. Not a security gap; the enforcement
   works.
+- **`DeveloperReadAuditMiddleware`** — per-request audit of Developer
+  GET reads of tenant business data, per §9.4(b). Not required for
+  Rule 3b correctness; required for full forensic coverage.
+- **Protected Developer account operations** — preventing suspension,
+  deactivation, or role assignment changes to `platform_owners`
+  members through `AdminUserController::update()` (guard middleware at
+  `/recruit/admin/users/*`) and through any future user-admin path.
+  The database layer already protects the *deletion* path
+  (`platform_owners.user_id` has `ON DELETE RESTRICT`, migration 0067),
+  but the *update* path requires an application-layer guard.
+- **Last-Developer protection** — a CLI guard or DB constraint
+  preventing the removal of the last active `platform_owners` row,
+  which would render the environment unownable. Currently no
+  protection; requires careful schema or boot-time check.

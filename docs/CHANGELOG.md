@@ -21,6 +21,37 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+**Developer super-administrator authority (RBAC-ARCHITECTURE.md §5.1 Rule 3b, added 2026-11-13)**
+
+The platform owner — any user in `platform_owners` (migration 0067) —
+receives implicit tenant-domain authority across all modules and all
+tenants. This codifies the contractual role described in
+`CAS-PLATFORM-SURFACE.md` §3 but previously unimplemented in
+`AuthorizationService`.
+
+- **New Rule 3b** in the precedence chain: after the `cas.*`
+  short-circuit and before tenant context is required, a
+  `platform_owners` member is granted any permission whose registered
+  `scope = 'app'` (i.e. tenant-domain: `recruit.*`, `hr.*`, and future
+  modules).
+- **Platform-domain permissions** (`scope = 'global'`: `core.*`,
+  `cas.*`) are **not** affected. A Developer still requires explicit
+  `cas.*` permissions via `core_user_platform_roles`.
+- **No per-check audit write** inside `allows()`. Audit obligations
+  are documented in `RBAC-ARCHITECTURE.md` §9.4: RBAC mutations are
+  already audited via `RbacAuditLogger` at their chokepoints;
+  Developer GET reads of tenant data will be audited per-request via a
+  future middleware (§14.5).
+
+**Deferred items added to `RBAC-ARCHITECTURE.md` §14.5:** a
+`DeveloperReadAuditMiddleware` and application-layer protection of
+Developer accounts against modification through
+`AdminUserController::update()`.
+
+**Backwards compatibility:** no existing behaviour changes. Rule 3b
+only *adds* ALLOW decisions for users in `platform_owners`. No existing
+role, permission, or delegation is modified.
+
 **Tasks module (RA-1)**
 - `/recruit/tasks` — full task management replacing the coming-soon placeholder.
 - Tasks attach to an entity (candidate, vacancy, application, interview, offer) or stand alone.
