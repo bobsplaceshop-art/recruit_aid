@@ -40,6 +40,7 @@ use CorporateAid\Platform\Controllers\Cas\CasDashboardController;
 use CorporateAid\Platform\Controllers\Cas\CasDelegationController;
 use CorporateAid\Platform\Controllers\Cas\CasContextController;
 use CorporateAid\Platform\Controllers\Cas\CasTenantController;
+use CorporateAid\Platform\Controllers\CalendarController;
 
 /** @var Router $router */
 
@@ -62,7 +63,7 @@ $router->post('/recruit/tasks',                [TaskController::class, 'create']
 $router->post('/recruit/tasks/{id}/complete',  [TaskController::class, 'complete'],   ['app_access:recruit', 'auth', 'permission:recruit.tasks.edit', 'csrf']);
 $router->post('/recruit/tasks/{id}/reopen',    [TaskController::class, 'reopen'],     ['app_access:recruit', 'auth', 'permission:recruit.tasks.edit', 'csrf']);
 $router->post('/recruit/tasks/{id}/delete',    [TaskController::class, 'delete'],     ['app_access:recruit', 'auth', 'permission:recruit.tasks.delete', 'csrf']);
-$router->get('/recruit/calendar',     [ComingSoonController::class, 'calendar'],     ['app_access:recruit', 'auth']);
+$router->get('/recruit/calendar',     [CalendarController::class, 'moduleIndex'],   ['app_access:recruit', 'auth', 'permission:recruit.calendar.view']);
 $router->get('/recruit/documents',    [ComingSoonController::class, 'documents'],    ['app_access:recruit', 'auth']);
 $router->get('/recruit/admin/audit',  [ComingSoonController::class, 'audit'],        ['app_access:recruit', 'auth', 'permission:core.settings.manage']);
 
@@ -312,6 +313,7 @@ $router->get('/no-access', [HomeController::class, 'noAccess'], ['auth']);
 // reached from it. Delegation management requires cas.rbac.manage_global.
 
 $router->get('/cas/dashboard',  [CasDashboardController::class, 'index'],  ['auth', 'permission:cas.dashboard.access']);
+$router->get('/cas/calendar',   [CalendarController::class, 'platformIndex'], ['auth', 'permission:cas.calendar.view']);
 
 $router->get('/cas/delegations',         [CasDelegationController::class, 'index'],             ['auth', 'permission:cas.rbac.manage_global']);
 $router->get('/cas/delegations/grant',   [CasDelegationController::class, 'grantForm'],         ['auth', 'permission:cas.rbac.manage_global']);

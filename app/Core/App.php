@@ -59,6 +59,11 @@ use CorporateAid\Recruit\Services\InterviewService;
 use CorporateAid\Recruit\Services\OfferService;
 use CorporateAid\Recruit\Services\ReportService;
 use CorporateAid\Recruit\Services\TaskService;
+use CorporateAid\Platform\Calendar\CalendarService;
+use CorporateAid\Recruit\Calendar\InterviewCalendarSource;
+use CorporateAid\Recruit\Calendar\TaskCalendarSource;
+use CorporateAid\Recruit\Calendar\OfferCalendarSource;
+use CorporateAid\Recruit\Calendar\VacancyCalendarSource;
 use CorporateAid\Platform\Services\SystemSettingService;
 use CorporateAid\Platform\Export\CsvExporter;
 use CorporateAid\Platform\Services\FileService;
@@ -269,6 +274,12 @@ final class App
         $c->singleton(VacancyRepository::class,           fn() => new VacancyRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
         $c->singleton(CandidateRepository::class,         fn() => new CandidateRepository($c->get(Database::class), $c->get(TenantContext::class), $c->get(CodeGenerator::class)));
         $c->singleton(TaskRepository::class,              fn() => new TaskRepository($c->get(Database::class), $c->get(TenantContext::class)));
+
+        // ---------- Calendar sources (per-module) ----------
+        $c->singleton(InterviewCalendarSource::class, fn() => new InterviewCalendarSource($c->get(Database::class)));
+        $c->singleton(TaskCalendarSource::class,      fn() => new TaskCalendarSource($c->get(Database::class)));
+        $c->singleton(OfferCalendarSource::class,     fn() => new OfferCalendarSource($c->get(Database::class)));
+        $c->singleton(VacancyCalendarSource::class,   fn() => new VacancyCalendarSource($c->get(Database::class)));
         $c->singleton(VacancyStageRepository::class,      fn() => new VacancyStageRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyRecruiterRepository::class,   fn() => new VacancyRecruiterRepository($c->get(Database::class), $c->get(TenantContext::class)));
         $c->singleton(VacancyHiringManagerRepository::class, fn() => new VacancyHiringManagerRepository($c->get(Database::class), $c->get(TenantContext::class)));
@@ -292,6 +303,15 @@ final class App
         $c->singleton(
             PlatformOwnerService::class,
             fn() => new PlatformOwnerService($c->get(Database::class))
+        );
+
+        // ---------- Calendar aggregation ----------
+        $c->singleton(
+            CalendarService::class,
+            fn() => new CalendarService(
+                $c->get(Auth::class),
+                $c->get(Database::class)
+            )
         );
 
         // ---------- Support ----------

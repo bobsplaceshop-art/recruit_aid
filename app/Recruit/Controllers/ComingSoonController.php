@@ -46,12 +46,6 @@ final class ComingSoonController
     }
 
     /** @param array<string, string> $params */
-    public function calendar(Request $r, array $params = []): Response
-    {
-        return $this->render('Calendar', 'A unified calendar for interviews, deadlines, and check-ins across every engagement and vacancy.');
-    }
-
-    /** @param array<string, string> $params */
     public function activity(Request $r, array $params = []): Response
     {
         return $this->render('Activity', 'An immutable timeline of every action your team takes across the platform.');

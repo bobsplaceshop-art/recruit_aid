@@ -7,6 +7,11 @@ use CorporateAid\Core\Container;
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Platform\Modules\Contracts\ModuleContract;
+use CorporateAid\Platform\Calendar\CalendarRegistry;
+use CorporateAid\Recruit\Calendar\InterviewCalendarSource;
+use CorporateAid\Recruit\Calendar\TaskCalendarSource;
+use CorporateAid\Recruit\Calendar\OfferCalendarSource;
+use CorporateAid\Recruit\Calendar\VacancyCalendarSource;
 
 final class Module implements ModuleContract
 {
@@ -77,5 +82,15 @@ final class Module implements ModuleContract
         ];
     }
     
-    public function register(Container $c): void {}
+    public function register(Container $c): void
+    {
+        // Register the module's calendar event sources with the platform
+        // CalendarRegistry. Each source is queried by CalendarService
+        // when /recruit/calendar or /cas/calendar renders, filtered by
+        // the user's permission for that source.
+        CalendarRegistry::register($c->get(InterviewCalendarSource::class));
+        CalendarRegistry::register($c->get(TaskCalendarSource::class));
+        CalendarRegistry::register($c->get(OfferCalendarSource::class));
+        CalendarRegistry::register($c->get(VacancyCalendarSource::class));
+    }
 }

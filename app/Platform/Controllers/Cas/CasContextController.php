@@ -172,7 +172,7 @@ final class CasContextController
         $audit = $this->container->get(RbacAuditLogger::class);
 
         $previousEffective = $tenant->id();
-        $tenant->setEffective($tenant->homeId());
+        $tenant->clearEffective();
 
         $audit->log(
             tenantId: $tenant->homeId(),

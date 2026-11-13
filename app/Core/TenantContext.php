@@ -57,11 +57,44 @@ final class TenantContext
     }
 
     /**
-     * Set the home tenant (called by Auth::login).
+     * Remove the temporary effective-tenant override and return to the
+     * home tenant. Idempotent: calling when no override is set is a no-op.
+     *
+     * This method MUST NOT modify SESSION_HOME_KEY. The home tenant is the
+     * authenticated identity; only Auth::login() / Auth::logout() and
+     * TenantContext::set() / clear() may write or forget it.
+     */
+    public function clearEffective(): void
+    {
+        $this->session->forget(self::SESSION_EFFECTIVE_KEY);
+    }
+
+    /**
+     * Set the active tenant identity (home) and clear any effective override.
+     *
+     * This is the "activate this tenant fully" operation. It is called when
+     * the session's identity changes — e.g. after login, or when a test
+     * switches tenant to exercise a scoped code path. It is NEVER called by
+     * the /cas/* context-switch flow, which uses setEffective() to change
+     * scope while leaving home identity untouched.
+     *
+     * Auth::login() currently writes the home key directly and performs the
+     * same explicit effective-override forget; the two paths are consistent.
      */
     public function set(int $tenantId): void
     {
+        if ($tenantId <= 0) {
+            throw new \InvalidArgumentException(
+                'Tenant ID must be positive; got ' . $tenantId . '.'
+            );
+        }
+
         $this->session->set(self::SESSION_HOME_KEY, $tenantId);
+        // id() prefers the effective tenant, so a stale override would
+        // silently shadow the newly-set home. Clearing it here makes the
+        // post-condition id() === $tenantId true unless setEffective() is
+        // called afterwards.
+        $this->session->forget(self::SESSION_EFFECTIVE_KEY);
     }
 
     public function clear(): void
