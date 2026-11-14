@@ -3,7 +3,7 @@
     "description": "Recruit Aid — Recruitment Operations & Applicant Tracking System",
     "type": "project",
     "license": "proprietary",
-    "version": "0.6.0-alpha",
+    "version": "0.9.0-alpha",
     "require": {
         "php": ">=8.2",
         "ext-pdo": "*",

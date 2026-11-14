@@ -92,7 +92,7 @@ use Throwable;
 
 final class App
 {
-    public const VERSION = '0.6.0-alpha';
+    public const VERSION = '0.9.0-alpha';
 
     private static ?self $instance = null;
     private string $basePath;
