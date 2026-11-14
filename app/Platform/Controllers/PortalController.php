@@ -65,7 +65,7 @@ final class PortalController
         }
 
         $user = $auth->user();
-        $tenantId = $user?->tenantId ?? 1;
+        $tenantId = $user->tenantId ?? 1;
 
         $metrics   = [];
         $canAccess = [];

@@ -88,7 +88,15 @@ final class CodeGenerator
             );
         }
 
-        $nextValue = (int) $pdo->query('SELECT LAST_INSERT_ID()')->fetchColumn();
+        $result = $pdo->query('SELECT LAST_INSERT_ID()');
+
+        if ($result === false) {
+            throw new RuntimeException(
+                sprintf('Could not retrieve the allocated value for sequence counter "%s".', $tenantCounter)
+            );
+        }
+
+        $nextValue = (int) $result->fetchColumn();
 
         if ($nextValue < 1) {
             throw new RuntimeException(

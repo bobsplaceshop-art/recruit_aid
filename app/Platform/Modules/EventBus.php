@@ -74,11 +74,13 @@ final class EventBus
             $rawPayload = Row::nullableStr($row, 'payload') ?? '{}';
 
             try {
-                $payload = json_decode($rawPayload, true, 512, JSON_THROW_ON_ERROR);
+                $decoded = json_decode($rawPayload, false, 512, JSON_THROW_ON_ERROR);
 
-                if (!is_array($payload)) {
+                if (!$decoded instanceof \stdClass) {
                     throw new RuntimeException("Invalid payload for event {$id}.");
                 }
+
+                $payload = get_object_vars($decoded);
 
                 $this->executeListeners($type, $payload);
 

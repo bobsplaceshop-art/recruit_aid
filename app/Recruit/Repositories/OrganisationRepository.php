@@ -206,9 +206,7 @@ final class OrganisationRepository implements \CorporateAid\Platform\LiveSearch\
     /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
-        $createdBy = isset($data['created_by'])
-            ? (int) $data['created_by']
-            : null;
+        $createdBy = Row::nullableInt($data, 'created_by');
 
         $this->assertTenantUser($createdBy, 'creator');
 

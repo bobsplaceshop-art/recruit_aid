@@ -77,13 +77,13 @@ final class TenantRepository
     }
 
     /**
-     * @param array{code:string, name:string, primary_color?:string, secondary_color?:string, login_message?:?string} $data
+     * @param array{code:string, name:string, primary_color?:?string, secondary_color?:?string, login_message?:?string} $data
      * @return int The new tenant ID.
      */
     public function create(array $data): int
     {
-        $code = trim($data['code'] ?? '');
-        $name = trim($data['name'] ?? '');
+        $code = trim($data['code']);
+        $name = trim($data['name']);
 
         if ($code === '' || $name === '') {
             throw new InvalidArgumentException('Tenant code and name are required.');

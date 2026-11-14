@@ -105,10 +105,12 @@ final class CasDelegationController
             return Response::redirect('/login');
         }
 
-        $targetTenantId = (int) $request->input('tenant_id', 0);
-        $targetUserId   = (int) $request->input('user_id', 0);
-        $moduleKey      = (string) $request->input('module_key', 'recruit');
-        $reason         = (string) $request->input('reason', '');
+        $targetTenantId = $request->inputInt('tenant_id', 0);
+        $targetUserId   = $request->inputInt('user_id', 0);
+        $moduleKey      = $request->inputString('module_key', 'recruit');
+        $reason         = $request->inputString('reason');
+        $scope          = $request->inputString('scope', 'read_only');
+        $expiresAt      = $request->inputString('expires_at');
 
         try {
             $delegationId = $delegations->grant([
@@ -117,9 +119,9 @@ final class CasDelegationController
                 'module_key'         => $moduleKey,
                 'granted_by_user_id' => $user->id,
                 'granted_by_type'    => $user->tenantId === 1 ? 'cas_developer' : 'tenant_admin',
-                'scope'              => (string) $request->input('scope', 'read_only'),
+                'scope'              => $scope,
                 'reason'             => $reason,
-                'expires_at'         => (string) $request->input('expires_at', ''),
+                'expires_at'         => $expiresAt,
                 'denied_permissions' => $this->parseList($request->input('denied_permissions', '')),
             ]);
 
@@ -132,7 +134,7 @@ final class CasDelegationController
                 moduleKey: $moduleKey,
                 after: [
                     'target_user_id' => $targetUserId,
-                    'scope'          => (string) $request->input('scope', 'read_only'),
+                    'scope'          => $scope,
                     'reason'         => $reason,
                 ]
             );

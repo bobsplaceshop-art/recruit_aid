@@ -345,7 +345,7 @@ final class VacancyService
                 $description,
                 'vacancy',
                 $vacancyId,
-                $metadata
+                $metadata ?? []
             );
         } catch (\Throwable) {
             // The vacancy transaction has already committed.

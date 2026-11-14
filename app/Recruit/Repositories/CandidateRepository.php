@@ -43,6 +43,31 @@ final class CandidateRepository implements \CorporateAid\Platform\LiveSearch\Liv
         }
     }
 
+    private function optionalUserId(mixed $value, string $field): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_int($value)) {
+            $userId = $value;
+        } elseif (is_string($value) && ctype_digit($value)) {
+            $userId = (int) $value;
+        } else {
+            throw new \InvalidArgumentException(
+                $field . ' must be a positive integer.'
+            );
+        }
+
+        if ($userId < 1) {
+            throw new \InvalidArgumentException(
+                $field . ' must be a positive integer.'
+            );
+        }
+
+        return $userId;
+    }
+
     private function assertTenantUser(?int $userId, string $field): void
     {
         if ($userId === null) {
@@ -193,15 +218,14 @@ final class CandidateRepository implements \CorporateAid\Platform\LiveSearch\Liv
     /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
-        $this->assertTenantUser(
-            isset($data['recruiter_id']) ? (int) $data['recruiter_id'] : null,
+        $recruiterId = $this->optionalUserId(
+            $data['recruiter_id'] ?? null,
             'Recruiter'
         );
+        $createdBy = Row::nullableInt($data, 'created_by');
 
-        $this->assertTenantUser(
-            isset($data['created_by']) ? (int) $data['created_by'] : null,
-            'Creator'
-        );
+        $this->assertTenantUser($recruiterId, 'Recruiter');
+        $this->assertTenantUser($createdBy, 'Creator');
 
         $sql = "INSERT INTO `recruit_candidates`
             (`tenant_id`, `code`, `person_id`, `first_name`, `last_name`, `email`, `phone`, `country_code`, `city`,
@@ -232,8 +256,8 @@ final class CandidateRepository implements \CorporateAid\Platform\LiveSearch\Liv
             $data['internal_notes'] ?? null,
             $data['status'] ?? 'active',
             $data['source'] ?? null,
-            $data['recruiter_id'] ?? null,
-            $data['created_by'] ?? null,
+            $recruiterId,
+            $createdBy,
         ]));
     }
 
@@ -250,12 +274,13 @@ final class CandidateRepository implements \CorporateAid\Platform\LiveSearch\Liv
         }
 
         if (array_key_exists('recruiter_id', $data)) {
-            $this->assertTenantUser(
-                $data['recruiter_id'] !== null && $data['recruiter_id'] !== ''
-                    ? (int) $data['recruiter_id']
-                    : null,
+            $recruiterId = $this->optionalUserId(
+                $data['recruiter_id'],
                 'Recruiter'
             );
+
+            $this->assertTenantUser($recruiterId, 'Recruiter');
+            $data['recruiter_id'] = $recruiterId;
         }
 
         $allowed = [

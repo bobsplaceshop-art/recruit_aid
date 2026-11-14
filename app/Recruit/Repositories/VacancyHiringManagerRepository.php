@@ -130,15 +130,12 @@ final class VacancyHiringManagerRepository
 
         $clean = [];
 
-        foreach ($contactIds as $value) {
-            if (
-                !(is_int($value) || (is_string($value) && ctype_digit($value)))
-                || (int) $value <= 0
-            ) {
+        foreach ($contactIds as $contactId) {
+            if ($contactId <= 0) {
                 throw new \InvalidArgumentException('Invalid hiring-manager contact ID supplied.');
             }
 
-            $clean[] = (int) $value;
+            $clean[] = $contactId;
         }
 
         $clean = array_values(array_unique($clean));

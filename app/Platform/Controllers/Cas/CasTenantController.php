@@ -39,7 +39,7 @@ final class CasTenantController
         /** @var Auth $auth */
         $auth = $this->container->get(Auth::class);
 
-        $status = (string) $request->query('status', '');
+        $status = $request->queryStringValue('status');
         $validStatus = in_array($status, ['active', 'suspended', 'archived'], true) ? $status : null;
         $rows = $tenants->findAll($validStatus);
         $counts = $tenants->countByStatus();
@@ -98,8 +98,8 @@ final class CasTenantController
 
         try {
             $newId = $tenants->create([
-                'code'            => (string) $request->input('code', ''),
-                'name'            => (string) $request->input('name', ''),
+                'code'            => $request->inputString('code'),
+                'name'            => $request->inputString('name'),
                 'primary_color'   => $this->nullableString($request->input('primary_color')),
                 'secondary_color' => $this->nullableString($request->input('secondary_color')),
                 'login_message'   => $this->nullableString($request->input('login_message')),
@@ -111,7 +111,7 @@ final class CasTenantController
                 actorId: $user->id,
                 targetType: 'tenant',
                 targetId: $newId,
-                after: ['code' => (string) $request->input('code', ''), 'name' => (string) $request->input('name', '')]
+                after: ['code' => $request->inputString('code'), 'name' => $request->inputString('name')]
             );
 
             $session->flash('success', 'Tenant created.');
@@ -119,11 +119,11 @@ final class CasTenantController
         } catch (InvalidArgumentException $e) {
             $session->flash('error', $e->getMessage());
             $session->set('old', [
-                'code'            => (string) $request->input('code', ''),
-                'name'            => (string) $request->input('name', ''),
-                'primary_color'   => (string) $request->input('primary_color', ''),
-                'secondary_color' => (string) $request->input('secondary_color', ''),
-                'login_message'   => (string) $request->input('login_message', ''),
+                'code'            => $request->inputString('code'),
+                'name'            => $request->inputString('name'),
+                'primary_color'   => $request->inputString('primary_color'),
+                'secondary_color' => $request->inputString('secondary_color'),
+                'login_message'   => $request->inputString('login_message'),
             ]);
             return Response::redirect('/cas/tenants/create');
         }
@@ -211,7 +211,7 @@ final class CasTenantController
 
         try {
             $tenants->update($tenantId, [
-                'name'            => (string) $request->input('name', ''),
+                'name'            => $request->inputString('name'),
                 'primary_color'   => $this->nullableString($request->input('primary_color')),
                 'secondary_color' => $this->nullableString($request->input('secondary_color')),
                 'login_message'   => $this->nullableString($request->input('login_message')),
@@ -224,7 +224,7 @@ final class CasTenantController
                 targetType: 'tenant',
                 targetId: $tenantId,
                 before: ['name' => Row::str($existing, 'name')],
-                after: ['name' => (string) $request->input('name', '')]
+                after: ['name' => $request->inputString('name')]
             );
 
             $session->flash('success', 'Tenant updated.');

@@ -193,7 +193,17 @@ final class TaskController
         return Response::redirect('/recruit/tasks');
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array{
+     *     title:string,
+     *     description:string,
+     *     priority:string,
+     *     due_at:string,
+     *     assigned_to:int,
+     *     entity_type:string,
+     *     entity_id:int
+     * }
+     */
     private function collectInput(Request $request): array
     {
         return [

@@ -228,19 +228,15 @@ final class ScorecardRepository
         $normalisedAttributes = [];
 
         foreach ($attributes as $attr) {
-            $name = trim((string) ($attr['competency_name'] ?? ''));
+            $name = trim($attr['competency_name']);
 
             if ($name === '') {
                 continue;
             }
 
-            $rawScore = $attr['score'] ?? null;
+            $rawScore = $attr['score'];
 
-            if (
-                (!is_int($rawScore) && !(is_string($rawScore) && ctype_digit($rawScore)))
-                || (int) $rawScore < 1
-                || (int) $rawScore > 5
-            ) {
+            if ($rawScore < 1 || $rawScore > 5) {
                 throw new \InvalidArgumentException(
                     'Competency scores must be between 1 and 5.'
                 );

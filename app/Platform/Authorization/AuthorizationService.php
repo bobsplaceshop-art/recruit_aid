@@ -82,6 +82,9 @@ final class AuthorizationService
         $this->moduleRegisteredCache = [];
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     public static function check(User $user, string $permission, array $context = []): bool
     {
         return self::instance()->allows($user, $permission, $context);
@@ -139,9 +142,15 @@ final class AuthorizationService
             return false;
         }
 
+        $applicationKey = $resolution->applicationKey;
+
         // Rule 4b: owning application disabled -> DENY
         if ($resolution->isResolved()) {
-            if (!$this->isModuleEnabled($resolution->applicationKey)) {
+            if ($applicationKey === null || $applicationKey === '') {
+                return false;
+            }
+
+            if (!$this->isModuleEnabled($applicationKey)) {
                 return false;
             }
         }
@@ -156,7 +165,7 @@ final class AuthorizationService
         // permissions. Applies universally — identity or delegation.
         // A delegated cas_admin must still have the module assigned.
         if ($resolution->isResolved()) {
-            if (!$this->isAppAssigned($user->id, $resolution->applicationKey)) {
+            if (!$this->isAppAssigned($user->id, $applicationKey)) {
                 return false;
             }
         }
@@ -181,7 +190,7 @@ final class AuthorizationService
             $delegation = $this->supportDelegations->activeFor(
                 $user->id,
                 $tenantId,
-                $resolution->applicationKey
+                $applicationKey
             );
             if ($delegation === null) {
                 return false;
@@ -448,8 +457,8 @@ final class AuthorizationService
         foreach ($rows as $r) {
             $out[] = [
                 'module_key' => Row::str($r, 'module_key'),
-                'allowed'    => (array) json_decode(Row::str($r, 'allowed_permissions_json', '[]'), true),
-                'denied'     => (array) json_decode(Row::nullableStr($r, 'denied_permissions_json') ?? '[]', true),
+                'allowed'    => $this->decodeStringList(Row::str($r, 'allowed_permissions_json', '[]')),
+                'denied'     => $this->decodeStringList(Row::nullableStr($r, 'denied_permissions_json') ?? '[]'),
                 'expires_at' => Row::nullableStr($r, 'expires_at'),
             ];
         }
@@ -457,4 +466,31 @@ final class AuthorizationService
         $this->delegationsCache[$cacheKey] = $out;
         return $out;
     }
+
+    /**
+     * Decode a JSON array, retaining only string values.
+     *
+     * @return list<string>
+     */
+    private function decodeStringList(string $json): array
+    {
+        if ($json === '') {
+            return [];
+        }
+
+        $decoded = json_decode($json, true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        $values = [];
+        foreach ($decoded as $value) {
+            if (is_string($value)) {
+                $values[] = $value;
+            }
+        }
+
+        return $values;
+    }
+
 }

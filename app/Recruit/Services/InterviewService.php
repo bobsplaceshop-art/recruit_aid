@@ -347,12 +347,9 @@ final class InterviewService
         }
 
         foreach ($attributes as $attr) {
-            $rawScore = $attr['score'] ?? null;
+            $score = $attr['score'];
 
-            $validScore = is_int($rawScore)
-                || (is_string($rawScore) && preg_match('/^[1-5]$/D', $rawScore) === 1);
-
-            if (!$validScore || (int) $rawScore < 1 || (int) $rawScore > 5) {
+            if ($score < 1 || $score > 5) {
                 return [
                     'success' => false,
                     'errors' => ['Competency scores must be between 1 and 5.'],

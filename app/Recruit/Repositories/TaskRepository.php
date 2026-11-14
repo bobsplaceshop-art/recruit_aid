@@ -168,7 +168,7 @@ final class TaskRepository
                 $this->tenant->id(),
                 $data['title'],
                 $data['description'] ?? null,
-                $data['priority'] ?? 'normal',
+                $data['priority'],
                 $data['due_at'] ?? null,
                 $data['assigned_to'] ?? null,
                 $data['entity_type'] ?? null,

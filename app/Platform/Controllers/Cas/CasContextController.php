@@ -40,11 +40,12 @@ final class CasContextController
         /** @var SystemSettingService $settings */
         $settings = $this->container->get(SystemSettingService::class);
 
-        if ($auth->user() === null) {
+        $user = $auth->user();
+        if ($user === null) {
             return Response::redirect('/login');
         }
 
-        $tenantId = (int) $request->input('tenant_id', 0);
+        $tenantId = $request->inputInt('tenant_id', 0);
         if ($tenantId <= 0) {
             $session->flash('error', 'Invalid tenant.');
             return Response::redirect('/cas/dashboard');
@@ -66,7 +67,7 @@ final class CasContextController
         $audit->log(
             tenantId: $tenantId,
             action: 'context.switch',
-            actorId: $auth->user()?->id,
+            actorId: $user->id,
             before: ['effective_tenant' => $previousEffective],
             after: ['effective_tenant' => $tenantId]
         );
@@ -88,7 +89,7 @@ final class CasContextController
             return Response::redirect('/login');
         }
 
-        $tenantId = (int) $request->query('tenant_id', 0);
+        $tenantId = $request->queryInt('tenant_id', 0);
         if ($tenantId <= 0) {
             return Response::redirect('/cas/dashboard');
         }
@@ -117,7 +118,7 @@ final class CasContextController
             return Response::redirect('/login');
         }
 
-        $tenantId = (int) $request->input('tenant_id', 0);
+        $tenantId = $request->inputInt('tenant_id', 0);
         $password = $request->inputString('password', '');
 
         if ($tenantId <= 0) {

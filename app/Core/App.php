@@ -465,8 +465,7 @@ final class App
             $c->get(TaskRepository::class),
             $c->get(ActivityLogger::class),
             $c->get(Database::class),
-            $c->get(TenantContext::class),
-            $c->get(Auth::class)
+            $c->get(TenantContext::class)
         ));
 
         $c->singleton(ReportService::class, fn() => new ReportService(

@@ -79,14 +79,14 @@ final class SupportDelegationService
      */
     public function grant(array $args): int
     {
-        $userId       = (int)  ($args['user_id'] ?? 0);
-        $tenantId     = (int)  ($args['tenant_id'] ?? 0);
-        $moduleKey    = (string) ($args['module_key'] ?? '');
-        $grantedBy    = (int)  ($args['granted_by_user_id'] ?? 0);
-        $grantorType  = (string) ($args['granted_by_type'] ?? '');
-        $scope        = (string) ($args['scope'] ?? '');
-        $reason       = isset($args['reason']) ? (string) $args['reason'] : null;
-        $expiresAt    = (string) ($args['expires_at'] ?? '');
+        $userId       = $args['user_id'];
+        $tenantId     = $args['tenant_id'];
+        $moduleKey    = $args['module_key'];
+        $grantedBy    = $args['granted_by_user_id'];
+        $grantorType  = $args['granted_by_type'];
+        $scope        = $args['scope'];
+        $reason       = $args['reason'];
+        $expiresAt    = $args['expires_at'];
         $denied       = $args['denied_permissions'] ?? [];
         $allowedExtra = $args['allowed_extra_permissions'] ?? [];
 
@@ -138,10 +138,10 @@ final class SupportDelegationService
                 $grantedBy,
                 $grantorType,
                 $scope,
-                json_encode(array_values($allowList), JSON_THROW_ON_ERROR),
+                json_encode($allowList, JSON_THROW_ON_ERROR),
                 $deniedClean === []
                     ? null
-                    : json_encode(array_values($deniedClean), JSON_THROW_ON_ERROR),
+                    : json_encode($deniedClean, JSON_THROW_ON_ERROR),
                 $reason,
                 $expiresAt,
             ])
@@ -523,7 +523,18 @@ final class SupportDelegationService
             return [];
         }
         $decoded = json_decode($json, true);
-        return is_array($decoded) ? array_values($decoded) : [];
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        $values = [];
+        foreach ($decoded as $value) {
+            if (is_string($value)) {
+                $values[] = $value;
+            }
+        }
+
+        return $values;
     }
 
     private function suffixOf(string $slug): string

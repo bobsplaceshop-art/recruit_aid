@@ -6,6 +6,7 @@ namespace CorporateAid\Platform\Calendar;
 use CorporateAid\Core\Auth;
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
+use CorporateAid\Core\Row;
 
 /**
  * Aggregates calendar events from all registered sources for a given
@@ -199,8 +200,8 @@ final class CalendarService
         );
 
         return array_map(static fn (array $r): array => [
-            'tenant_id'   => (int) ($r['tenant_id'] ?? 0),
-            'tenant_name' => (string) ($r['tenant_name'] ?? ''),
+            'tenant_id'   => Row::int($r, 'tenant_id'),
+            'tenant_name' => Row::str($r, 'tenant_name'),
         ], $rows);
     }
 }

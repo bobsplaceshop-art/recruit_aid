@@ -129,16 +129,7 @@ final class VacancyRecruiterRepository
 
         $normalizedIds = [];
 
-        foreach ($userIds as $value) {
-            if (
-					!(is_int($value) || (is_string($value) && ctype_digit($value)))
-					|| (int) $value <= 0
-				) {
-					throw new \InvalidArgumentException('Invalid recruiter ID supplied.');
-				}
-
-				$userId = (int) $value;
-
+        foreach ($userIds as $userId) {
             if ($userId <= 0) {
                 throw new \InvalidArgumentException('Recruiter IDs must be positive integers.');
             }

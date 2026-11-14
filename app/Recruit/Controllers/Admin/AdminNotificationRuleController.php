@@ -106,6 +106,12 @@ final class AdminNotificationRuleController
             return Response::redirect('/admin/settings/notifications');
         }
 
+        $user = $auth->user();
+
+        if ($user === null) {
+            return Response::redirect('/login');
+        }
+
         try {
             $db->execute(
                 "INSERT INTO `core_notification_rules`
@@ -114,7 +120,7 @@ final class AdminNotificationRuleController
                  VALUES (?, ?, ?, ?, ?, 0, 1, ?)",
                 PDOParams::positional([
                     $event, $type, $value !== '' ? $value : null,
-                    $inapp ? 1 : 0, $email ? 1 : 0, $auth->user()->id,
+                    $inapp ? 1 : 0, $email ? 1 : 0, $user->id,
                 ])
             );
             $session->flash('success', 'Notification rule added.');

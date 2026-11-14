@@ -33,7 +33,7 @@ final class PermissionRegistry
     public function register(string $moduleKey, array $definitions): void
     {
         foreach ($definitions as $def) {
-            $slug = $def['slug'] ?? '';
+            $slug = $def['slug'];
             if ($slug === '') {
                 throw new RuntimeException("Permission definition missing 'slug' for module '{$moduleKey}'.");
             }
@@ -51,9 +51,9 @@ final class PermissionRegistry
                 PDOParams::positional([
                     $moduleKey,
                     $slug,
-                    (string) ($def['name'] ?? $slug),
-                    (string) ($def['description'] ?? ''),
-                    (string) ($def['sensitivity'] ?? 'public'),
+                    $def['name'],
+                    $def['description'],
+                    $def['sensitivity'],
                 ])
             );
         }
@@ -104,7 +104,7 @@ final class PermissionRegistry
     private function assertNamespaceOwnership(string $moduleKey, string $slug): void
     {
         $parts = explode('.', $slug, 2);
-        $namespace = $parts[0] ?? '';
+        $namespace = $parts[0];
 
         if (in_array($namespace, self::PROTECTED_NAMESPACES, true)) {
             throw new RuntimeException(

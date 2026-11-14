@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace CorporateAid\Recruit\Services;
 
-use CorporateAid\Core\Auth;
 use CorporateAid\Core\Database;
 use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
@@ -43,8 +42,7 @@ final class TaskService
         private TaskRepository $tasks,
         private ActivityLogger $activity,
         private Database $db,
-        private TenantContext $tenant,
-        private ?Auth $auth = null
+        private TenantContext $tenant
     ) {}
 
     /**
@@ -59,7 +57,7 @@ final class TaskService
         }
 
         // Polymorphic entity check.
-        $entityType = trim((string) ($input['entity_type'] ?? ''));
+        $entityType = trim($input['entity_type'] ?? '');
         $entityId   = (int) ($input['entity_id'] ?? 0);
         if ($entityType !== '' && $entityId > 0) {
             $this->assertEntityExists($entityType, $entityId);
@@ -76,8 +74,10 @@ final class TaskService
             $assignedTo = null;
         }
 
+        $title = trim($input['title'] ?? '');
+
         $id = $this->tasks->create([
-            'title'       => trim((string) $input['title']),
+            'title'       => $title,
             'description' => $this->nullableString($input['description'] ?? null),
             'priority'    => (string) ($input['priority'] ?? 'normal'),
             'due_at'      => $this->nullableString($input['due_at'] ?? null),
@@ -90,7 +90,7 @@ final class TaskService
         $this->activity->log(
             'task.created',
             'tasks',
-            'Task created: ' . trim((string) $input['title']),
+            'Task created: ' . $title,
             'task',
             $id
         );
@@ -119,13 +119,21 @@ final class TaskService
             $this->assertAssigneeValid($assignedTo);
         }
 
-        $this->tasks->update($id, [
-            'title'       => isset($input['title']) ? trim((string) $input['title']) : null,
+        $updateData = [
             'description' => array_key_exists('description', $input) ? $this->nullableString($input['description']) : null,
-            'priority'    => isset($input['priority']) ? (string) $input['priority'] : null,
             'due_at'      => array_key_exists('due_at', $input) ? $this->nullableString($input['due_at']) : null,
             'assigned_to' => $assignedTo,
-        ]);
+        ];
+
+        if (isset($input['title'])) {
+            $updateData['title'] = trim($input['title']);
+        }
+
+        if (isset($input['priority'])) {
+            $updateData['priority'] = $input['priority'];
+        }
+
+        $this->tasks->update($id, $updateData);
 
         return ['errors' => []];
     }
@@ -167,7 +175,15 @@ final class TaskService
     }
 
     /**
-     * @param array<string, mixed> $input
+     * @param array{
+     *     title?:string,
+     *     description?:string,
+     *     priority?:string,
+     *     due_at?:string,
+     *     assigned_to?:int,
+     *     entity_type?:string,
+     *     entity_id?:int
+     * } $input
      * @return string[]
      */
     private function validate(array $input, string $mode): array
@@ -175,35 +191,35 @@ final class TaskService
         $errors = [];
 
         if ($mode === 'create') {
-            $title = trim((string) ($input['title'] ?? ''));
+            $title = trim($input['title'] ?? '');
             if ($title === '') {
                 $errors[] = 'Title is required.';
             } elseif (strlen($title) > 255) {
                 $errors[] = 'Title must be 255 characters or fewer.';
             }
         } elseif ($mode === 'update' && isset($input['title'])) {
-            $title = trim((string) $input['title']);
+            $title = trim($input['title']);
             if ($title === '') {
                 $errors[] = 'Title cannot be empty.';
             }
         }
 
-        $priority = (string) ($input['priority'] ?? 'normal');
+        $priority = $input['priority'] ?? 'normal';
         if (!in_array($priority, ['low', 'normal', 'high'], true)) {
             $errors[] = 'Priority must be low, normal, or high.';
         }
 
-        $dueAt = trim((string) ($input['due_at'] ?? ''));
+        $dueAt = trim($input['due_at'] ?? '');
         if ($dueAt !== '' && strtotime($dueAt) === false) {
             $errors[] = 'Due date must be a valid date/time.';
         }
 
-        $entityType = trim((string) ($input['entity_type'] ?? ''));
+        $entityType = trim($input['entity_type'] ?? '');
         if ($entityType !== '' && !in_array($entityType, self::VALID_ENTITY_TYPES, true)) {
             $errors[] = 'Entity type must be one of: ' . implode(', ', self::VALID_ENTITY_TYPES) . '.';
         }
 
-        if ($entityType !== '' && (int) ($input['entity_id'] ?? 0) <= 0) {
+        if ($entityType !== '' && ($input['entity_id'] ?? 0) <= 0) {
             $errors[] = 'Entity ID is required when an entity type is selected.';
         }
 

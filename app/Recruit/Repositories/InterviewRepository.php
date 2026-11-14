@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CorporateAid\Recruit\Repositories;
 
 use CorporateAid\Core\Database;
+use CorporateAid\Core\Row;
 use CorporateAid\Core\TenantContext;
 use CorporateAid\Platform\Support\CodeGenerator;
 use CorporateAid\Core\PDOParams;
@@ -199,10 +200,8 @@ final class InterviewRepository
     public function create(array $data): int
     {
         $tenantId = $this->tenantId();
-        $applicationId = (int) ($data['application_id'] ?? 0);
-        $createdBy = isset($data['created_by']) && $data['created_by'] !== null
-            ? (int) $data['created_by']
-            : null;
+        $applicationId = Row::int($data, 'application_id');
+        $createdBy = Row::nullableInt($data, 'created_by');
 
         if ($applicationId < 1) {
             throw new \InvalidArgumentException('A valid application ID is required.');
@@ -222,8 +221,8 @@ final class InterviewRepository
             $this->assertTenantUser($createdBy, 'creator');
         }
 
-        $code = trim((string) ($data['code'] ?? ''));
-        $scheduledAt = trim((string) ($data['scheduled_at'] ?? ''));
+        $code = trim(Row::str($data, 'code'));
+        $scheduledAt = trim(Row::str($data, 'scheduled_at'));
 
         if ($code === '' || $scheduledAt === '') {
             throw new \InvalidArgumentException('Interview code and scheduled date are required.');
@@ -309,11 +308,6 @@ final class InterviewRepository
 
         $normalisedIds = [];
         foreach ($userIds as $userId) {
-            if (!is_int($userId) && !(is_string($userId) && ctype_digit($userId))) {
-                throw new \InvalidArgumentException('Participant IDs must be positive integers.');
-            }
-
-            $userId = (int) $userId;
             if ($userId < 1) {
                 throw new \InvalidArgumentException('Participant IDs must be positive integers.');
             }
