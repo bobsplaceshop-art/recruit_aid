@@ -9,6 +9,7 @@ use CorporateAid\Core\Row;
 use CorporateAid\Core\TenantContext;
 use CorporateAid\Platform\Models\User;
 use CorporateAid\Platform\Support\Hasher;
+use RuntimeException;
 
 /**
  * All reads/writes against the `core_users` table.
