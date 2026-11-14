@@ -1,10 +1,12 @@
-# REMEMBER v6 — Recruit Aid Project State
+# REMEMBER — Recruit Aid Project State
 
 **Paste this into a new chat to resume work.**
 
-**Last updated:** 2026-10-27
-**Version:** 0.6.0-alpha
-**Status:** Tier 1 closed. Naming convention cycle complete. Ready for Tier 2.
+**Last updated:** 2026-11-14
+**Version:** 0.9.0-alpha
+**Status:** Candidate lifecycle shipped. RBAC four-axis shipped.
+Platform surface shipped. Calendar shipped. Reports shipped.
+External-facing features are the next horizon.
 
 ---
 
@@ -13,10 +15,11 @@
 - `docs/ARCHITECTURE.md` — how the system is built
 - `docs/SPECIFICATION.md` — the 17 ADRs behind the design
 - `docs/NAMING-CONVENTION.md` — naming rules for everything
+- `docs/RBAC-ARCHITECTURE.md` — the four-axis authorization model
+- `docs/CAS-PLATFORM-SURFACE.md` — the `/cas/*` platform surface
 - `docs/CHANGELOG.md` — chronological version history
 - `docs/CHANGELOG-middleware.md` — the onion middleware migration
 - `docs/RENAME-RECORD.md` — the naming convention execution record
-- `README.md` — quick start
 
 ---
 
@@ -26,10 +29,11 @@
 **Suite:** Corporate Aid Solutions (Recruit Aid is product #1)
 **Working directory:** `C:\projects\recruitaid`
 **Served at:** `http://localhost:8080`
-**Version:** 0.6.0-alpha
+**Version:** 0.9.0-alpha
 **Model:** Sold to recruitment agencies as a white-labelled platform
 they own and rebrand
 **Target deployment:** Shared cPanel hosting (PHP 8.2+, MySQL 8, Apache)
+**Repository:** `bobsplaceshop-art/recruit_aid` on GitHub
 
 ---
 
@@ -40,20 +44,19 @@ they own and rebrand
 | OS | Windows 11 |
 | WSL | Ubuntu |
 | Laragon | 2026 v8.7.0 (Apache :8080, MySQL 3306, Mailpit 1025/8025) |
-| PHP | 8.3.33 |
+| PHP | 8.3.36 |
 | MySQL | 8.4.3 |
 | Composer | 2.10.3 |
 | Node.js | NOT installed |
 
 **Critical Runtime Notes:**
-- Laragon Terminal for `php`, `composer`, `mysql` commands
-- WSL for file operations (`cat`, `ls`, `grep`, `python3`)
+- **Laragon Terminal** for `php`, `composer`, `mysql`, `php bin/migrate.php`
+- **WSL** for file operations (`cat`, `ls`, `grep`, `python3`, `git`)
 - **WSL does NOT have php** — always use Laragon Terminal for PHP
 - **WSL cannot reach MySQL** — different network namespaces
-- **Heredocs (`cat > file << 'EOF'`) work in WSL only** — never in
-  Laragon CMD
-- **HeidiSQL** is the GUI DB client (connects to `127.0.0.1`)
-- **Browser DevTools Console** for JavaScript debugging (F12)
+- **Heredocs** work in WSL only — never in Laragon
+- **Git config set:** `user.name`, `user.email`, `credential.helper=store`
+- **Never mix contexts in one instruction block**
 
 **Database Users:**
 
@@ -63,455 +66,355 @@ they own and rebrand
 | `recruitaid_migrate` | `recruitaid_migrate_dev_2026` | CLI only | ALL |
 
 **Config split:**
-- `config/local.php` → web app, uses `recruitaid_app`, database
-  `corporateaid_recruit`
-- `config/cli.php` → CLI scripts, uses `recruitaid_migrate`, database
-  `corporateaid_recruit`
+- `config/local.php` — web app, uses `recruitaid_app`
+- `config/cli.php` — CLI scripts, uses `recruitaid_migrate`
 
-**Error logs (Laragon):**
+**Error logs:**
 - `C:\laragon\tmp\php_errors.log` — PHP fatals
-- `storage/logs/app.log` — application-level exceptions (via `Logger`)
-- `grep ERR-xxxxxx storage/logs/app.log` — find a specific error by
-  its reference ID
+- `storage/logs/app.log` — application exceptions via `Logger`
+- `grep ERR-xxxxxx storage/logs/app.log` — find a specific error
 
 ---
 
 ## Database State
 
 **Database:** `corporateaid_recruit`
-**Migrations applied:** `0001` through `0026`
-**Total tables:** 53
+**Migrations applied:** `0001` through `0074` — **79 migrations total**
+**Version cursor:** `0074_fix_core_namespace_scope_v2.sql`
 
-**Table prefixes:**
-- `core_*` — shared platform tables (43 of them)
-- `recruit_*` — Recruit Aid module tables (10 of them)
+**Migration history notes:**
+- Some sequence numbers have duplicate prefixes (e.g.
+  `0028_add_delete_permissions.sql` + `0028_create_candidates.sql`).
+  Migrations were authored across sessions and applied by
+  alphabetical sort within sequence. Not a bug.
+- `0039z_rename_client_org_and_add_tenant_id.sql` uses a `z` suffix to
+  guarantee ordering after `0039_create_tenants.sql`. Pattern for
+  ordering-constrained migrations.
+- Migrations are **immutable** once applied. Corrections go in new
+  migrations (see `0073`/`0074` as a worked example).
 
-**Sequence counters in use:**
-- `rec_client_org_code`
-- `rec_client_contact_code`
-- `rec_engagement_code`
-- `rec_vacancy_code`
+**Modules registered:** `recruit` (enabled), `hr` (registered, not
+enabled). `core_module_state` shows `recruit` only.
 
-**Users (seeded):**
+**Users (seeded for dev):**
 
 | Email | Role |
 |---|---|
-| `admin@recruitaid.test` | super_admin |
-| `researcher@recruitaid.test` | researcher |
+| `admin@recruitaid.test` | admin (tenant role) |
+| `researcher@recruitaid.test` | researcher (tenant role) |
+| `cas_admin@recruitaid.test` | cas_admin (platform role, no tenant) |
+| `cas_developer@recruitaid.test` | cas_developer (platform owner) |
 
-Passwords: `AdminPass!2026` and `ResearchPass!2026` respectively.
 **Development only.**
 
 ---
 
-## Completed Modules
+## Completed Modules (v0.9.0-alpha)
 
-### Foundation ✅
+Verified against `app/Recruit/`, `routes/web.php`,
+`database/migrations/`, and `tests/Integration/`.
+
+### Foundation
 Custom PHP MVC framework, config system, error handling with reference
-IDs, front controller, migrations, seeders, three-tier namespace
-(`CorporateAid\Core\*`, `CorporateAid\Platform\*`,
-`CorporateAid\Recruit\*`, `CorporateAid\Helpers\*`)
+IDs, front controller, migrations + seeders, three-tier namespace
+(Core / Platform / Recruit), explicit-bindings container.
 
-### Authentication & Authorization ✅
-Login, logout, password change, password reset flow with email, session
-security, CSRF, Argon2id hashing, 7 roles, 45+ permissions, permission
-middleware, re-auth gate with pending-save preservation, human-friendly
-permission slugs (`core.*`, `recruit.*`)
+### Authentication & Authorization
+Login, logout, password change, password reset with email, session
+security, CSRF, Argon2id hashing, rate limiting on auth endpoints,
+re-auth gate with pending-save preservation.
 
-### Design System ✅
-Dark / Light / System themes with per-user preference, sidebar shell,
-component library, notification bell
+Four-axis RBAC model:
+- Home tenant (identity)
+- Platform authority (`cas.*` via `core_user_platform_roles`)
+- Tenant authority (`core_user_roles`, `core_user_permissions`,
+  `core_permission_policies`)
+- Developer super-administrator authority (`platform_owners` + Rule 3b)
+- Support delegations (`core_support_delegations`) with asymmetric
+  revocation
+- Step-up re-auth on `/cas/context/switch`
+- `ProtectPlatformOwnerMiddleware` guards owner accounts
+- `core_rbac_audit_logs` captures every RBAC mutation
 
-### Custom Fields Engine ✅
-12 self-validating input types, field builder admin UI, live preview,
-auto-render, auto-validate, archive vs. delete
+### CAS Platform Surface
+`/cas/dashboard`, `/cas/tenants` (CRUD lifecycle), `/cas/delegations`
+(grant/revoke/cancel), `/cas/context` (switch/reset), `/cas/calendar`.
 
-### Deletion Workflow ✅
-Reusable `DeletionService`, `DeletableEntity` interface, confirmation
-phrases, modal
+### Client Management
+Organisations and contacts — full CRUD, custom fields, sequence
+counters, archive/restore/delete, per-org contacts tab.
 
-### Organisations Module ✅
-Full CRUD, search/filter/pagination, custom fields, archive, delete,
-sequence counter
+### Engagements
+Service types, package templates, capacity meter, recruiter assignments.
 
-### Contacts Module ✅
-Per-organisation contacts, role flags, custom fields, full CRUD
+### Vacancies
+Pipeline stages cloned per vacancy (14 defaults), hiring managers,
+recruiters, add-candidate action, custom fields.
 
-### Engagements Module ✅
-Service types, package templates, capacity meter, recruiter assignment
-with user dropdown, custom fields, full CRUD, sequence counter
+### Candidates
+Central candidate database with education, experience, skills, tags.
+Person identity deduplication via `core_persons`. Tenant isolation at
+repository level with tests. Archive/restore/delete.
 
-### Vacancies Module ✅
-Full schema with pipeline stages (14 defaults cloned per vacancy),
-custom fields, capacity check hook, engagement/contact dropdowns
-filtered by org, full CRUD, sequence counter
+### Applications
+Candidate × vacancy with per-vacancy pipeline stage tracking. Stage
+history, move between stages, auto-advance with passed-through history.
+Schedule-interview and make-offer actions from application detail.
 
-### Settings Hub ✅
-System settings with server-side validation, security settings page,
-notification rules page
+### Interviews & Scorecards
+Schedule from application, participant management, status lifecycle,
+scorecards with attribute-based scoring.
 
-### Notification System ✅
-Bell + badge + dropdown + AJAX polling, configurable rules
-(`core_notification_rules`, 17 default rules seeded), human-friendly
-labels, actor-exclusion on settings changes, admin UI at
-`/admin/settings/notifications`
+### Offers
+Full lifecycle: draft → send → accept/decline/withdraw. Offer history.
+`PersonHiredEvent` dispatched on accept via event bus.
 
-### Middleware Pipeline — Onion ✅
-All 5 middlewares converted to
-`handle(Request, callable): Response`. Compatibility bridge removed.
-Unlocks post-controller behavior. Deep dive:
-`docs/CHANGELOG-middleware.md`.
+### Reports
+Pipeline funnel, time-to-hire (with CSV export), recruiter
+productivity. CSV export at `/recruit/{entity}/export.csv`.
 
-### Audit Log System ✅
-`core_audit_logs` captures every state-changing HTTP request. Applied
-globally via `Router::dispatch()` — no per-route opt-in. Captures
-user_id, method, path, ip_address, user_agent, request_hash,
-response_status, entity_type, entity_id, timestamp. Failures captured
-with their status codes.
+### Calendar (RA-2)
+Month view at `/recruit/calendar` and `/cas/calendar`. Aggregates
+interviews, offers, tasks, vacancy deadlines.
 
-### Error Reference IDs ✅
-Every 500 generates a short `ERR-xxxxxx` ID (6 hex chars), prefixed to
-the log line and shown on the error page. Support can `grep ERR-xxxxxx
-storage/logs/app.log`.
+### Tasks (RA-1)
+Full task management with entity attachment, priorities, due dates,
+assignee, statuses.
 
-### Security Headers ✅
-CSP via `.htaccess` (strict, `'unsafe-inline'` for now),
-`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`,
-`X-Powered-By` stripped.
+### Global & Live Search
+Cross-entity global search, AJAX autocomplete, full-text API.
 
-### File Upload Foundation ✅
-`core_files` + `core_entity_files` tables, `FileService` orchestrating
-upload → validate → store → link, `FileController` streaming through
-PHP with permission checks, `storage/uploads/.htaccess` blocking direct
-access. Custom field integration in progress.
+### Activity & Audit
+Per-entity timeline, global activity feed, HTTP audit trail, RBAC
+audit trail.
 
-### Platform Foundation Tables ✅
-22 new tables added empty for future features: module registry,
-licenses, module state, integrations, integration logs, scheduled
-tasks, health checks, updates available/history/manifest, currencies,
-notes, feature flags, webhooks, email templates, GDPR data requests,
-consent log, login history, user permissions, workflow engine.
+### Notifications
+In-app bell, rules engine with 17 defaults, admin UI.
 
-### Database Conventions ✅
-All tables prefixed `core_*` / `recruit_*`, all FKs and CHECK
-constraints renamed per convention, two DB users, database renamed to
-`corporateaid_recruit`.
+### Custom Fields Engine
+12 self-validating input types, admin field builder, per-entity
+support, file uploads via middleware.
+
+### Configurable Lookups
+Admin-managed enums at `/recruit/admin/lookups`.
+
+### File Storage
+UUID-based, streamed via PHP with permission checks.
+`/recruit/files/{uuid}`.
+
+### Admin
+Users, roles, permissions matrix, custom fields, lookups, branding,
+email templates, audit, notification rules, settings.
+
+### Design System
+Themes, sidebar shell, component library, notification bell.
 
 ---
 
-## What's Next
+## Test Coverage
 
-**Tier 2 — remaining items:**
+**Integration tests (PHPUnit):** 63 tests, all passing.
+**Isolation suites (CLI):** 7 tenant-boundary test files.
+**Authorization suite (CLI):** 24 precedence-chain assertions.
+**Unit tests:** 5.
 
-1. **File uploads custom field integration** — in progress. The
-   `FileType` custom field input renders but doesn't yet persist
-   uploads through `FileService`.
-2. **Activity timeline UI** — `core_activities` is logged but no view
-   displays it. Add a timeline component to entity detail pages.
-3. **Duplicate detection** — email-based dedup check when creating
-   candidates/orgs.
-4. **Timezone-correct display** — server timezone is `Africa/Nairobi`;
-   users can have their own. Display times in the viewer's timezone.
-5. **Pipeline stages admin UI** — 14 defaults seeded; no UI to
-   customize per organisation.
-6. **Engagement capacity enforcement** — meter shows numbers; no
-   warning when exceeded at create time.
-7. **CSV export** — no list exports yet.
-8. **Retention cron + right to erasure** — GDPR enforcement.
-9. **2FA UI** — schema columns exist; no UI.
-10. **Configurable webhooks** — async delivery queue + cron worker.
-11. **Email templates admin UI** — currently hardcoded.
-12. **Consent management UI** — schema exists; no UI.
+Run:
 
-**Tier 3 — core ATS modules:**
+    composer test
 
-Candidates, Applications, Application stage history, Interviews +
-scorecards, Offers, Reference checks, Assessments, Tasks, Notes UI,
-Reports + funnel analytics, Talent pool / redeployment.
+Expected: `OK (63 tests, N assertions)`.
 
-**Tier 4 — business model:**
+Isolation suites (Laragon Terminal):
 
-Client portal, Candidate portal, Public job board, Self-registration +
-payments (Stripe / M-Pesa), Multi-channel job posting.
+    php tests\candidate_repository_tenant_isolation_test.php
+    php tests\organisation_repository_tenant_isolation_test.php
+    php tests\engagement_assignment_tenant_isolation_test.php
+    php tests\interview_scorecard_tenant_isolation_test.php
+    php tests\live_search_tenant_isolation_test.php
+    php tests\vacancy_tenant_isolation_test.php
 
-**Tier 5 — operability & advanced:**
+Authorization suite:
 
-Server Manager UI, Configurable lookup system, Health check endpoint,
-Email queue + cron, Down migrations, AI candidate matching, License
-activation UI, Corporate Connect worker, Update system.
+    php tests\authorization_test.php
+
+---
+
+## What's Next (v0.10.0-alpha targets)
+
+### Priority 1 — PHPStan cleanup
+
+`composer analyse` currently times out at 300s and reports 100+ errors.
+ABOUT.md previously claimed "Level 9, 0 errors" — that claim is stale.
+
+1. Read full output:
+   `vendor\bin\phpstan analyse --memory-limit=2G --no-progress --timeout=600`
+2. Group errors by class (cast/mixed, return type, date() int|false,
+   missing iterable value type).
+3. Fix in batches, one category per commit.
+4. Update ABOUT.md and CHANGELOG.md once clean.
+
+### Priority 2 — External-facing features (the remaining 25%)
+
+**Candidate self-apply** — highest value. Public form at
+`/jobs/{slug}/apply`. Requires public routes file
+(`routes/public.php` — currently missing), rate limiting, CAPTCHA or
+similar bot protection, resume parser or manual upload, anti-duplicate
+check on email.
+
+**Public job board** — `/jobs`, `/jobs/{slug}`. Public listing scoped
+to `is_public = 1` vacancies.
+
+**Client portal** — external hiring managers. Requires invite link
+auth flow, permissions scoped to one organisation, separate layout.
+
+**Candidate portal** — candidate self-service. Email + token auth,
+application status view, re-apply prevention.
+
+### Priority 3 — Peripheral ATS features
+
+- **Assessments module** — controller, service, route.
+- **Reference checks** — controller, service, route.
+- **Email sync / two-way communication** — IMAP inbound, thread per
+  candidate.
+- **2FA UI** — schema exists; UI at `/recruit/account/2fa`.
+- **Payments (Stripe / M-Pesa)** — stub at minimum.
+
+### Priority 4 — Cross-module operability
+
+- **HR Aid activation** — `core_module_state.is_enabled = 1` for hr;
+  routes for `/hr/dashboard` and above; `PersonHiredHandler`
+  integration verification.
+- **Corporate Connect worker** — background cron that drains
+  `core_integration_events`.
 
 ---
 
 ## Doctrine — Rules Learned the Hard Way
 
-These rules were accumulated across sessions. Each one has a real
-failure attached. They are not suggestions.
+Each rule has a real failure attached.
 
-1. **Read dependencies before rewriting.** For any file being changed,
-   read the file, its callers, and one sibling file for pattern
-   reference. State what was read at the top of the proposal.
+1. Read dependencies before rewriting. Read the file, its callers, one
+   sibling for pattern reference.
 
-2. **Never use `CREATE TABLE IF NOT EXISTS`** in migrations for tables
-   we expect to create. Verify existence with `DESCRIBE` first, or use
-   a fresh name. Silent no-op wasted two hours.
+2. Never use `CREATE TABLE IF NOT EXISTS` in migrations for tables we
+   expect to create.
 
-3. **No hand-edits for diagnostics.** All diagnostic code — even
-   temporary — goes in via full-file rewrite or a WSL Python injector
-   that lints afterward. Manual edits to brace-sensitive PHP files have
-   a proven failure rate.
+3. No hand-edits for diagnostics. Full-file rewrite or linted Python
+   injector only.
 
-4. **Full-file rewrites only.** No `python3 replace(old, new)` patches
-   on files we haven't just read. Every change gets a full-file
-   heredoc.
+4. Full-file rewrites only. No `python3 replace(old, new)` on files
+   not just read.
 
-5. **`composer dump-autoload` after creating any new PHP class.** The
-   autoloader is `--optimize --authoritative`; it does not discover new
-   files at runtime.
+5. `composer dump-autoload` after creating any new PHP class.
 
-6. **Command context matters.** Heredocs (`<< 'EOF'`) run in WSL only.
-   PHP / Composer / MySQL commands run in Laragon Terminal only. Never
-   mix them in a single instruction block.
+6. Command context matters. Heredocs run in WSL only. PHP / Composer /
+   MySQL run in Laragon only.
 
-7. **`Request::input()` requires a real key.** Never pass empty string.
-   For the full payload, use `Request::all()`.
+7. `Request::input()` requires a real key. Use `Request::all()` for
+   the full payload.
 
-8. **Re-auth redirects must target GET pages, not POST endpoints.**
-   After re-auth, the browser makes a GET request.
+8. Re-auth redirects target GET pages, not POST endpoints.
 
-9. **Pending-save data must be consumed somewhere.** Storing it in
-   session is half the fix; the read side must exist.
+9. Pending-save data must be consumed somewhere.
 
-10. **Every response status must be a standard code PHP recognizes.**
-    Non-standard codes like 419 fall back silently. Prefer 403, 401,
-    422, 429, 451.
+10. Every response status must be a standard code PHP recognizes.
 
-11. **404s on unbuilt menu items are expected.** The sidebar links to
-    routes that aren't registered yet. Confirm the URL in the browser
-    bar before assuming a bug.
+11. 404s on unbuilt menu items are expected.
 
-12. **Always test the full loop, not just the last step.** "No more
-    404" was not the same as "the save worked." The pending-save bug
-    was invisible until end-to-end verification.
+12. Always test the full loop, not just the last step.
 
-13. **Never mix contexts in one instruction block.** Heredocs go in
-    WSL. PHP commands go in Laragon. Label each step explicitly.
+13. Never mix contexts in one instruction block. Label each step.
 
-14. **Verify a class's actual directory before referencing its
-    namespace.** The rename cycle produced 42 misplaced `use`
-    statements because we trusted a pattern instead of the file tree.
+14. Verify a class's actual directory before referencing its namespace.
 
-15. **Migrations and seeders drift separately.** Both need the same
-    rename treatment, in the same pass, or the seeder will fail on a
+15. Migrations and seeders drift separately. Both need the same
+    treatment in the same pass.
+
+16. Migrations run in order on an empty DB. Any migration that depends
+    on a later migration's table is a bug that surfaces only on a
     fresh install.
 
-16. **Migrations run in order on an empty DB.** Any migration that
-    depends on a table created by a later migration is a bug that will
-    only surface on a fresh install.
+17. Always test a fresh-install path after every non-additive
+    migration.
 
-17. **Always test a fresh-install path after every non-additive
-    migration.** Migrations that pass on an existing DB can fail on an
-    empty one (migration 0008 proved this).
+18. Column references in code can masquerade as counter keys or table
+    names during grep audits.
 
-18. **Column references in code (form field names, view keys) can
-    masquerade as counter keys or table names during grep audits.**
-    Verify context before assuming a match means a bug.
+19. Doctrine rules survive renaming.
 
-19. **Doctrine rules survive renaming.** Well-designed rules are tied
-    to *behavior*, not to specific file paths or names. The rules
-    above applied throughout the rename cycle unchanged.
+20. If the error handler cannot write, it cannot help.
 
-20. **If the error handler cannot write, it cannot help.** A logger
-    that silently fails when `is_writable()` returns `false` is worse
-    than no logger — it produces the illusion of observability while
-    hiding every failure. Either log loudly (fall back to `error_log()`
-    when the primary path is not writable) or refuse to boot. Verify
-    `is_writable(storage/logs/)` after any filesystem change.
+21. Every working state gets a git commit. Every finished feature gets
+    a tag.
 
-21. **Every working state gets a git commit. Every finished feature
-    gets a tag.** The September 25 rename cycle left `RecruitAid\`
-    namespaces in 12 view files because there was no commit-based
-    diff to catch them. From now on: commit at every working state,
-    tag at every completed feature. Tarballs are for wanton
-    destruction only. `git log -p` is the recovery tool.
+22. The repository return shape is the contract.
 
-22. **The repository return shape is the contract. Controllers and
-    views are consumers.** A `paginate()` returning `['rows' => ...]`
-    while the controller reads `$result['items']` produces a runtime
-    500 with no compile-time signal. Fix: every repository method
-    that returns an array gets a PHPDoc `@return array{...}` shape.
-    PHPStan Level 9 will refuse to pass without it. Add the shape in
-    the same commit that adds the method.
+23. Shell redirection characters in pasted commands create phantom
+    files. `git status` surfaces them.
 
-23. **Shell redirection characters (`>`, `<`, `|`) in pasted commands
-    create phantom files.** Files named `12,`, `5,`, `getMessage()`,
-    `path()` were sitting in the project root for weeks from a stray
-    `>` in an earlier session. `git status` surfaces them immediately.
-    Tar backups do not. If a `git status` shows an unexpected file
-    with a weird name, do not stage it — investigate. It's almost
-    always a shell accident.
+24. `git ls-remote` before the first push.
 
-24. **`git ls-remote` before the first push.** Always confirm the
-    target GitHub repo is empty (or has known history) before
-    pushing. An unexpected initial commit from the GitHub UI (README,
-    LICENSE) turns a clean first push into an unrelated-history
-    merge. Ten seconds of `ls-remote` prevents thirty minutes of
-    merge conflict resolution.
+25. Cross-cutting concerns belong in middleware. CSRF, rate limiting,
+    audit logging, file uploads — all middleware.
+
+26. Business-rule rejections are not exceptions. Flash + redirect,
+    not `RuntimeException`.
+
+27. Relationship management is bidirectional.
+
+28. When two files claim the same route, check the `use` clause.
+
+29. `php -l` proves syntax; `grep` proves presence. A file can be
+    syntactically perfect and missing the change. Every write cycle
+    ends with a `grep` of the anchor.
+
+30. A migration's WHERE clause must match the actual data, not the
+    data you assume. Migration `0073` missed every `core.*`
+    permission because the WHERE clause used `module = 'core'` but
+    the actual rows have `module = 'core.settings'` etc. Migration
+    `0074` fixed it by using `slug LIKE 'core.%'`.
+
+31. Rule 3b (`platform_owners`) is contractual authority, not a role.
+    It bypasses tenant scoping for `scope='app'` permissions but not
+    `scope='global'` platform permissions.
+
+32. The portal tile is the last mile of the resource-gating
+    invariant. `cas.dashboard.access` grants the dashboard, not
+    every resource on it. Tiles render in three states: active,
+    no_access, coming_soon.
 
 ---
 
-41. **Cross-cutting concerns belong in middleware.** A feature that must
-    run before every controller (CSRF, rate limiting, audit logging, custom
-    field file uploads) belongs in middleware. A feature that runs for one
-    specific controller belongs inline. The file-upload saga (2026-10-29)
-    proved the cost: per-controller plumbing required touching 2 controllers
-    + 2 services for every entity type, and every new module would have
-    needed the same. The middleware pattern means zero changes for new
-    modules, and it's the pattern to follow for any future cross-cutting
-    concern.
+## Backups
 
-42. **Business-rule rejections are not exceptions.** When a controller
-    detects a valid user request that cannot proceed due to a business
-    rule (duplicate name, users assigned, system role, capacity exceeded),
-    it should flash an error message and redirect. Throwing RuntimeException
-    and letting App::renderException() catch it produces a 500 page with an
-    ERR-xxxxxx reference — misleading, because nothing is actually broken.
-    The exception handler is for unexpected bugs, not expected rejections.
+Backups are git-based. Pushing to `bobsplaceshop-art/recruit_aid` is
+the backup.
 
-    - 500 errors = unexpected bugs (uncaught exceptions, DB failures)
-    - 403 errors = authorization failures (HttpException::forbidden())
-    - 404 errors = resource not found (HttpException::notFound())
-    - Flash + redirect = business rule rejections
+Recovery: `git clone https://github.com/bobsplaceshop-art/recruit_aid.git`
+followed by `composer install`, config setup, `php bin/migrate.php`,
+`php bin/seed.php`.
 
-43. **Relationship management is bidirectional.** When two entities have
-    a many-to-many relationship (users to roles, organisations to
-    recruiters, etc.), provide management from both sides: user form lists
-    available roles, role form lists assigned users. Each side has its own
-    guard (can't delete role with users, can't unassign super_admin from
-    yourself), its own flash, and its own link back to the other side.
-    This eliminates the "I have to remember where I saw that" cognitive
-    load. Example: role edit page shows "Users with this role" with Remove
-    buttons; user edit page shows role checkboxes.
-
-44. **When two files claim the same route, check the `use` clause.** The
-    /admin/users 500 bug (2026-10-29) came from `use UserController as
-    AdminUserController;` in routes/web.php — the alias hid the fact that
-    two controllers existed, and the older (broken) one was winning.
-    `grep -n "use .*Controller" routes/web.php` before debugging any route
-    that seems broken. Aliases in `use` statements are a footgun.
+---
 
 ## How to Resume in a New Chat
 
-Paste this file as the first message, then say:
+Paste this file as the first message, then:
 
-> "Resume from where we left off. Tier 1 is closed, naming convention
-> cycle is complete. Next: Tier 2 — finish file uploads custom field
-> integration."
+> "Resume from where we left off. Version 0.9.0-alpha. Candidate
+> lifecycle, RBAC four-axis, platform surface, calendar, and reports
+> are all shipped. Next priority: [PHPStan cleanup / Candidate
+> self-apply / Public job board / HR Aid activation]."
 
-**Two commands to verify health (Laragon Terminal):**
+Two commands to verify health:
 
-```cmd
-cd C:\projects\recruitaid
-php bin\migrate.php
-```
-Expected: `Nothing to apply. All migrations are up to date.`
+    cd C:\projects\recruitaid
+    php bin\migrate.php status
 
-```cmd
-composer dump-autoload
-```
-Expected: `Generated optimized autoload files containing 346 classes`
+Expected: `Total: 79 available, 79 applied.`
 
-**One command to verify database (HeidiSQL or Laragon Terminal):**
+    composer test
 
-```sql
-SHOW TABLES FROM corporateaid_recruit;
-```
-Expected: ~53 tables, all prefixed `core_*` or `recruit_*`.
-
----
-
-## Backup History
-
-Location (in WSL): `~/recruitaid-backups/`
-
-| Milestone | Description | Size |
-|---|---|---|
-| milestone1 | Framework scaffold | 16K |
-| milestone2 | Auth + design system | 31K |
-| milestone3 | Custom fields + Organisations | 32K |
-| milestone4 | Deletion workflow | 88K |
-| milestone5 | (intermediate) | 102K |
-| milestone6 | Engagements done | 113K |
-| milestone7 | Password reset | 143K |
-| milestone8 | Tier 1 core | 157K |
-| milestone9 | Notifications + human labels | 170K |
-| milestone10 | Onion middleware | 175K |
-| milestone11 | Audit log live | 178K |
-| milestone12 | Re-auth fixed | 179K |
-| milestone13 | Tier 1 closed | 184K |
-| milestone14 | **Naming convention complete** | **208K** |
-
-**Database dumps:** in `~/recruitaid-backups/db/`
-
-**Latest DB dump:** `corporateaid-recruit-schema-milestone14.sql` (93K)
-
-**Restore command:**
-
-```bash
-cd /mnt/c/projects/recruitaid
-tar -xzf ~/recruitaid-backups/recruitaid-milestone14-naming-complete-*.tar.gz
-```
-
----
-
-## Known Issues / Backlog
-
-- Configurable lookup system — hardcoded enums need migration to a
-  `lookups` table
-- File upload storage — foundation exists, custom field integration
-  in progress
-- 2FA UI — schema exists, no UI
-- No CSP nonces — inline scripts and styles require `'unsafe-inline'`
-- Custom field errors shown at top of form — not per-field inline
-- No Git repository — backups are manual tarballs
-- Route file split (`routes/recruit.php`, `routes/hr.php`) is planned
-  but not done — all routes are in `web.php` and `auth.php`
-- `audit_logs_legacy` table — leftover from migration 0021; safe to
-  drop in future cleanup
-- Index and unique key names grandfathered (see
-  `docs/NAMING-CONVENTION.md` §21.6)
-- Three placeholder routes for admin features not yet built
-  (`/admin/audit`, `/admin/branding`, `/admin/email-templates`) return
-  404s
-
----
-
-## Middleware Model Reference
-
-**Current model:** ONION. Every middleware receives
-`handle(Request, callable $next): Response`.
-
-**Full details:** `docs/CHANGELOG-middleware.md` and
-`docs/ARCHITECTURE.md` §4.
-
-**Route spec grammar:**
-
-- `['auth']` → `AuthMiddleware`
-- `['guest']` → `GuestMiddleware`
-- `['csrf']` → `CsrfMiddleware`
-- `['permission:recruit.organisations.view']` → `PermissionMiddleware`
-  with arg
-- `['ratelimit:login,5,15']` → `RateLimitMiddleware` with args
-- `['audit']` → `AuditLoggerMiddleware` (applied globally)
-
-**New middleware checklist:**
-
-1. Create `app/Platform/Middleware/YourMiddleware.php`
-2. Signature:
-   `handle(Request $request, callable $next): Response`
-3. Register in `app/Core/Http/Kernel.php` `$map`
-4. Register in `app/Core/App.php` container
-5. Apply to routes: `['yourname']` or `['yourname:arg']`
-6. Run `composer dump-autoload`
+Expected: `OK (63 tests, ...)`
 
 ---
 
@@ -519,10 +422,11 @@ tar -xzf ~/recruitaid-backups/recruitaid-milestone14-naming-complete-*.tar.gz
 
 | What | Where |
 |---|---|
-| Framework | `app/Core/` (`CorporateAid\Core\*`) |
-| Shared services, models, middleware | `app/Platform/` (`CorporateAid\Platform\*`) |
-| Recruit module code | `app/Recruit/` (`CorporateAid\Recruit\*`) |
-| Helper functions | `app/Helpers/` (`CorporateAid\Helpers\*`) |
+| Framework | `app/Core/` |
+| Shared services, models, middleware | `app/Platform/` |
+| Recruit module code | `app/Recruit/` |
+| HR module code | `app/Modules/HR/` (registered, disabled) |
+| Helper functions | `app/Helpers/` |
 | Migrations | `database/migrations/` |
 | Seeders | `database/seeders/` |
 | Views | `resources/views/` |
@@ -534,7 +438,10 @@ tar -xzf ~/recruitaid-backups/recruitaid-milestone14-naming-complete-*.tar.gz
 | Application log | `storage/logs/app.log` |
 | File uploads | `storage/uploads/` (blocked from direct access) |
 | Documentation | `docs/` |
+| RBAC doctrine | `docs/RBAC-ARCHITECTURE.md` |
+| Platform surface | `docs/CAS-PLATFORM-SURFACE.md` |
+| Test map | `docs/RBAC-TESTING.md` |
 
 ---
 
-End of REMEMBER v7
+End of REMEMBER
