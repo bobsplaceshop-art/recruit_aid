@@ -45,7 +45,8 @@ final class AuthorizationService
     public function __construct(
         private Database $db,
         private TenantContext $tenant,
-        private SupportDelegationService $supportDelegations
+        private SupportDelegationService $supportDelegations,
+        private PlatformOwnerService $platformOwners
     ) {}
 
     public static function boot(Container $c): void
@@ -53,7 +54,8 @@ final class AuthorizationService
         self::$instance = new self(
             $c->get(Database::class),
             $c->get(TenantContext::class),
-            $c->get(SupportDelegationService::class)
+            $c->get(SupportDelegationService::class),
+            $c->get(PlatformOwnerService::class)
         );
     }
 
@@ -109,6 +111,17 @@ final class AuthorizationService
         // A platform assignment never grants access to Recruit Aid data.
         if (str_starts_with($permission, 'cas.')) {
             return $this->hasPlatformPermission($user->id, $permission);
+        }
+
+        // Rule 3b: Developer super-administrator exception.
+        // A platform owner (platform_owners) is granted any tenant-domain
+        // permission (scope='app') across all tenants, without a tenant
+        // role or support delegation. Platform-domain permissions
+        // (scope='global') are NOT granted here — those are governed by
+        // Rule 3 (cas.*) or by the tenant-scoped rules for core.*.
+        // No per-check audit write: see RBAC-ARCHITECTURE.md §9.4.
+        if ($perm['scope'] === 'app' && $this->platformOwners->isOwner($user->id)) {
+            return true;
         }
 
         // Rule 4: a valid active tenant context is required for any
@@ -197,7 +210,7 @@ final class AuthorizationService
         return false;
     }
 
-    /** @return array{module:string, sensitivity:string, is_active:bool}|null */
+    /** @return array{module:string, sensitivity:string, scope:string, is_active:bool}|null */
     private function getPermission(string $slug): ?array
     {
         if (isset($this->permissionCache[$slug])) {
@@ -205,7 +218,7 @@ final class AuthorizationService
         }
 
         $row = $this->db->selectOne(
-            "SELECT `module`, `sensitivity`, `is_active`
+            "SELECT `module`, `sensitivity`, `scope`, `is_active`
              FROM `core_permissions` WHERE `slug` = ? LIMIT 1",
             PDOParams::positional([$slug])
         );
@@ -217,6 +230,7 @@ final class AuthorizationService
         $this->permissionCache[$slug] = [
             'module'      => Row::str($row, 'module'),
             'sensitivity' => Row::str($row, 'sensitivity', 'public'),
+            'scope'       => Row::str($row, 'scope', 'app'),
             'is_active'   => (bool) Row::int($row, 'is_active'),
         ];
 

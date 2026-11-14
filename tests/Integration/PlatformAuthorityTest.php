@@ -8,6 +8,7 @@ use CorporateAid\Core\PDOParams;
 use CorporateAid\Core\Row;
 use CorporateAid\Core\TenantContext;
 use CorporateAid\Platform\Authorization\AuthorizationService;
+use CorporateAid\Platform\Repositories\UserRepository;
 use CorporateAid\Platform\Models\User;
 use PHPUnit\Framework\TestCase;
 
@@ -24,6 +25,7 @@ final class PlatformAuthorityTest extends TestCase
 {
     private static Database $db;
     private static AuthorizationService $authz;
+    private static UserRepository $userRepo;
     private static TenantContext $tenant;
     private static int $originalTenantId;
 
@@ -33,6 +35,7 @@ final class PlatformAuthorityTest extends TestCase
         $c = App::instance()->container();
         self::$db     = $c->get(Database::class);
         self::$authz  = AuthorizationService::instance();
+        self::$userRepo = $c->get(UserRepository::class);
         self::$tenant = $c->get(TenantContext::class);
         self::$originalTenantId = self::$tenant->id();
         self::$authz->clearCache();
@@ -168,6 +171,201 @@ final class PlatformAuthorityTest extends TestCase
         if ($row === null) {
             self::fail("User {$id} not found.");
         }
-        return User::fromRow($row);
+        // Populate permissionSlugs via the production path so Rule 9
+        // (role grant) sees the same data as runtime.
+        return self::$userRepo->loadPermissions(User::fromRow($row));
+    }
+
+    /**
+     * Fixture: a user in platform_owners, optionally also cas_admin.
+     * Runs inside a transaction; rolls back after.
+     */
+    private function withDeveloperFixtures(callable $body, bool $withCasAdminRole = true): void
+    {
+        $original = self::$tenant->id();
+        self::$db->beginTransaction();
+        try {
+            $suffix = bin2hex(random_bytes(6));
+
+            $tenantB = self::$db->insert(
+                "INSERT INTO `core_tenants` (`code`, `name`, `status`)
+                 VALUES (?, ?, 'active')",
+                PDOParams::positional(["PA-Dev-{$suffix}", "DevFixture {$suffix}"])
+            );
+
+            $userId = self::$db->insert(
+                "INSERT INTO `core_users`
+                    (`tenant_id`, `name`, `email`, `password_hash`, `status`)
+                 VALUES (1, ?, ?, 'test-hash', 'active')",
+                PDOParams::positional([
+                    "PA-Dev {$suffix}",
+                    "pa-dev-{$suffix}@example.test",
+                ])
+            );
+
+            if ($withCasAdminRole) {
+                $casRoleId = $this->platformRoleId('cas_admin');
+                self::$db->execute(
+                    "INSERT INTO `core_user_platform_roles` (`user_id`, `role_id`)
+                     VALUES (?, ?)",
+                    PDOParams::positional([$userId, $casRoleId])
+                );
+            }
+
+            self::$db->execute(
+                "INSERT INTO `platform_owners` (`user_id`, `designation`, `contract_reference`)
+                 VALUES (?, 'Test Owner', 'TEST-REF')",
+                PDOParams::positional([$userId])
+            );
+
+            $body($userId, $tenantB);
+        } finally {
+            self::$tenant->set($original);
+            self::$authz->clearCache();
+            self::$db->rollBack();
+        }
+    }
+
+    /** PA-04: Developer bypasses tenant-role requirement for tenant permission. */
+    public function testDeveloperBypassesTenantRoleForTenantPermission(): void
+    {
+        $this->withDeveloperFixtures(function (int $userId, int $tenantB) {
+            self::$tenant->set(1);
+            self::$authz->clearCache();
+            $user = $this->loadUser($userId);
+            self::assertTrue(
+                self::$authz->allows($user, 'recruit.candidates.view'),
+                'Developer with no tenant role must be allowed tenant permission via Rule 3b.'
+            );
+        });
+    }
+
+    /** PA-05: Developer access is independent of effective tenant context. */
+    public function testDeveloperBypassesTenantScopingAcrossTenants(): void
+    {
+        $this->withDeveloperFixtures(function (int $userId, int $tenantB) {
+            self::$tenant->set($tenantB);
+            self::$authz->clearCache();
+            $user = $this->loadUser($userId);
+            self::assertTrue(
+                self::$authz->allows($user, 'recruit.candidates.view'),
+                'Developer must be allowed in cross-tenant context.'
+            );
+        });
+    }
+
+    /** PA-06: Rule 3b does not bypass Rule 2 (unknown permission). */
+    public function testDeveloperDeniedUnknownPermission(): void
+    {
+        $this->withDeveloperFixtures(function (int $userId, int $tenantB) {
+            self::$tenant->set(1);
+            self::$authz->clearCache();
+            $user = $this->loadUser($userId);
+            self::assertFalse(
+                self::$authz->allows($user, 'not.a.real.permission'),
+                'Developer must be denied for unknown permission (Rule 2).'
+            );
+        });
+    }
+
+    /** PA-07: Rule 3b does not bypass Rule 2 (inactive permission). */
+    public function testDeveloperDeniedInactivePermission(): void
+    {
+        $this->withDeveloperFixtures(function (int $userId, int $tenantB) {
+            $slug = 'recruit.inactive.' . bin2hex(random_bytes(4));
+            self::$db->execute(
+                "INSERT INTO `core_permissions` (`slug`, `module`, `description`, `scope`, `module_key`, `sensitivity`, `is_active`)
+                 VALUES (?, 'recruit', 'Test inactive', 'app', 'recruit', 'public', 0)",
+                PDOParams::positional([$slug])
+            );
+            self::$tenant->set(1);
+            self::$authz->clearCache();
+            $user = $this->loadUser($userId);
+            self::assertFalse(
+                self::$authz->allows($user, $slug),
+                'Developer must be denied for inactive permission (Rule 2).'
+            );
+        });
+    }
+
+    /** PA-08: Rule 3b does NOT grant platform-domain (scope='global') permissions. */
+    public function testDeveloperDeniedPlatformDomainPermission(): void
+    {
+        $this->withDeveloperFixtures(function (int $userId, int $tenantB) {
+            self::$tenant->set(1);
+            self::$authz->clearCache();
+            $user = $this->loadUser($userId);
+            self::assertFalse(
+                self::$authz->allows($user, 'core.settings.manage'),
+                'Developer must not gain platform-domain permission via Rule 3b.'
+            );
+        }, false);
+    }
+
+    /** PA-09: Developer without cas_admin role is denied cas.* (Rule 3 governs). */
+    public function testDeveloperDeniedCasPermissionWithoutAssignment(): void
+    {
+        $this->withDeveloperFixtures(function (int $userId, int $tenantB) {
+            self::$tenant->set(1);
+            self::$authz->clearCache();
+            $user = $this->loadUser($userId);
+            self::assertFalse(
+                self::$authz->allows($user, 'cas.rbac.manage_global'),
+                'Developer must be denied cas.* without explicit platform permission.'
+            );
+        }, false);
+    }
+
+    /** PA-10: Ordinary tenant user without permission is denied. */
+    public function testTenantUserWithoutPermissionDenied(): void
+    {
+        $this->withFixtures(function (int $userId, int $tenantId) {
+            self::$tenant->set($tenantId);
+            self::$authz->clearCache();
+            $user = $this->loadUser($userId);
+            self::assertFalse(
+                self::$authz->allows($user, 'recruit.candidates.view'),
+                'Non-Developer without tenant role must be denied.'
+            );
+        });
+    }
+
+    /** PA-11: Tenant role does not grant Developer authority (Rule 3b is membership-only). */
+    public function testTenantRoleDoesNotGrantDeveloperAuthority(): void
+    {
+        $this->withFixtures(function (int $userId, int $tenantId) {
+            $suffix = bin2hex(random_bytes(4));
+            $roleId = self::$db->insert(
+                "INSERT INTO `core_roles` (`tenant_id`, `name`, `slug`, `scope`, `module_key`, `is_system`)
+                 VALUES (?, ?, ?, 'app', 'recruit', 0)",
+                PDOParams::positional([$tenantId, "T-{$suffix}", "t_{$suffix}"])
+            );
+            $permRow = self::$db->selectOne(
+                "SELECT id FROM `core_permissions` WHERE slug = 'recruit.candidates.view' LIMIT 1"
+            );
+            self::$db->execute(
+                "INSERT INTO `core_role_permissions` (`role_id`, `permission_id`) VALUES (?, ?)",
+                PDOParams::positional([$roleId, Row::int($permRow, 'id')])
+            );
+            self::$db->execute(
+                "INSERT INTO `core_user_roles` (`tenant_id`, `user_id`, `role_id`, `assigned_by`)
+                 VALUES (?, ?, ?, NULL)",
+                PDOParams::positional([$tenantId, $userId, $roleId])
+            );
+            self::$db->execute(
+                "INSERT INTO `core_user_applications` (`user_id`, `module_key`, `is_default`)
+                 VALUES (?, 'recruit', 1)",
+                PDOParams::positional([$userId])
+            );
+            self::$tenant->set($tenantId);
+            self::$authz->clearCache();
+            $user = $this->loadUser($userId);
+
+            self::assertTrue(self::$authz->allows($user, 'recruit.candidates.view'));
+            self::assertFalse(
+                self::$authz->allows($user, 'hr.employees.view'),
+                'Tenant role must not become Developer authority.'
+            );
+        });
     }
 }
