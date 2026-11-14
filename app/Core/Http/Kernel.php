@@ -10,6 +10,7 @@ use CorporateAid\Core\Response;
 use CorporateAid\Platform\Middleware\AuditLoggerMiddleware;
 use CorporateAid\Platform\Middleware\AuthMiddleware;
 use CorporateAid\Platform\Middleware\AppAccessMiddleware;
+use CorporateAid\Platform\Middleware\ProtectPlatformOwnerMiddleware;
 use CorporateAid\Platform\Middleware\CsrfMiddleware;
 use CorporateAid\Platform\Middleware\CustomFieldFileMiddleware;
 use CorporateAid\Platform\Middleware\GuestMiddleware;
@@ -63,6 +64,7 @@ final class Kernel
         'ratelimit'  => RateLimitMiddleware::class,
         'audit'      => AuditLoggerMiddleware::class,
         'app_access' => AppAccessMiddleware::class,
+        'protect_owner' => ProtectPlatformOwnerMiddleware::class,
     ];
 
     public function __construct(Container $container)

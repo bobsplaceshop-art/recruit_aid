@@ -221,7 +221,7 @@ $router->get('/recruit/admin/users',              [AdminUserController::class, '
 $router->get('/recruit/admin/users/create',       [AdminUserController::class, 'create'], ['app_access:recruit', 'auth', 'permission:core.users.create']);
 $router->post('/recruit/admin/users',             [AdminUserController::class, 'store'],  ['app_access:recruit', 'auth', 'permission:core.users.create', 'csrf']);
 $router->get('/recruit/admin/users/{id}/edit',    [AdminUserController::class, 'edit'],   ['app_access:recruit', 'auth', 'permission:core.users.edit']);
-$router->put('/recruit/admin/users/{id}',         [AdminUserController::class, 'update'], ['app_access:recruit', 'auth', 'permission:core.users.edit', 'csrf']);
+$router->put('/recruit/admin/users/{id}',         [AdminUserController::class, 'update'], ['app_access:recruit', 'auth', 'permission:core.users.edit', 'csrf', 'protect_owner']);
 
 // Roles & permissions
 $router->get('/recruit/admin/roles-perm',                 [RoleController::class, 'home'],    ['app_access:recruit', 'auth', 'permission:core.settings.manage']);
