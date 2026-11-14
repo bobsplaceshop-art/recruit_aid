@@ -166,7 +166,10 @@ final class TaskService
         $this->activity->log('task.deleted', 'tasks', 'Task deleted: ' . Row::str($task, 'title'), 'task', $id);
     }
 
-    /** @return string[] */
+    /**
+     * @param array<string, mixed> $input
+     * @return string[]
+     */
     private function validate(array $input, string $mode): array
     {
         $errors = [];

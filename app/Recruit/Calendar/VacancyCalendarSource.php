@@ -29,6 +29,12 @@ final class VacancyCalendarSource implements CalendarEventSource
     public function getModuleKey(): string { return 'recruit'; }
     public function getPermission(): string { return 'recruit.vacancies.view'; }
 
+    /**
+     * @return array<int, array{
+     *   date: string, title: string, time: ?string, url: string,
+     *   badge: string, color: string, meta: array<string, mixed>
+     * }>
+     */
     public function eventsForRange(int $tenantId, string $startDate, string $endDate): array
     {
         $rows = $this->db->select(
@@ -50,7 +56,10 @@ final class VacancyCalendarSource implements CalendarEventSource
         $events = [];
         foreach ($rows as $r) {
             $target = Row::str($r, 'target_hire_date');
-            $date = date('Y-m-d', strtotime($target));
+            $date = calendar_date(strtotime($target));
+            if ($date === null) {
+                continue;
+            }
 
             $title = Row::str($r, 'title');
             $positions = Row::int($r, 'positions_count', 1);

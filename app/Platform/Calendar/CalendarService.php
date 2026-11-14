@@ -45,9 +45,9 @@ final class CalendarService
      *                               or null for all modules the user can see.
      *
      * @return array{
-     *   events: array<string, array<int, array>>,   // grouped by Y-m-d
-     *   summary: array<string, int>,                // source_key => count
-     *   sources: array<int, array{key,label,color}>,
+     *   events: array<string, array<int, array{date: string, title: string, time: ?string, url: string, badge: string, color: string, meta: array<string, mixed>}>>,
+     *   summary: array<string, int>,
+     *   sources: array<int, array{key: string, label: string, color: string}>,
      *   range: array{start: string, end: string, tenant_id: int, module_key: ?string}
      * }
      */
@@ -112,11 +112,21 @@ final class CalendarService
     /**
      * Convenience: aggregate events for a full calendar month.
      */
+    /**
+     * Convenience: aggregate events for a full calendar month.
+     *
+     * @return array{
+     *   events: array<string, array<int, array{date: string, title: string, time: ?string, url: string, badge: string, color: string, meta: array<string, mixed>}>>,
+     *   summary: array<string, int>,
+     *   sources: array<int, array{key: string, label: string, color: string}>,
+     *   range: array{start: string, end: string, tenant_id: int, module_key: ?string}
+     * }
+     */
     public function eventsForMonth(int $year, int $month, int $tenantId, ?string $moduleKey = null): array
     {
         $month = max(1, min(12, $month));
         $first = sprintf('%04d-%02d-01', $year, $month);
-        $last  = date('Y-m-t', strtotime($first));
+        $last  = calendar_date(strtotime($first), 'Y-m-t') ?? $first;
 
         return $this->eventsForRange($tenantId, $first, $last, $moduleKey);
     }

@@ -66,7 +66,7 @@ interface CalendarEventSource
      *   url: string,         // link to the entity detail page
      *   badge: string,       // short type label, e.g. 'Interview', 'Task due'
      *   color: string,       // bootstrap color hint for the badge
-     *   meta: array          // free-form metadata for tooltips / future filters
+     *   meta: array<string, mixed> // free-form metadata for tooltips / future filters
      * }>
      */
     public function eventsForRange(int $tenantId, string $startDate, string $endDate): array;

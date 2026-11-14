@@ -29,6 +29,12 @@ final class TaskCalendarSource implements CalendarEventSource
     public function getModuleKey(): string { return 'recruit'; }
     public function getPermission(): string { return 'recruit.tasks.view'; }
 
+    /**
+     * @return array<int, array{
+     *   date: string, title: string, time: ?string, url: string,
+     *   badge: string, color: string, meta: array<string, mixed>
+     * }>
+     */
     public function eventsForRange(int $tenantId, string $startDate, string $endDate): array
     {
         $rows = $this->db->select(
@@ -51,13 +57,16 @@ final class TaskCalendarSource implements CalendarEventSource
         foreach ($rows as $r) {
             $dueAt = Row::str($r, 'due_at');
             $timestamp = strtotime($dueAt);
-            $date = date('Y-m-d', $timestamp);
-            $hour = (int) date('H', $timestamp);
-            $minute = (int) date('i', $timestamp);
+            $date = calendar_date($timestamp);
+            if ($date === null) {
+                continue;
+            }
+            $hour = (int) (calendar_date($timestamp, 'H') ?? '0');
+            $minute = (int) (calendar_date($timestamp, 'i') ?? '0');
 
             // A task due at 00:00 is treated as an all-day event (no time slot).
             $isAllDay = ($hour === 0 && $minute === 0);
-            $time = $isAllDay ? null : date('H:i', $timestamp);
+            $time = $isAllDay ? null : calendar_date($timestamp, 'H:i');
 
             $priority = Row::str($r, 'priority');
             $color = match ($priority) {

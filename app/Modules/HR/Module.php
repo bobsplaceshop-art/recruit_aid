@@ -36,6 +36,7 @@ final class Module implements ModuleContract
         ];
     }
     
+    /** @return array<string, int> */
     public function getDashboardMetrics(int $tenantId, Container $c): array
     {
         /** @var Database $db */

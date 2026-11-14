@@ -254,4 +254,20 @@ if (!function_exists('activity_summary')) {
     }
 }
 
+
+    /**
+     * Safe date formatter. Returns null when the input cannot be parsed,
+     * so callers can skip the row rather than emitting 1970-01-01.
+     *
+     * @param int|false|null $timestamp  Result of strtotime() or a unix ts.
+     * @param string         $format     PHP date format.
+     */
+    function calendar_date(int|false|null $timestamp, string $format = 'Y-m-d'): ?string
+    {
+        if ($timestamp === false || $timestamp === null) {
+            return null;
+        }
+        return date($format, $timestamp);
+    }
+
 }

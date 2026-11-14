@@ -29,6 +29,12 @@ final class OfferCalendarSource implements CalendarEventSource
     public function getModuleKey(): string { return 'recruit'; }
     public function getPermission(): string { return 'recruit.offers.view'; }
 
+    /**
+     * @return array<int, array{
+     *   date: string, title: string, time: ?string, url: string,
+     *   badge: string, color: string, meta: array<string, mixed>
+     * }>
+     */
     public function eventsForRange(int $tenantId, string $startDate, string $endDate): array
     {
         $rows = $this->db->select(
@@ -53,7 +59,10 @@ final class OfferCalendarSource implements CalendarEventSource
         $events = [];
         foreach ($rows as $r) {
             $expires = Row::str($r, 'expires_at');
-            $date = date('Y-m-d', strtotime($expires));
+            $date = calendar_date(strtotime($expires));
+            if ($date === null) {
+                continue;
+            }
 
             $candidateName = trim(Row::str($r, 'first_name') . ' ' . Row::str($r, 'last_name'));
             $vacancyTitle = Row::str($r, 'vacancy_title');

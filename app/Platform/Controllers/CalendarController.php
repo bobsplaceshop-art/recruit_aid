@@ -80,7 +80,7 @@ final class CalendarController
         $delegatedSummaries = [];
         if ($moduleKey === null && !$isContextSwitched) {
             $first = sprintf('%04d-%02d-01', $year, $month);
-            $last  = date('Y-m-t', strtotime($first));
+            $last  = calendar_date(strtotime($first), 'Y-m-t') ?? $first;
             $delegatedSummaries = $calendar->delegatedSummaries($first, $last);
         }
 

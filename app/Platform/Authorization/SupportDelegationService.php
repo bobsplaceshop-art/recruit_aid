@@ -462,6 +462,7 @@ final class SupportDelegationService
         return $allow;
     }
 
+    /** @param string[] $slugs */
     private function assertValidPermissionSlugs(string $moduleKey, array $slugs): void
     {
         if ($slugs === []) {
@@ -493,7 +494,10 @@ final class SupportDelegationService
         ) > 0;
     }
 
-    /** @return list<string> */
+    /**
+     * @param string[] $slugs
+     * @return list<string>
+     */
     private function normalizeSlugs(array $slugs): array
     {
         $out = [];

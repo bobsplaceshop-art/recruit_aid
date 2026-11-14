@@ -40,6 +40,14 @@ final class LiveSearchService
      * } $config
      *
      * @param array<string, string> $extraFilters
+     *
+     * @return array{
+     *   rows: list<array{html: string}>,
+     *   total: int,
+     *   page: int,
+     *   per_page: int,
+     *   total_pages: int
+     * }
      */
     public function run(
         array $config,

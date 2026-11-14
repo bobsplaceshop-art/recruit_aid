@@ -24,7 +24,7 @@ final class AuthorizationService
 {
     private static ?self $instance = null;
 
-    /** @var array<string, array{module:string, sensitivity:string, is_active:bool}> */
+    /** @var array<string, array{module:string, sensitivity:string, scope:string, is_active:bool}> */
     private array $permissionCache = [];
 
     /** @var array<string, array<string, bool>> tenant:user => (module_key => true) */

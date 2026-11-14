@@ -32,6 +32,7 @@ interface ModuleContract
      */
     public function getPermissionDefinitions(): array;
     
+    /** @return array<string, int> */
     public function getDashboardMetrics(int $tenantId, \CorporateAid\Core\Container $c): array;
 
     public function register(\CorporateAid\Core\Container $c): void;

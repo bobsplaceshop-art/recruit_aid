@@ -24,6 +24,12 @@ final class InterviewCalendarSource implements CalendarEventSource
     public function getModuleKey(): string { return 'recruit'; }
     public function getPermission(): string { return 'recruit.interviews.view'; }
 
+    /**
+     * @return array<int, array{
+     *   date: string, title: string, time: ?string, url: string,
+     *   badge: string, color: string, meta: array<string, mixed>
+     * }>
+     */
     public function eventsForRange(int $tenantId, string $startDate, string $endDate): array
     {
         $rows = $this->db->select(
@@ -49,8 +55,11 @@ final class InterviewCalendarSource implements CalendarEventSource
         foreach ($rows as $r) {
             $scheduled = Row::str($r, 'scheduled_at');
             $timestamp = strtotime($scheduled);
-            $date = date('Y-m-d', $timestamp);
-            $time = date('H:i', $timestamp);
+            $date = calendar_date($timestamp);
+            $time = calendar_date($timestamp, 'H:i');
+            if ($date === null) {
+                continue;
+            }
 
             $candidateName = trim(Row::str($r, 'first_name') . ' ' . Row::str($r, 'last_name'));
             $vacancyTitle = Row::str($r, 'vacancy_title');
