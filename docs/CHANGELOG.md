@@ -19,9 +19,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+(placeholder — nothing pending release; the next entry moves here when work starts.)
+
+## [0.9.0-alpha] — 2026-11-14
+
+The "candidate lifecycle completion + Developer super-administrator" release.
+Rule 3b of the authorization chain ships. Tasks (RA-1) and calendar (RA-2)
+ship. The migration 0073 WHERE-clause bug is corrected by 0074. The portal
+gains three-state module tiles. Documentation (ABOUT.md, REMEMBER.md,
+CHANGELOG.md) is rewritten to reflect the actual shipped surface, closing
+the documentation-vs-code gap that had accumulated since v0.6.0-alpha.
+
 ### Added
 
-**Developer super-administrator authority (RBAC-ARCHITECTURE.md §5.1 Rule 3b, added 2026-11-13)**
+**Developer super-administrator authority (RBAC-ARCHITECTURE.md §5.1 Rule 3b)**
 
 The platform owner — any user in `platform_owners` (migration 0067) —
 receives implicit tenant-domain authority across all modules and all
@@ -42,29 +53,113 @@ tenants. This codifies the contractual role described in
   already audited via `RbacAuditLogger` at their chokepoints;
   Developer GET reads of tenant data will be audited per-request via a
   future middleware (§14.5).
+- **Backwards compatibility:** Rule 3b only *adds* ALLOW decisions
+  for users in `platform_owners`. No existing role, permission, or
+  delegation is modified.
+- Tests: 8 new acceptance criteria (PA-04 through PA-11) in
+  `PlatformAuthorityTest.php` covering tenant scoping bypass, cross-
+  tenant access, Rule 2 preservation, platform-domain denial, and
+  tenant-role non-escalation.
 
-**Deferred items added to `RBAC-ARCHITECTURE.md` §14.5:** a
-`DeveloperReadAuditMiddleware` and application-layer protection of
-Developer accounts against modification through
-`AdminUserController::update()`.
+**ProtectPlatformOwnerMiddleware**
 
-**Backwards compatibility:** no existing behaviour changes. Rule 3b
-only *adds* ALLOW decisions for users in `platform_owners`. No existing
-role, permission, or delegation is modified.
+Guards `/recruit/admin/users/{id}` against modification of a platform
+owner's account by a non-owner. Five branches covered by 5 new
+integration tests in `ProtectPlatformOwnerMiddlewareTest.php`:
+unauthenticated pass-through, non-matching path pass-through,
+non-owner target pass-through, owner-to-owner pass-through, and
+non-owner-actor blocked with flash + redirect.
 
 **Tasks module (RA-1)**
-- `/recruit/tasks` — full task management replacing the coming-soon placeholder.
-- Tasks attach to an entity (candidate, vacancy, application, interview, offer) or stand alone.
-- Fields: title, description, priority (low/normal/high), due date, assignee.
+
+- `/recruit/tasks` — full task management replacing the coming-soon
+  placeholder.
+- Tasks attach to an entity (candidate, vacancy, application,
+  interview, offer) or stand alone.
+- Fields: title, description, priority (low/normal/high), due date,
+  assignee.
 - Statuses: open / completed / cancelled.
 - Actions: create, complete, reopen, soft-delete.
-- Four permissions: `recruit.tasks.view`, `recruit.tasks.create`, `recruit.tasks.edit`, `recruit.tasks.delete`.
-- Granted to admin, recruitment_manager, recruiter (all four); researcher (view + create only).
-- `recruit_tasks` table with tenant scoping, composite-indexes for tenant+status, tenant+assignee, tenant+entity, tenant+due.
+- Four permissions: `recruit.tasks.view`, `recruit.tasks.create`,
+  `recruit.tasks.edit`, `recruit.tasks.delete`.
+- Granted to admin, recruitment_manager, recruiter (all four);
+  researcher (view + create only).
+- `recruit_tasks` table with tenant scoping, composite indexes for
+  tenant+status, tenant+assignee, tenant+entity, tenant+due.
 - Every mutation writes to `core_activities` via `ActivityLogger`.
 - Six acceptance tests (TC-01 through TC-06) in `TaskCrudTest`.
 
----
+**Calendar feature (RA-2)**
+
+- `CalendarEventSource` contract and `CalendarRegistry` for pluggable
+  event sources.
+- Four Recruit sources: `TaskCalendarSource`,
+  `InterviewCalendarSource`, `OfferCalendarSource`,
+  `VacancyCalendarSource`.
+- `CalendarService` aggregates events by date with per-source summary.
+- `CalendarController` at `/recruit/calendar` and `/cas/calendar`.
+- `0072_seed_calendar_view_permissions.sql` seeds
+  `recruit.calendar.view` and `cas.calendar.view`.
+- Five acceptance tests (CAL-01 through CAL-05) in `CalendarTest`.
+
+**Portal module tiles — three states**
+
+`PortalController::index` and `resources/views/portal/index.php`
+rewritten so module tiles render in one of three states:
+
+- **active** — module enabled AND user has `{key}.dashboard.access`
+  → clickable link to `/{key}/dashboard`.
+- **no_access** — module enabled but user lacks permission → disabled
+  tile with "Ask a platform owner or tenant admin" hint.
+- **coming_soon** — module registered but not enabled in
+  `core_module_state` → disabled tile, no metric row.
+
+`getDashboardMetrics` is now called only for enabled modules (skip
+disabled modules whose tables may not yet exist) and wrapped in
+try/catch so metric failure does not 500 the portal. The tenant ID for
+metrics comes from the current user, not a hardcoded `1`.
+
+### Changed
+
+- **`App::VERSION` and `composer.json`** bumped from `0.6.0-alpha` to
+  `0.9.0-alpha` to reflect the actual shipped surface since v0.6.0.
+- **`docs/ABOUT.md`** rewritten: candidates, applications, interviews,
+  scorecards, offers, reports, calendar, tasks, lookups, global search,
+  and the four-axis RBAC model are now listed as built. The "not yet
+  built" section is narrowed to external-facing features (job boards,
+  self-apply, portals, resume parsing), peripheral ATS (assessments,
+  reference checks, email sync, 2FA UI, payments), and cross-module
+  operability (HR Aid activation, Corporate Connect worker).
+- **`docs/REMEMBER.md`** rewritten for v0.9.0-alpha. Doctrine rules
+  extended to #32 (grep the anchor after every write; verify WHERE
+  clauses against actual data; Rule 3b is contractual authority;
+  portal tile invariant).
+- **`docs/CHANGELOG.md`** (this entry): `[Unreleased]` cleared;
+  everything previously listed there moved here. `[0.8.0-alpha]` and
+  earlier preserved as historical records.
+
+### Fixed
+
+- **Migration 0073 WHERE-clause bug** — `0073_fix_core_namespace_scope.sql`
+  attempted `WHERE module = 'core' AND scope = 'app'` to normalise
+  `core.*` permissions to `scope='global'`, but the actual data has
+  `module = 'core.settings'`, `module = 'core.users'`, etc. (i.e.
+  `module` is the full slug prefix, never bare `'core'`). The
+  migration matched zero rows and had no effect. **Migration
+  `0074_fix_core_namespace_scope_v2.sql`** uses the correct predicate
+  `slug LIKE 'core.%' AND scope = 'app'`, updating all 11 `core.*`
+  permissions to `scope='global'`. This restores the Rule 3b
+  invariant that platform-domain permissions are not granted to
+  Developers.
+
+### Deferred
+
+- `DeveloperReadAuditMiddleware` — per-request audit of Developer GET
+  reads of tenant business data (RBAC-ARCHITECTURE.md §9.4(b),
+  §14.5).
+- **Application-layer protection of Developer accounts** — the
+  `ProtectPlatformOwnerMiddleware` covers `AdminUserController::update()`;
+  the CLI and service-layer paths remain unguarded (§14.5).
 
 ## [0.8.0-alpha] — 2026-11-09
 
