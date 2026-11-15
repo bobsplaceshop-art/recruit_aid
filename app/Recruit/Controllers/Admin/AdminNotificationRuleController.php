@@ -29,10 +29,14 @@ final class AdminNotificationRuleController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
 
+        /** @var \CorporateAid\Core\TenantContext $tenant */
+        $tenant = $this->container->get(\CorporateAid\Core\TenantContext::class);
+
         $rules = $db->select(
             "SELECT * FROM `core_notification_rules`
-             WHERE `deleted_at` IS NULL
-             ORDER BY `event_type` ASC, `recipient_type` ASC, `recipient_value` ASC"
+             WHERE `tenant_id` = ? AND `deleted_at` IS NULL
+             ORDER BY `event_type` ASC, `recipient_type` ASC, `recipient_value` ASC",
+            PDOParams::positional([$tenant->id()])
         );
 
         $eventTypes = $this->eventTypeCatalog();
@@ -112,14 +116,17 @@ final class AdminNotificationRuleController
             return Response::redirect('/login');
         }
 
+        /** @var \CorporateAid\Core\TenantContext $tenant */
+        $tenant = $this->container->get(\CorporateAid\Core\TenantContext::class);
+
         try {
             $db->execute(
                 "INSERT INTO `core_notification_rules`
-                    (`event_type`, `recipient_type`, `recipient_value`,
+                    (`tenant_id`, `event_type`, `recipient_type`, `recipient_value`,
                      `channel_inapp`, `channel_email`, `is_system`, `is_active`, `created_by`)
-                 VALUES (?, ?, ?, ?, ?, 0, 1, ?)",
+                 VALUES (?, ?, ?, ?, ?, ?, 0, 1, ?)",
                 PDOParams::positional([
-                    $event, $type, $value !== '' ? $value : null,
+                    $tenant->id(), $event, $type, $value !== '' ? $value : null,
                     $inapp ? 1 : 0, $email ? 1 : 0, $user->id,
                 ])
             );
@@ -156,10 +163,14 @@ final class AdminNotificationRuleController
             return Response::redirect('/admin/settings/notifications');
         }
 
+        /** @var \CorporateAid\Core\TenantContext $tenant */
+        $tenant = $this->container->get(\CorporateAid\Core\TenantContext::class);
+
         try {
             $db->execute(
-                "UPDATE `core_notification_rules` SET `{$column}` = ? WHERE `id` = ?",
-                PDOParams::positional([$value, $id])
+                "UPDATE `core_notification_rules` SET `{$column}` = ?
+                 WHERE `id` = ? AND `tenant_id` = ?",
+                PDOParams::positional([$value, $id, $tenant->id()])
             );
             $session->flash('success', 'Rule updated.');
         } catch (\Throwable $e) {
@@ -189,10 +200,14 @@ final class AdminNotificationRuleController
             return Response::redirect('/admin/settings/notifications');
         }
 
+        /** @var \CorporateAid\Core\TenantContext $tenant */
+        $tenant = $this->container->get(\CorporateAid\Core\TenantContext::class);
+
         try {
             $rule = $db->selectOne(
-                "SELECT `is_system` FROM `core_notification_rules` WHERE `id` = ?",
-                PDOParams::positional([$id])
+                "SELECT `is_system` FROM `core_notification_rules`
+                 WHERE `id` = ? AND `tenant_id` = ?",
+                PDOParams::positional([$id, $tenant->id()])
             );
             if ($rule === null) {
                 $session->flash('error', 'Rule not found.');
@@ -200,8 +215,9 @@ final class AdminNotificationRuleController
                 $session->flash('error', 'System rules cannot be deleted — disable them instead.');
             } else {
                 $db->execute(
-                    "UPDATE `core_notification_rules` SET `deleted_at` = NOW() WHERE `id` = ?",
-                    PDOParams::positional([$id])
+                    "UPDATE `core_notification_rules` SET `deleted_at` = NOW()
+                     WHERE `id` = ? AND `tenant_id` = ?",
+                    PDOParams::positional([$id, $tenant->id()])
                 );
                 $session->flash('success', 'Rule deleted.');
             }

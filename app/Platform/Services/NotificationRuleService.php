@@ -68,10 +68,11 @@ final class NotificationRuleService
     {
         return $this->db->select(
             "SELECT * FROM `core_notification_rules`
-             WHERE `event_type` = ?
+             WHERE `tenant_id` = ?
+               AND `event_type` = ?
                AND `is_active` = 1
                AND `deleted_at` IS NULL",
-            PDOParams::positional([$eventType])
+            PDOParams::positional([$this->tenant->id(), $eventType])
         );
     }
 
