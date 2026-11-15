@@ -195,7 +195,7 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
     }
 
     /**
-     * @param array{search?:string,status?:string,include_deleted?:bool,client_organisation_id?:int,engagement_id?:int,recruiter_id?:int} $filters
+     * @param array{search?:string,status?:string,include_deleted?:bool,client_organisation_id?:int,engagement_id?:int,recruiter_id?:int,is_public?:bool,status_not_in?:string[]} $filters
      * @return array{rows:Vacancy[], total:int, page:int, per_page:int, total_pages:int}
      */
     public function paginate(array $filters = [], int $page = 1, int $perPage = 25): array
@@ -233,6 +233,20 @@ final class VacancyRepository implements \CorporateAid\Platform\LiveSearch\LiveS
         if (!empty($filters['recruiter_id'])) {
             $where[] = "`recruiter_id` = ?";
             $params[] = (int) $filters['recruiter_id'];
+        }
+
+        if (isset($filters['is_public'])) {
+            $where[] = "`is_public` = ?";
+            $params[] = $filters['is_public'] ? 1 : 0;
+        }
+
+        if (!empty($filters['status_not_in'])) {
+            $statuses = array_values($filters['status_not_in']);
+            $placeholders = implode(',', array_fill(0, count($statuses), '?'));
+            $where[] = "`status` NOT IN ({$placeholders})";
+            foreach ($statuses as $status) {
+                $params[] = $status;
+            }
         }
 
         $whereSql = 'WHERE ' . implode(' AND ', $where);
