@@ -61,3 +61,5 @@ tests/*.debug-backup
 tests/*.pre_*.bak
 /tmp/
 phpstan-raw-*.txt
+phpstan-*.txt
+phpstan-*.txt
