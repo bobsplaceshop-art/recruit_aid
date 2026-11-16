@@ -68,6 +68,16 @@ final class Router
         return ['#^' . $regex . '$#', $paramNames];
     }
 
+    /**
+     * Return all registered routes, keyed by HTTP method.
+     *
+     * @return array<string, array<int, array{pattern:string, handler:mixed, middleware:array<int,string>}>>
+     */
+    public function allRoutes(): array
+    {
+        return $this->routes;
+    }
+
     public function dispatch(Request $request): Response
     {
         $method = $request->method();

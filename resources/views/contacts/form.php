@@ -107,8 +107,8 @@ $commOptions = [
         </div>
         <div class="ra-page-band-actions">
             <a href="<?= $isEdit
-                ? '/organisations/' . e($organisation->code) . '/contacts/' . e($contact->code)
-                : '/organisations/' . e($organisation->code) . '/contacts' ?>"
+                ? '/recruit/organisations/' . e($organisation->code) . '/contacts/' . e($contact->code)
+                : '/recruit/organisations/' . e($organisation->code) . '/contacts' ?>"
                class="ra-btn ra-btn-outline">
                 <i class="bi bi-x-lg"></i>
                 <span>Cancel</span>
