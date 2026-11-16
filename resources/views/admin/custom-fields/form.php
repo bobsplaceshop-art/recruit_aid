@@ -44,7 +44,7 @@ $constraints  = (array) $get('constraints', []);
             <h1 class="ra-page-band-title"><?= $isEdit ? 'Edit Field' : 'New Field' ?></h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin/custom-fields/<?= e($entityKey) ?>" class="ra-btn ra-btn-outline">
+            <a href="/recruit/admin/custom-fields/<?= e($entityKey) ?>" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
@@ -65,7 +65,7 @@ $constraints  = (array) $get('constraints', []);
 <?php endif; ?>
 
 <form id="cf-form" method="POST"
-      action="/admin/custom-fields/<?= e($entityKey) ?><?= $isEdit ? '/' . (int) $field->id : '' ?>"
+      action="/recruit/admin/custom-fields/<?= e($entityKey) ?><?= $isEdit ? '/' . (int) $field->id : '' ?>"
       novalidate>
     <?= csrf_field() ?>
 

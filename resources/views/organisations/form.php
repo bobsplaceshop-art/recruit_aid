@@ -68,7 +68,7 @@ $statusOptions = [
             </h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="<?= $isEdit ? '/organisations/' . e($organisation->code) : '/organisations' ?>"
+            <a href="<?= $isEdit ? '/recruit/organisations/' . e($organisation->code) : '/recruit/organisations' ?>"
                class="ra-btn ra-btn-outline">
                 <i class="bi bi-x-lg"></i>
                 <span>Cancel</span>

@@ -5,7 +5,7 @@
             <h1 class="ra-page-band-title">Your Scorecard</h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/interviews/<?= e($interview->code) ?>" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+            <a href="/recruit/interviews/<?= e($interview->code) ?>" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
         </div>
     </div>
 </div>
@@ -18,7 +18,7 @@
     <div class="ra-alert ra-alert-error mb-3"><ul class="mb-0"><?php foreach ($errors as $e): ?><li><?= e($e) ?></li><?php endforeach; ?></ul></div>
 <?php endif; ?>
 
-<form method="POST" action="/interviews/<?= e($interview->code) ?>/scorecard">
+<form method="POST" action="/recruit/interviews/<?= e($interview->code) ?>/scorecard">
     <?= csrf_field() ?>
 
     <div class="ra-card mb-3">

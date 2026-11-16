@@ -59,7 +59,7 @@ final class GlobalSearchService
                 'title'    => Row::str($r, 'name'),
                 'subtitle' => Row::str($r, 'legal_name') ?: (Row::str($r, 'industry') ?: 'Organisation'),
                 'meta'     => Row::str($r, 'code'),
-                'url'      => '/organisations/' . Row::str($r, 'code'),
+                'url'      => '/recruit/organisations/' . Row::str($r, 'code'),
             ], $rows);
             if (!empty($items)) {
                 $groups[] = ['key' => 'organisations', 'label' => 'Organisations', 'items' => $items];
@@ -85,7 +85,7 @@ final class GlobalSearchService
                 'title'    => trim(Row::str($r, 'first_name') . ' ' . Row::str($r, 'last_name')),
                 'subtitle' => Row::str($r, 'position') ?: (Row::str($r, 'email') ?: 'Contact'),
                 'meta'     => Row::str($r, 'org_name') . ' · ' . Row::str($r, 'code'),
-                'url'      => '/organisations/' . Row::str($r, 'org_code') . '/contacts/' . Row::str($r, 'code'),
+                'url'      => '/recruit/organisations/' . Row::str($r, 'org_code') . '/contacts/' . Row::str($r, 'code'),
             ], $rows);
             if (!empty($items)) {
                 $groups[] = ['key' => 'contacts', 'label' => 'Contacts', 'items' => $items];

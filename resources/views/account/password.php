@@ -20,7 +20,7 @@
         <div class="ra-alert ra-alert-success"><?= e((string) $success) ?></div>
     <?php endif; ?>
 
-    <form method="POST" action="/account/password" novalidate>
+    <form method="POST" action="/recruit/account/password" novalidate>
         <?= csrf_field() ?>
 
         <div class="mb-3">

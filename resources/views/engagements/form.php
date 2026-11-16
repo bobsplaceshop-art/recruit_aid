@@ -53,7 +53,7 @@ $statuses = [
 ];
 $frequencies = ['weekly' => 'Weekly', 'monthly' => 'Monthly', 'quarterly' => 'Quarterly', 'custom' => 'Custom'];
 
-$formAction = $isEdit ? '/engagements/' . $engagement->code : '/engagements';
+$formAction = $isEdit ? '/recruit/engagements/' . $engagement->code : '/recruit/engagements';
 
 $packagesJson = json_encode(array_map(fn ($p) => [
     'id' => (int) $p['id'], 'name' => $p['name'], 'service_type' => $p['service_type'],

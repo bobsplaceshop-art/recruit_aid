@@ -129,7 +129,7 @@ final class OfferController
             /** @var Session $session */
             $session = $this->container->get(Session::class);
             $session->flash('error', 'This application already has an active offer (' . $existing->code . ').');
-            return Response::redirect('/offers/' . $existing->code);
+            return Response::redirect('/recruit/offers/' . $existing->code);
         }
 
         /** @var CandidateRepository $cands */
@@ -220,7 +220,7 @@ final class OfferController
 
         $code = $result['offer'] !== null ? $result['offer']->code : '';
         $session->flash('success', 'Offer draft created.');
-        return Response::redirect('/offers/' . $code);
+        return Response::redirect('/recruit/offers/' . $code);
     }
 
     /** @param array<string, string> $params */
@@ -319,6 +319,6 @@ final class OfferController
             $session->flash('success', 'Offer ' . $pastTense . ' successfully.');
         }
 
-        return Response::redirect('/offers/' . $code);
+        return Response::redirect('/recruit/offers/' . $code);
     }
 }

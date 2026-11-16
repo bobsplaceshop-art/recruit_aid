@@ -117,32 +117,36 @@ $isLoggedIn = isset($user) && $user;
         <?php if ($isLoggedIn): ?>
         <div class="ra-nav-group">
             <div class="ra-nav-group-label">Work</div>
-            <a href="/tasks" class="ra-nav-item <?= $isActive('/tasks') ?>">
-                <i class="bi bi-check2-square"></i>
-                <span>Tasks</span><?= $soonBadge() ?>
-            </a>
-            <a href="/calendar" class="ra-nav-item <?= $isActive('/calendar') ?>">
-                <i class="bi bi-calendar3"></i>
-                <span>Calendar</span><?= $soonBadge() ?>
-            </a>
-            <a href="/activity" class="ra-nav-item <?= $isActive('/activity') ?>">
+            <?php if ($user->can('recruit.tasks.view')): ?>
+                <a href="/recruit/tasks" class="ra-nav-item <?= $isActive('/recruit/tasks') ?>">
+                    <i class="bi bi-check2-square"></i>
+                    <span>Tasks</span>
+                </a>
+            <?php endif; ?>
+            <?php if ($user->can('recruit.calendar.view')): ?>
+                <a href="/recruit/calendar" class="ra-nav-item <?= $isActive('/recruit/calendar') ?>">
+                    <i class="bi bi-calendar3"></i>
+                    <span>Calendar</span>
+                </a>
+            <?php endif; ?>
+            <a href="/recruit/activity" class="ra-nav-item <?= $isActive('/recruit/activity') ?>">
                 <i class="bi bi-activity"></i>
                 <span>Activity</span>
             </a>
         </div>
         <?php endif; ?>
 
-        <?php if ($isLoggedIn && ($user->can('recruit.reports.view') || $user->can('core.documents.view'))): ?>
+        <?php if ($isLoggedIn && ($user->can('recruit.reports.view') || $user->can('recruit.documents.view'))): ?>
         <div class="ra-nav-group">
             <div class="ra-nav-group-label">Insights</div>
             <?php if ($user->can('recruit.reports.view')): ?>
-                <a href="/reports" class="ra-nav-item <?= $isActive('/reports') ?>">
+                <a href="/recruit/reports" class="ra-nav-item <?= $isActive('/recruit/reports') ?>">
                     <i class="bi bi-graph-up"></i>
                     <span>Reports</span>
                 </a>
             <?php endif; ?>
-            <?php if ($user->can('core.documents.view')): ?>
-                <a href="/documents" class="ra-nav-item <?= $isActive('/documents') ?>">
+            <?php if ($user->can('recruit.documents.view')): ?>
+                <a href="/recruit/documents" class="ra-nav-item <?= $isActive('/recruit/documents') ?>">
                     <i class="bi bi-folder2-open"></i>
                     <span>Documents</span><?= $soonBadge() ?>
                 </a>
@@ -153,34 +157,34 @@ $isLoggedIn = isset($user) && $user;
         <?php if ($isLoggedIn && ($user->can('core.users.view') || $user->can('core.settings.manage') || $user->can('core.audit.view') || $user->can('core.custom_fields.manage'))): ?>
         <div class="ra-nav-group">
             <div class="ra-nav-group-label">Administration</div>
-            <a href="/admin" class="ra-nav-item <?= $isActive('/admin') ?>">
+            <a href="/recruit/admin" class="ra-nav-item <?= $isActive('/admin') ?>">
                 <i class="bi bi-sliders"></i>
                 <span>Overview</span>
             </a>
             <?php if ($user->can('core.users.view')): ?>
-                <a href="/admin/users" class="ra-nav-item <?= $isActive('/admin/users') ?>">
+                <a href="/recruit/admin/users" class="ra-nav-item <?= $isActive('/admin/users') ?>">
                     <i class="bi bi-person-badge"></i>
                     <span>Users</span>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('core.settings.manage')): ?>
-                <a href="/admin/roles-perm" class="ra-nav-item <?= $isActive('/admin/roles-perm') ?>">
+                <a href="/recruit/admin/roles-perm" class="ra-nav-item <?= $isActive('/admin/roles-perm') ?>">
                     <i class="bi bi-shield-lock"></i>
                     <span>Roles &amp; Permissions</span>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('core.custom_fields.manage')): ?>
-                <a href="/admin/custom-fields" class="ra-nav-item <?= $isActive('/admin/custom-fields') ?>">
+                <a href="/recruit/admin/custom-fields" class="ra-nav-item <?= $isActive('/admin/custom-fields') ?>">
                     <i class="bi bi-input-cursor-text"></i>
                     <span>Custom Fields</span>
                 </a>
-                <a href="/admin/lookups" class="ra-nav-item <?= $isActive('/admin/lookups') ?>">
+                <a href="/recruit/admin/lookups" class="ra-nav-item <?= $isActive('/admin/lookups') ?>">
                     <i class="bi bi-list-ul"></i>
                     <span>Lookups</span>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('core.audit.view')): ?>
-                <a href="/admin/audit" class="ra-nav-item <?= $isActive('/admin/audit') ?>">
+                <a href="/recruit/admin/audit" class="ra-nav-item <?= $isActive('/recruit/admin/audit') ?>">
                     <i class="bi bi-journal-text"></i>
                     <span>Audit Log</span><?= $soonBadge() ?>
                 </a>

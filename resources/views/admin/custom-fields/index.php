@@ -5,7 +5,7 @@
             <h1 class="ra-page-band-title">Custom Fields</h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin" class="ra-btn ra-btn-outline">
+            <a href="/recruit/admin" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
@@ -20,7 +20,7 @@
 
 <div class="ra-tiles">
     <?php foreach ($counts as $key => $info): ?>
-        <a href="/admin/custom-fields/<?= e($key) ?>" class="ra-tile">
+        <a href="/recruit/admin/custom-fields/<?= e($key) ?>" class="ra-tile">
             <div class="ra-tile-icon ra-tile-icon--sky">
                 <i class="bi bi-input-cursor-text"></i>
             </div>

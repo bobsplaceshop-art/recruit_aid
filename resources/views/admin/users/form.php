@@ -5,7 +5,7 @@
             <h1 class="ra-page-band-title"><?= e($title) ?></h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin/users" class="ra-btn ra-btn-outline">
+            <a href="/recruit/admin/users" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
@@ -69,7 +69,7 @@
 
         <?php if (empty($allRoles)): ?>
             <div class="ra-alert ra-alert-info">
-                No roles exist yet. <a href="/admin/roles-perm/roles/create">Create a role first</a>.
+                No roles exist yet. <a href="/recruit/admin/roles-perm/roles/create">Create a role first</a>.
             </div>
         <?php else: ?>
             <div class="row g-2">
@@ -99,6 +99,6 @@
         <button type="submit" class="ra-btn ra-btn-primary">
             <?= $editing ? 'Save Changes' : 'Create User' ?>
         </button>
-        <a href="/admin/users" class="ra-btn ra-btn-outline">Cancel</a>
+        <a href="/recruit/admin/users" class="ra-btn ra-btn-outline">Cancel</a>
     </div>
 </form>

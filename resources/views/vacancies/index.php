@@ -32,7 +32,7 @@ $statusPills = [
         </div>
         <div class="ra-page-band-actions">
             <?php if ($user->can('recruit.vacancies.create')): ?>
-                <a href="/vacancies/create" class="ra-btn ra-btn-primary">
+                <a href="/recruit/vacancies/create" class="ra-btn ra-btn-primary">
                     <i class="bi bi-plus-lg"></i>
                     <span>New Vacancy</span>
                 </a>
@@ -44,7 +44,7 @@ $statusPills = [
 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
     <div class="ra-pill-group" style="flex-wrap:wrap;">
         <?php foreach ($statusPills as $key => $label): ?>
-            <a href="/vacancies?status=<?= $key === 'all' ? '' : urlencode($key) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
+            <a href="/recruit/vacancies?status=<?= $key === 'all' ? '' : urlencode($key) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
                class="ra-pill <?= $activeStatus === $key ? 'is-active' : '' ?>">
                 <?= e($label) ?>
                 <span class="muted ms-1" style="font-size:.75rem;">(<?= (int) ($counts[$key] ?? 0) ?>)</span>
@@ -53,7 +53,7 @@ $statusPills = [
     </div>
 </div>
 
-<form method="GET" action="/vacancies" class="mb-3">
+<form method="GET" action="/recruit/vacancies" class="mb-3">
     <?php if ($activeStatus !== 'all'): ?>
         <input type="hidden" name="status" value="<?= e($activeStatus) ?>">
     <?php endif; ?>
@@ -101,7 +101,7 @@ $statusPills = [
             <?php else: ?>
                 <div class="mb-3">No vacancies yet.</div>
                 <?php if ($user->can('recruit.vacancies.create')): ?>
-                    <a href="/vacancies/create" class="ra-btn ra-btn-primary">
+                    <a href="/recruit/vacancies/create" class="ra-btn ra-btn-primary">
                         <i class="bi bi-plus-lg"></i>
                         <span>Create the first vacancy</span>
                     </a>
@@ -125,9 +125,9 @@ $statusPills = [
             <?php foreach ($vacancies as $v): ?>
                 <?php $org = $orgMap[$v->clientOrganisationId] ?? null; ?>
                 <tr>
-                    <td><a href="/vacancies/<?= e($v->code) ?>" class="text-decoration-none"><code><?= e($v->code) ?></code></a></td>
+                    <td><a href="/recruit/vacancies/<?= e($v->code) ?>" class="text-decoration-none"><code><?= e($v->code) ?></code></a></td>
                     <td>
-                        <a href="/vacancies/<?= e($v->code) ?>" class="text-decoration-none">
+                        <a href="/recruit/vacancies/<?= e($v->code) ?>" class="text-decoration-none">
                             <strong><?= e($v->title) ?></strong>
                         </a>
                         <?php if ($v->department): ?>
@@ -136,7 +136,7 @@ $statusPills = [
                     </td>
                     <td class="muted small">
                         <?php if ($org): ?>
-                            <a href="/organisations/<?= e($org->code) ?>"><?= e($org->name) ?></a>
+                            <a href="/recruit/organisations/<?= e($org->code) ?>"><?= e($org->name) ?></a>
                         <?php else: ?>—<?php endif; ?>
                     </td>
                     <td class="muted small">
@@ -148,9 +148,9 @@ $statusPills = [
                     <td><span class="<?= $v->statusBadgeClass() ?>"><?= e($v->statusLabel()) ?></span></td>
                     <td>
                         <div class="d-flex gap-1">
-                            <a href="/vacancies/<?= e($v->code) ?>" class="ra-row-actions" title="View"><i class="bi bi-eye"></i></a>
+                            <a href="/recruit/vacancies/<?= e($v->code) ?>" class="ra-row-actions" title="View"><i class="bi bi-eye"></i></a>
                             <?php if ($user->can('recruit.vacancies.edit')): ?>
-                                <a href="/vacancies/<?= e($v->code) ?>/edit" class="ra-row-actions" title="Edit"><i class="bi bi-pencil"></i></a>
+                                <a href="/recruit/vacancies/<?= e($v->code) ?>/edit" class="ra-row-actions" title="Edit"><i class="bi bi-pencil"></i></a>
                             <?php endif; ?>
                         </div>
                     </td>

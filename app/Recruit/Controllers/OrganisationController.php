@@ -114,11 +114,11 @@ final class OrganisationController
         $organisation = $result['organisation'];
         if ($organisation === null) {
             $session->flash('error', 'Organisation was created but could not be retrieved.');
-            return Response::redirect('/organisations');
+            return Response::redirect('/recruit/organisations');
         }
 
         $session->flash('success', 'Organisation created: ' . $organisation->name);
-        return Response::redirect('/organisations/' . $organisation->code);
+        return Response::redirect('/recruit/organisations/' . $organisation->code);
     }
 
     /**
@@ -196,7 +196,7 @@ final class OrganisationController
         $org = $orgs->findByCode($code);
 
         if (!$org) {
-            return Response::redirect('/organisations');
+            return Response::redirect('/recruit/organisations');
         }
 
         /** @var OrganisationService $service */
@@ -224,7 +224,7 @@ final class OrganisationController
         }
 
         $session->flash('success', 'Organisation updated.');
-        return Response::redirect('/organisations/' . $org->code);
+        return Response::redirect('/recruit/organisations/' . $org->code);
     }
 
     /**
@@ -258,7 +258,7 @@ final class OrganisationController
         $org = $orgs->findByCode($code, true);
 
         if (!$org) {
-            return Response::redirect('/organisations');
+            return Response::redirect('/recruit/organisations');
         }
 
         /** @var OrganisationService $service */
@@ -274,11 +274,11 @@ final class OrganisationController
 
         if ($result->success) {
             $session->flash('success', $result->message);
-            return Response::redirect('/organisations');
+            return Response::redirect('/recruit/organisations');
         }
 
         $session->flash('error', $result->message);
-        return Response::redirect('/organisations/' . $code);
+        return Response::redirect('/recruit/organisations/' . $code);
     }
 
     /**
@@ -325,7 +325,7 @@ final class OrganisationController
         $org = $orgs->findByCode($code, true);
 
         if (!$org) {
-            return Response::redirect('/organisations');
+            return Response::redirect('/recruit/organisations');
         }
 
         /** @var OrganisationService $service */
@@ -346,7 +346,7 @@ final class OrganisationController
             $session->flash('error', $result->message);
         }
 
-        return Response::redirect('/organisations/' . $code);
+        return Response::redirect('/recruit/organisations/' . $code);
     }
 
     /** @return array<string, mixed> */

@@ -16,11 +16,11 @@ $total = count($fields);
             <h1 class="ra-page-band-title"><?= e($entityLabel) ?></h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin/custom-fields" class="ra-btn ra-btn-outline">
+            <a href="/recruit/admin/custom-fields" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
-            <a href="/admin/custom-fields/<?= e($entityKey) ?>/create" class="ra-btn ra-btn-primary">
+            <a href="/recruit/admin/custom-fields/<?= e($entityKey) ?>/create" class="ra-btn ra-btn-primary">
                 <i class="bi bi-plus-lg"></i>
                 <span>New Field</span>
             </a>
@@ -45,7 +45,7 @@ $total = count($fields);
     <?php if ($total === 0): ?>
         <div class="text-center muted" style="padding:3rem 1.5rem;">
             <div class="mb-2">No custom fields defined for <?= e($entityLabel) ?> yet.</div>
-            <a href="/admin/custom-fields/<?= e($entityKey) ?>/create" class="ra-btn ra-btn-primary">
+            <a href="/recruit/admin/custom-fields/<?= e($entityKey) ?>/create" class="ra-btn ra-btn-primary">
                 <i class="bi bi-plus-lg"></i>
                 <span>Add the first field</span>
             </a>
@@ -74,7 +74,7 @@ $total = count($fields);
                     <td>
                         <div class="d-flex gap-1">
                             <form method="POST"
-                                  action="/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/move-up"
+                                  action="/recruit/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/move-up"
                                   style="margin:0;">
                                 <?= csrf_field() ?>
                                 <button type="submit"
@@ -85,7 +85,7 @@ $total = count($fields);
                                 </button>
                             </form>
                             <form method="POST"
-                                  action="/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/move-down"
+                                  action="/recruit/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/move-down"
                                   style="margin:0;">
                                 <?= csrf_field() ?>
                                 <button type="submit"
@@ -107,7 +107,7 @@ $total = count($fields);
                     <td class="muted small"><?= e($typeLabels[$field->inputType] ?? $field->inputType) ?></td>
                     <td>
                         <form method="POST"
-                              action="/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/toggle-required"
+                              action="/recruit/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/toggle-required"
                               style="margin:0;">
                             <?= csrf_field() ?>
                             <label class="ra-toggle" title="<?= $field->isRequired ? 'Required' : 'Optional' ?>">
@@ -130,14 +130,14 @@ $total = count($fields);
                     </td>
                     <td>
                         <div class="d-flex gap-1">
-                            <a href="/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/edit"
+                            <a href="/recruit/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/edit"
                                class="ra-row-actions" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </a>
 
                             <?php if ($field->isActive): ?>
                                 <form method="POST"
-                                      action="/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/archive"
+                                      action="/recruit/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/archive"
                                       style="margin:0;">
                                     <?= csrf_field() ?>
                                     <button type="submit"
@@ -149,7 +149,7 @@ $total = count($fields);
                                 </form>
                             <?php else: ?>
                                 <form method="POST"
-                                      action="/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/restore"
+                                      action="/recruit/admin/custom-fields/<?= e($entityKey) ?>/<?= $fieldId ?>/restore"
                                       style="margin:0;">
                                     <?= csrf_field() ?>
                                     <button type="submit" class="ra-row-actions" title="Restore">

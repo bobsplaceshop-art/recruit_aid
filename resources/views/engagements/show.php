@@ -28,7 +28,7 @@ $pct = $capacity['capacity'] > 0
         <div>
             <div class="ra-page-band-label">
                 Clients · <?php if ($organisation): ?>
-                    <a href="/organisations/<?= e($organisation->code) ?>" class="text-decoration-none">
+                    <a href="/recruit/organisations/<?= e($organisation->code) ?>" class="text-decoration-none">
                         <?= e($organisation->name) ?>
                     </a>
                 <?php else: ?>Unknown client<?php endif; ?>
@@ -74,7 +74,7 @@ $pct = $capacity['capacity'] > 0
                     <div class="muted small">Client</div>
                     <div>
                         <?php if ($organisation): ?>
-                            <a href="/organisations/<?= e($organisation->code) ?>"><?= e($organisation->name) ?></a>
+                            <a href="/recruit/organisations/<?= e($organisation->code) ?>"><?= e($organisation->name) ?></a>
                         <?php else: ?>—<?php endif; ?>
                     </div>
                 </div>
@@ -238,7 +238,7 @@ $pct = $capacity['capacity'] > 0
         <div class="ra-card mt-3">
             <h2 class="h6 mb-3 muted">Quick actions</h2>
             <?php if ($user->can('recruit.vacancies.create')): ?>
-                <a href="/vacancies/create?engagement=<?= e($engagement->code) ?>" class="ra-dropdown-item mb-1">
+                <a href="/recruit/vacancies/create?engagement=<?= e($engagement->code) ?>" class="ra-dropdown-item mb-1">
                     <i class="bi bi-briefcase"></i>
                     <span>Add vacancy</span>
                 </a>

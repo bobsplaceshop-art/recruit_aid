@@ -82,7 +82,7 @@ final class AdminNotificationRuleController
 
         if (!$auth->can('core.settings.manage')) {
             $session->flash('error', 'You do not have permission to manage notification rules.');
-            return Response::redirect('/admin/settings/notifications');
+            return Response::redirect('/recruit/admin/settings/notifications');
         }
 
         $event = trim($request->inputString('event_type', ''));
@@ -107,7 +107,7 @@ final class AdminNotificationRuleController
 
         if (!empty($errors)) {
             $session->flash('error', implode(' ', $errors));
-            return Response::redirect('/admin/settings/notifications');
+            return Response::redirect('/recruit/admin/settings/notifications');
         }
 
         $user = $auth->user();
@@ -135,7 +135,7 @@ final class AdminNotificationRuleController
             $session->flash('error', 'Could not add rule: ' . $e->getMessage());
         }
 
-        return Response::redirect('/admin/settings/notifications');
+        return Response::redirect('/recruit/admin/settings/notifications');
     }
 
     /** @param array<string, string> $params */
@@ -150,7 +150,7 @@ final class AdminNotificationRuleController
 
         if (!$auth->can('core.settings.manage')) {
             $session->flash('error', 'You do not have permission to manage notification rules.');
-            return Response::redirect('/admin/settings/notifications');
+            return Response::redirect('/recruit/admin/settings/notifications');
         }
 
         $id = Row::int($params, 'id');
@@ -160,7 +160,7 @@ final class AdminNotificationRuleController
         $allowedColumns = ['channel_inapp', 'channel_email', 'is_active'];
         if ($id === 0 || !in_array($column, $allowedColumns, true)) {
             $session->flash('error', 'Invalid toggle request.');
-            return Response::redirect('/admin/settings/notifications');
+            return Response::redirect('/recruit/admin/settings/notifications');
         }
 
         /** @var \CorporateAid\Core\TenantContext $tenant */
@@ -177,7 +177,7 @@ final class AdminNotificationRuleController
             $session->flash('error', 'Update failed: ' . $e->getMessage());
         }
 
-        return Response::redirect('/admin/settings/notifications');
+        return Response::redirect('/recruit/admin/settings/notifications');
     }
 
     /** @param array<string, string> $params */
@@ -192,12 +192,12 @@ final class AdminNotificationRuleController
 
         if (!$auth->can('core.settings.manage')) {
             $session->flash('error', 'You do not have permission to manage notification rules.');
-            return Response::redirect('/admin/settings/notifications');
+            return Response::redirect('/recruit/admin/settings/notifications');
         }
 
         $id = Row::int($params, 'id');
         if ($id === 0) {
-            return Response::redirect('/admin/settings/notifications');
+            return Response::redirect('/recruit/admin/settings/notifications');
         }
 
         /** @var \CorporateAid\Core\TenantContext $tenant */
@@ -225,7 +225,7 @@ final class AdminNotificationRuleController
             $session->flash('error', 'Delete failed: ' . $e->getMessage());
         }
 
-        return Response::redirect('/admin/settings/notifications');
+        return Response::redirect('/recruit/admin/settings/notifications');
     }
 
     private function humanizeSlug(string $slug): string

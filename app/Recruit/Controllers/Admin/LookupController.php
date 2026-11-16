@@ -144,7 +144,7 @@ final class LookupController
         ]);
 
         $session->flash('success', $lookups->groupLabel($group) . ' value "' . $label . '" created.');
-        return Response::redirect('/admin/lookups/' . $group);
+        return Response::redirect('/recruit/admin/lookups/' . $group);
     }
 
     /** @param array<string, string> $params */
@@ -228,7 +228,7 @@ final class LookupController
         ]);
 
         $session->flash('success', $lookups->groupLabel($group) . ' value "' . $label . '" updated.');
-        return Response::redirect('/admin/lookups/' . $group);
+        return Response::redirect('/recruit/admin/lookups/' . $group);
     }
 
     /** @param array<string, string> $params */
@@ -247,16 +247,16 @@ final class LookupController
 
         if ($item === null || $item['group_slug'] !== $group) {
             $session->flash('error', 'Lookup value not found.');
-            return Response::redirect('/admin/lookups/' . $group);
+            return Response::redirect('/recruit/admin/lookups/' . $group);
         }
 
         if ($item['is_system']) {
             $session->flash('error', 'Cannot delete a system-provided value. You can deactivate it instead.');
-            return Response::redirect('/admin/lookups/' . $group);
+            return Response::redirect('/recruit/admin/lookups/' . $group);
         }
 
         $repo->softDelete($id);
         $session->flash('success', 'Value "' . $item['label'] . '" deleted.');
-        return Response::redirect('/admin/lookups/' . $group);
+        return Response::redirect('/recruit/admin/lookups/' . $group);
     }
 }

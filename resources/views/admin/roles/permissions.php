@@ -5,7 +5,7 @@
             <h1 class="ra-page-band-title">Permissions Matrix</h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin/roles-perm" class="ra-btn ra-btn-outline">
+            <a href="/recruit/admin/roles-perm" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
@@ -14,7 +14,7 @@
 </div>
 
 <div class="ra-card mb-3">
-    <form method="GET" action="/admin/roles-perm/permissions" class="d-flex align-items-center gap-3">
+    <form method="GET" action="/recruit/admin/roles-perm/permissions" class="d-flex align-items-center gap-3">
         <label for="role-select" class="ra-label m-0" style="white-space:nowrap;">Select Role:</label>
         <select id="role-select" name="role_id" class="ra-select" onchange="this.form.submit()" style="width:auto; min-width:250px;">
             <?php if (empty($roles)): ?>
@@ -31,7 +31,7 @@
 </div>
 
 <?php if ($selectedRoleId > 0): ?>
-    <form method="POST" action="/admin/roles-perm/permissions">
+    <form method="POST" action="/recruit/admin/roles-perm/permissions">
         <?= csrf_field() ?>
         <input type="hidden" name="role_id" value="<?= (int) $selectedRoleId ?>">
 
@@ -67,7 +67,7 @@
 
         <div class="d-flex gap-2">
             <button type="submit" class="ra-btn ra-btn-primary">Save Permissions</button>
-            <a href="/admin/roles-perm/roles" class="ra-btn ra-btn-outline">Cancel</a>
+            <a href="/recruit/admin/roles-perm/roles" class="ra-btn ra-btn-outline">Cancel</a>
         </div>
     </form>
 <?php else: ?>

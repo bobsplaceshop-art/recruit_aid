@@ -104,7 +104,7 @@ final class ActivityController
                 return [
                     'label'   => $e->name,
                     'code'    => $e->code,
-                    'backUrl' => '/organisations/' . $e->code,
+                    'backUrl' => '/recruit/organisations/' . $e->code,
                 ];
 
             case 'contact':
@@ -119,7 +119,7 @@ final class ActivityController
                 return [
                     'label'   => $e->fullName(),
                     'code'    => $e->code,
-                    'backUrl' => '/organisations/' . $orgCode . '/contacts/' . $e->code,
+                    'backUrl' => '/recruit/organisations/' . $orgCode . '/contacts/' . $e->code,
                 ];
 
             case 'engagement':

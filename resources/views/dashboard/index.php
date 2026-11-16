@@ -76,7 +76,7 @@
                 ?>
                 <div class="d-flex align-items-center gap-3 mb-2 pb-2" style="border-bottom:1px solid var(--ra-border-soft);">
                     <div style="flex:1;min-width:0;">
-                        <a href="/engagements/<?= e($e['code']) ?>" class="text-decoration-none">
+                        <a href="/recruit/engagements/<?= e($e['code']) ?>" class="text-decoration-none">
                             <strong><?= e($e['name']) ?></strong>
                         </a>
                         <div class="muted" style="font-size:.75rem;">
@@ -111,7 +111,7 @@
             <?php foreach ($deadlines as $v): ?>
                 <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom:1px solid var(--ra-border-soft);">
                     <div style="flex:1;min-width:0;">
-                        <a href="/vacancies/<?= e($v['code']) ?>" class="text-decoration-none">
+                        <a href="/recruit/vacancies/<?= e($v['code']) ?>" class="text-decoration-none">
                             <strong><?= e($v['title']) ?></strong>
                         </a>
                         <div class="muted" style="font-size:.75rem;">
@@ -141,7 +141,7 @@
             <?php foreach ($aging as $v): ?>
                 <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom:1px solid var(--ra-border-soft);">
                     <div style="flex:1;min-width:0;">
-                        <a href="/vacancies/<?= e($v['code']) ?>" class="text-decoration-none">
+                        <a href="/recruit/vacancies/<?= e($v['code']) ?>" class="text-decoration-none">
                             <strong><?= e($v['title']) ?></strong>
                         </a>
                         <div class="muted" style="font-size:.75rem;">

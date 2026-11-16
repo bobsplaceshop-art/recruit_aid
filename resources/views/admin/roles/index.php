@@ -5,11 +5,11 @@
             <h1 class="ra-page-band-title">Roles</h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin/roles-perm/roles/create" class="ra-btn ra-btn-primary">
+            <a href="/recruit/admin/roles-perm/roles/create" class="ra-btn ra-btn-primary">
                 <i class="bi bi-plus-lg"></i>
                 <span>Create Role</span>
             </a>
-            <a href="/admin/roles-perm" class="ra-btn ra-btn-outline">
+            <a href="/recruit/admin/roles-perm" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
@@ -44,9 +44,9 @@
                     <?php endif; ?>
                 </td>
                 <td>
-                    <a href="/admin/roles-perm/roles/<?= (int) $role['id'] ?>/edit" class="ra-btn ra-btn-outline" style="padding:.25rem .5rem;font-size:.85rem;">Edit</a>
+                    <a href="/recruit/admin/roles-perm/roles/<?= (int) $role['id'] ?>/edit" class="ra-btn ra-btn-outline" style="padding:.25rem .5rem;font-size:.85rem;">Edit</a>
                     <?php if (empty($role['is_system'])): ?>
-                        <form method="POST" action="/admin/roles-perm/roles/<?= (int) $role['id'] ?>" style="display:inline;" onsubmit="return confirm('Delete this role?');">
+                        <form method="POST" action="/recruit/admin/roles-perm/roles/<?= (int) $role['id'] ?>" style="display:inline;" onsubmit="return confirm('Delete this role?');">
                             <?= csrf_field() ?>
                             <?= method_field('DELETE') ?>
                             <button type="submit" class="ra-btn ra-btn-outline" style="padding:.25rem .5rem;font-size:.85rem;color:var(--ra-error-fg);">Delete</button>

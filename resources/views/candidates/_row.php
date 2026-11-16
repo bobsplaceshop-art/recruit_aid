@@ -6,12 +6,12 @@ $user = \CorporateAid\Core\App::instance()->container()->get(\CorporateAid\Core\
 ?>
 <tr>
     <td>
-        <a href="/candidates/<?= e($c->code) ?>" class="text-decoration-none">
+        <a href="/recruit/candidates/<?= e($c->code) ?>" class="text-decoration-none">
             <code style="font-size:.85rem;"><?= e($c->code) ?></code>
         </a>
     </td>
     <td>
-        <a href="/candidates/<?= e($c->code) ?>" class="text-decoration-none">
+        <a href="/recruit/candidates/<?= e($c->code) ?>" class="text-decoration-none">
             <strong><?= e($c->fullName()) ?></strong>
         </a>
     </td>
@@ -27,11 +27,11 @@ $user = \CorporateAid\Core\App::instance()->container()->get(\CorporateAid\Core\
     </td>
     <td>
         <div class="d-flex gap-1">
-            <a href="/candidates/<?= e($c->code) ?>" class="ra-row-actions" title="View">
+            <a href="/recruit/candidates/<?= e($c->code) ?>" class="ra-row-actions" title="View">
                 <i class="bi bi-eye"></i>
             </a>
             <?php if ($user !== null && $user->can('recruit.candidates.edit')): ?>
-                <a href="/candidates/<?= e($c->code) ?>/edit" class="ra-row-actions" title="Edit">
+                <a href="/recruit/candidates/<?= e($c->code) ?>/edit" class="ra-row-actions" title="Edit">
                     <i class="bi bi-pencil"></i>
                 </a>
             <?php endif; ?>

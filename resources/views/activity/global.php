@@ -6,7 +6,7 @@
             <p class="ra-page-sub"><?= (int) $total ?> total event<?= $total === 1 ? '' : 's' ?></p>
         </div>
         <div class="ra-page-band-actions">
-            <form method="GET" action="/activity" class="d-flex gap-2">
+            <form method="GET" action="/recruit/activity" class="d-flex gap-2">
                 <input type="text" name="q" class="ra-input" placeholder="Search activities..." value="<?= e($search) ?>" style="width: 250px;">
                 <button type="submit" class="ra-btn ra-btn-outline">Search</button>
             </form>
@@ -49,10 +49,10 @@
         <div class="muted small">Page <?= (int) $page ?> of <?= (int) $totalPages ?></div>
         <div class="d-flex gap-2">
             <?php if ($page > 1): ?>
-                <a href="/activity?page=<?= $page - 1 ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Previous</a>
+                <a href="/recruit/activity?page=<?= $page - 1 ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Previous</a>
             <?php endif; ?>
             <?php if ($page < $totalPages): ?>
-                <a href="/activity?page=<?= $page + 1 ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Next</a>
+                <a href="/recruit/activity?page=<?= $page + 1 ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Next</a>
             <?php endif; ?>
         </div>
     </div>

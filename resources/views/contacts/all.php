@@ -44,7 +44,7 @@ $pageUrl = function (int $p) use ($q, $orgId, $role): string {
     </div>
 </div>
 
-<form method="GET" action="/contacts" class="ra-card mb-3">
+<form method="GET" action="/recruit/contacts" class="ra-card mb-3">
     <div class="row g-2 align-items-end">
         <div class="col-md-5">
             <label class="ra-label">Search</label>
@@ -131,7 +131,7 @@ $pageUrl = function (int $p) use ($q, $orgId, $role): string {
                 ?>
                 <tr>
                     <td>
-                        <a href="/organisations/<?= e($orgCode) ?>/contacts/<?= e($c->code) ?>?return_to=contacts" class="text-decoration-none">
+                        <a href="/recruit/organisations/<?= e($orgCode) ?>/contacts/<?= e($c->code) ?>?return_to=contacts" class="text-decoration-none">
                             <strong><?= e($c->fullName()) ?></strong>
                         </a>
                         <?php if ($c->department): ?>
@@ -139,7 +139,7 @@ $pageUrl = function (int $p) use ($q, $orgId, $role): string {
                         <?php endif; ?>
                     </td>
                     <td>
-                        <a href="/organisations/<?= e($orgCode) ?>" class="text-decoration-none">
+                        <a href="/recruit/organisations/<?= e($orgCode) ?>" class="text-decoration-none">
                             <?= e($orgName) ?>
                         </a>
                     </td>
@@ -158,11 +158,11 @@ $pageUrl = function (int $p) use ($q, $orgId, $role): string {
                         <?php endforeach; ?>
                     </td>
                     <td>
-                        <a href="/organisations/<?= e($orgCode) ?>/contacts/<?= e($c->code) ?>?return_to=contacts" class="ra-row-actions" title="View">
+                        <a href="/recruit/organisations/<?= e($orgCode) ?>/contacts/<?= e($c->code) ?>?return_to=contacts" class="ra-row-actions" title="View">
                             <i class="bi bi-eye"></i>
                         </a>
                         <?php if ($user->can('recruit.contacts.edit')): ?>
-                            <a href="/organisations/<?= e($orgCode) ?>/contacts/<?= e($c->code) ?>/edit" class="ra-row-actions" title="Edit">
+                            <a href="/recruit/organisations/<?= e($orgCode) ?>/contacts/<?= e($c->code) ?>/edit" class="ra-row-actions" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </a>
                         <?php endif; ?>

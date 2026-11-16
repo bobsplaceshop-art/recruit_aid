@@ -1,30 +1,21 @@
-<div class="ra-page-band">
-    <div class="ra-page-band-row">
-        <div>
-            <div class="ra-page-band-label">Coming Soon</div>
-            <h1 class="ra-page-band-title"><?= e($featureLabel) ?></h1>
-        </div>
-        <div class="ra-page-band-actions">
-            <a href="/recruit/dashboard" class="ra-btn ra-btn-outline">
-                <i class="bi bi-house-door"></i>
-                <span>Back to Dashboard</span>
-            </a>
-        </div>
+<?php
+/** @var string $title */
+/** @var string $description */
+?>
+<div class="ra-card" style="padding: 3rem; text-align: center; max-width: 640px; margin: 2rem auto;">
+    <div style="font-size: 3.5rem; color: var(--ra-primary); margin-bottom: 1rem;">
+        <i class="bi bi-tools"></i>
     </div>
-</div>
-
-<div class="ra-card" style="max-width:720px;margin:2rem auto;text-align:center;padding:3rem 2rem;">
-    <div style="font-size:4rem;color:var(--ra-primary);">
-        <i class="bi bi-hourglass-split"></i>
-    </div>
-    <h2 class="h3 mt-3 mb-2"><?= e($featureLabel) ?> is on the way</h2>
-    <p class="muted mb-4" style="max-width:520px;margin:0 auto;">
-        <?= e($description) ?>
-    </p>
-    <div class="mt-4">
+    <h1 class="h3 mb-3" style="color: var(--ra-text-strong);"><?= e($title) ?></h1>
+    <p class="muted mb-4" style="font-size: 1.05rem; line-height: 1.6;"><?= e($description) ?></p>
+    <div class="d-flex gap-2 justify-content-center flex-wrap">
         <a href="/recruit/dashboard" class="ra-btn ra-btn-primary">
             <i class="bi bi-house-door"></i>
-            <span>Back to Dashboard</span>
+            <span>Back to dashboard</span>
+        </a>
+        <a href="javascript:history.back()" class="ra-btn ra-btn-outline">
+            <i class="bi bi-arrow-left"></i>
+            <span>Go back</span>
         </a>
     </div>
 </div>

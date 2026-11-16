@@ -45,7 +45,7 @@
 
     <hr style="border-color:var(--ra-border); margin:1.75rem 0;">
 
-    <a href="/account/password" class="ra-btn ra-btn-primary">
+    <a href="/recruit/account/password" class="ra-btn ra-btn-primary">
         <i class="bi bi-shield-lock"></i>
         <span>Change password</span>
     </a>

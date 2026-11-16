@@ -29,7 +29,7 @@ $statusPills = [
         </div>
         <div class="ra-page-band-actions">
             <?php if ($user->can('recruit.organisations.create')): ?>
-                <a href="/organisations/create" class="ra-btn ra-btn-primary">
+                <a href="/recruit/organisations/create" class="ra-btn ra-btn-primary">
                     <i class="bi bi-plus-lg"></i>
                     <span>New Organisation</span>
                 </a>
@@ -42,7 +42,7 @@ $statusPills = [
 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
     <div class="ra-pill-group">
         <?php foreach ($statusPills as $key => $label): ?>
-            <a href="/organisations?status=<?= $key === 'all' ? '' : urlencode($key) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
+            <a href="/recruit/organisations?status=<?= $key === 'all' ? '' : urlencode($key) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
                class="ra-pill <?= $activeStatus === $key ? 'is-active' : '' ?>">
                 <?= e($label) ?>
                 <span class="muted ms-1" style="font-size:.75rem;">(<?= (int) ($counts[$key] ?? 0) ?>)</span>
@@ -52,7 +52,7 @@ $statusPills = [
 </div>
 
 <!-- Search -->
-<form method="GET" action="/organisations" class="mb-3">
+<form method="GET" action="/recruit/organisations" class="mb-3">
     <?php if ($activeStatus !== 'all'): ?>
         <input type="hidden" name="status" value="<?= e($activeStatus) ?>">
     <?php endif; ?>
@@ -102,7 +102,7 @@ $statusPills = [
             <?php else: ?>
                 <div class="mb-3">No organisations yet.</div>
                 <?php if ($user->can('recruit.organisations.create')): ?>
-                    <a href="/organisations/create" class="ra-btn ra-btn-primary">
+                    <a href="/recruit/organisations/create" class="ra-btn ra-btn-primary">
                         <i class="bi bi-plus-lg"></i>
                         <span>Add the first organisation</span>
                     </a>
@@ -126,12 +126,12 @@ $statusPills = [
             <?php foreach ($organisations as $org): ?>
                 <tr>
                     <td>
-                        <a href="/organisations/<?= e($org->code) ?>" class="text-decoration-none">
+                        <a href="/recruit/organisations/<?= e($org->code) ?>" class="text-decoration-none">
                             <code style="font-size:.85rem;"><?= e($org->code) ?></code>
                         </a>
                     </td>
                     <td>
-                        <a href="/organisations/<?= e($org->code) ?>" class="text-decoration-none">
+                        <a href="/recruit/organisations/<?= e($org->code) ?>" class="text-decoration-none">
                             <strong><?= e($org->name) ?></strong>
                         </a>
                         <?php if ($org->legalName): ?>
@@ -146,11 +146,11 @@ $statusPills = [
                     <td class="muted small"><?= e($org->updatedAt ?? '—') ?></td>
                     <td>
                         <div class="d-flex gap-1">
-                            <a href="/organisations/<?= e($org->code) ?>" class="ra-row-actions" title="View">
+                            <a href="/recruit/organisations/<?= e($org->code) ?>" class="ra-row-actions" title="View">
                                 <i class="bi bi-eye"></i>
                             </a>
                             <?php if ($user->can('recruit.organisations.edit')): ?>
-                                <a href="/organisations/<?= e($org->code) ?>/edit" class="ra-row-actions" title="Edit">
+                                <a href="/recruit/organisations/<?= e($org->code) ?>/edit" class="ra-row-actions" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                             <?php endif; ?>

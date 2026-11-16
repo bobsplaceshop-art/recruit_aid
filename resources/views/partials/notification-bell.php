@@ -34,7 +34,7 @@ $badgeStyle = $unreadCount > 0
         </div>
 
         <div class="ra-dropdown-divider"></div>
-        <a href="/notifications" class="ra-dropdown-item" style="justify-content:center;">
+        <a href="/recruit/notifications" class="ra-dropdown-item" style="justify-content:center;">
             <i class="bi bi-arrow-right"></i>
             <span>View all notifications</span>
         </a>

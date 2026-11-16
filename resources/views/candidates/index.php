@@ -29,7 +29,7 @@ $statusPills = [
         </div>
         <div class="ra-page-band-actions">
             <?php if ($user->can('recruit.candidates.create')): ?>
-                <a href="/candidates/create" class="ra-btn ra-btn-primary">
+                <a href="/recruit/candidates/create" class="ra-btn ra-btn-primary">
                     <i class="bi bi-plus-lg"></i>
                     <span>New Candidate</span>
                 </a>
@@ -41,7 +41,7 @@ $statusPills = [
 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
     <div class="ra-pill-group">
         <?php foreach ($statusPills as $key => $label): ?>
-            <a href="/candidates?status=<?= $key === 'all' ? '' : urlencode($key) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
+            <a href="/recruit/candidates?status=<?= $key === 'all' ? '' : urlencode($key) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
                class="ra-pill <?= $activeStatus === $key ? 'is-active' : '' ?>">
                 <?= e($label) ?>
             </a>
@@ -49,7 +49,7 @@ $statusPills = [
     </div>
 </div>
 
-<form method="GET" action="/candidates" class="mb-3">
+<form method="GET" action="/recruit/candidates" class="mb-3">
     <?php if ($activeStatus !== 'all'): ?>
         <input type="hidden" name="status" value="<?= e($activeStatus) ?>">
     <?php endif; ?>
@@ -99,7 +99,7 @@ $statusPills = [
             <?php else: ?>
                 <div class="mb-3">No candidates yet.</div>
                 <?php if ($user->can('recruit.candidates.create')): ?>
-                    <a href="/candidates/create" class="ra-btn ra-btn-primary">
+                    <a href="/recruit/candidates/create" class="ra-btn ra-btn-primary">
                         <i class="bi bi-plus-lg"></i>
                         <span>Add the first candidate</span>
                     </a>
@@ -123,12 +123,12 @@ $statusPills = [
             <?php foreach ($rows as $c): ?>
                 <tr>
                     <td>
-                        <a href="/candidates/<?= e($c->code) ?>" class="text-decoration-none">
+                        <a href="/recruit/candidates/<?= e($c->code) ?>" class="text-decoration-none">
                             <code style="font-size:.85rem;"><?= e($c->code) ?></code>
                         </a>
                     </td>
                     <td>
-                        <a href="/candidates/<?= e($c->code) ?>" class="text-decoration-none">
+                        <a href="/recruit/candidates/<?= e($c->code) ?>" class="text-decoration-none">
                             <strong><?= e($c->fullName()) ?></strong>
                         </a>
                     </td>
@@ -144,11 +144,11 @@ $statusPills = [
                     </td>
                     <td>
                         <div class="d-flex gap-1">
-                            <a href="/candidates/<?= e($c->code) ?>" class="ra-row-actions" title="View">
+                            <a href="/recruit/candidates/<?= e($c->code) ?>" class="ra-row-actions" title="View">
                                 <i class="bi bi-eye"></i>
                             </a>
                             <?php if ($user->can('recruit.candidates.edit')): ?>
-                                <a href="/candidates/<?= e($c->code) ?>/edit" class="ra-row-actions" title="Edit">
+                                <a href="/recruit/candidates/<?= e($c->code) ?>/edit" class="ra-row-actions" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                             <?php endif; ?>
@@ -166,12 +166,12 @@ $statusPills = [
         <div class="muted small">Page <?= (int) $page ?> of <?= (int) $totalPages ?></div>
         <div class="d-flex gap-2">
             <?php if ($page > 1): ?>
-                <a href="/candidates?page=<?= $page - 1 ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?><?= $activeStatus !== 'all' ? '&status=' . urlencode($activeStatus) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">
+                <a href="/recruit/candidates?page=<?= $page - 1 ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?><?= $activeStatus !== 'all' ? '&status=' . urlencode($activeStatus) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">
                     <i class="bi bi-chevron-left"></i> Previous
                 </a>
             <?php endif; ?>
             <?php if ($page < $totalPages): ?>
-                <a href="/candidates?page=<?= $page + 1 ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?><?= $activeStatus !== 'all' ? '&status=' . urlencode($activeStatus) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">
+                <a href="/recruit/candidates?page=<?= $page + 1 ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?><?= $activeStatus !== 'all' ? '&status=' . urlencode($activeStatus) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">
                     Next <i class="bi bi-chevron-right"></i>
                 </a>
             <?php endif; ?>

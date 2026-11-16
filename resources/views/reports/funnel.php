@@ -6,12 +6,12 @@
             <p class="ra-page-sub">How many candidates entered, are currently in, and spent time in each stage.</p>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/reports" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+            <a href="/recruit/reports" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
         </div>
     </div>
 </div>
 
-<form method="GET" action="/reports/funnel" class="mb-3">
+<form method="GET" action="/recruit/reports/funnel" class="mb-3">
     <div class="d-flex gap-2 align-items-center">
         <select name="vacancy_id" class="ra-input" style="max-width: 500px;" onchange="this.form.submit()">
             <option value="">— Choose a vacancy —</option>

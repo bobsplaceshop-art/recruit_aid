@@ -83,34 +83,34 @@ final class AccountController
 
         if ($current === '' || $new === '' || $confirm === '') {
             $session->flash('error', 'Please fill in every field.');
-            return Response::redirect('/account/password');
+            return Response::redirect('/recruit/account/password');
         }
 
         if (!Hasher::verify($current, $user->passwordHash)) {
             $session->flash('error', 'Your current password is incorrect.');
-            return Response::redirect('/account/password');
+            return Response::redirect('/recruit/account/password');
         }
 
         $policyErrors = PasswordPolicy::validate($new, $user->email, $user->name);
         if (!empty($policyErrors)) {
             $session->flash('error', implode(' ', $policyErrors));
-            return Response::redirect('/account/password');
+            return Response::redirect('/recruit/account/password');
         }
 
         if ($new !== $confirm) {
             $session->flash('error', 'New password and confirmation do not match.');
-            return Response::redirect('/account/password');
+            return Response::redirect('/recruit/account/password');
         }
 
         if (Hasher::verify($new, $user->passwordHash)) {
             $session->flash('error', 'New password must be different from your current password.');
-            return Response::redirect('/account/password');
+            return Response::redirect('/recruit/account/password');
         }
 
         $users->updatePassword($user->id, $new);
 
         $session->flash('success', 'Your password has been updated.');
-        return Response::redirect('/account');
+        return Response::redirect('/recruit/account');
     }
 
     /**
@@ -146,7 +146,7 @@ final class AccountController
             return Response::json(['ok' => true, 'theme' => $theme]);
         }
 
-        return Response::redirect('/account');
+        return Response::redirect('/recruit/account');
     }
 
     /**
@@ -208,7 +208,7 @@ final class AccountController
 
         if ($password === '') {
             $session->flash('error', 'Please enter your password.');
-            return Response::redirect('/account/confirm-password?next=' . urlencode($next));
+            return Response::redirect('/recruit/account/confirm-password?next=' . urlencode($next));
         }
 
         if (!\CorporateAid\Platform\Support\Hasher::verify($password, $user->passwordHash)) {
@@ -218,7 +218,7 @@ final class AccountController
             $limiter->hit('confirm_password', $request->ip(), 15);
 
             $session->flash('error', 'Incorrect password.');
-            return Response::redirect('/account/confirm-password?next=' . urlencode($next));
+            return Response::redirect('/recruit/account/confirm-password?next=' . urlencode($next));
         }
 
         // Success — clear limiter, mark re-auth

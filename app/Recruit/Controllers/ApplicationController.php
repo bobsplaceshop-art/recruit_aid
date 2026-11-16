@@ -157,7 +157,7 @@ final class ApplicationController
             /** @var Session $session */
             $session = $this->container->get(Session::class);
             $session->flash('error', 'Please pick a candidate.');
-            return Response::redirect('/vacancies/' . $vacancy->code . '/add-candidate');
+            return Response::redirect('/recruit/vacancies/' . $vacancy->code . '/add-candidate');
         }
 
         /** @var ApplicationService $service */
@@ -172,11 +172,11 @@ final class ApplicationController
 
         if (!empty($result['errors'])) {
             $session->flash('error', implode(' ', $result['errors']));
-            return Response::redirect('/vacancies/' . $vacancy->code . '/add-candidate');
+            return Response::redirect('/recruit/vacancies/' . $vacancy->code . '/add-candidate');
         }
 
         $session->flash('success', 'Candidate added to the pipeline.');
-        return Response::redirect('/vacancies/' . $vacancy->code);
+        return Response::redirect('/recruit/vacancies/' . $vacancy->code);
     }
 
     /**

@@ -107,7 +107,7 @@ final class AdminUserController
         $users->syncRoles($userId, $roleIds);
 
         $session->flash('success', 'User "' . $name . '" created.');
-        return Response::redirect('/admin/users');
+        return Response::redirect('/recruit/admin/users');
     }
 
     /** @param array<string, string> $params */
@@ -198,7 +198,7 @@ final class AdminUserController
         }
 
         $session->flash('success', 'User "' . $name . '" updated.');
-        return Response::redirect('/admin/users');
+        return Response::redirect('/recruit/admin/users');
     }
 
     /**

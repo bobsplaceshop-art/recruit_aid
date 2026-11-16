@@ -22,13 +22,13 @@ if ($user !== null) {
         <div class="ra-page-band-actions">
             <a href="/recruit/interviews" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
             <?php if ($interview->isScheduled() && $user->can('recruit.interviews.edit')): ?>
-                <form method="POST" action="/interviews/<?= e($interview->code) ?>/complete" style="display:inline;">
+                <form method="POST" action="/recruit/interviews/<?= e($interview->code) ?>/complete" style="display:inline;">
                     <?= csrf_field() ?>
                     <button class="ra-btn ra-btn-primary">Mark Completed</button>
                 </form>
             <?php endif; ?>
             <?php if ($interview->isScheduled() && $user->can('recruit.interviews.delete')): ?>
-                <form method="POST" action="/interviews/<?= e($interview->code) ?>/cancel" style="display:inline;" onsubmit="return confirm('Cancel this interview?');">
+                <form method="POST" action="/recruit/interviews/<?= e($interview->code) ?>/cancel" style="display:inline;" onsubmit="return confirm('Cancel this interview?');">
                     <?= csrf_field() ?>
                     <button class="ra-btn ra-btn-outline text-danger">Cancel</button>
                 </form>
@@ -73,7 +73,7 @@ if ($user !== null) {
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="h6 mb-0">Scorecards</h2>
                 <?php if ($isParticipant && $user->can('recruit.scorecards.submit')): ?>
-                    <a href="/interviews/<?= e($interview->code) ?>/scorecard" class="ra-btn ra-btn-primary ra-btn-sm">
+                    <a href="/recruit/interviews/<?= e($interview->code) ?>/scorecard" class="ra-btn ra-btn-primary ra-btn-sm">
                         <i class="bi bi-pencil-square"></i> Submit scorecard
                     </a>
                 <?php endif; ?>
@@ -122,12 +122,12 @@ if ($user !== null) {
     <div class="col-lg-4">
         <div class="ra-card mb-3">
             <h2 class="h6 mb-3">Candidate</h2>
-            <a href="/candidates/<?= e($candidate->code ?? '') ?>" class="text-decoration-none"><strong><?= e($candidate->fullName() ?? '—') ?></strong></a>
+            <a href="/recruit/candidates/<?= e($candidate->code ?? '') ?>" class="text-decoration-none"><strong><?= e($candidate->fullName() ?? '—') ?></strong></a>
             <div class="muted small"><?= e($candidate->email ?? '') ?></div>
         </div>
         <div class="ra-card mb-3">
             <h2 class="h6 mb-3">Vacancy</h2>
-            <a href="/vacancies/<?= e($vacancy->code ?? '') ?>" class="text-decoration-none"><strong><?= e($vacancy->title ?? '—') ?></strong></a>
+            <a href="/recruit/vacancies/<?= e($vacancy->code ?? '') ?>" class="text-decoration-none"><strong><?= e($vacancy->title ?? '—') ?></strong></a>
             <div class="muted small"><?= e($vacancy->code ?? '') ?></div>
         </div>
         <div class="ra-card">

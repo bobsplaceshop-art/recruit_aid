@@ -6,12 +6,12 @@
             <p class="ra-page-sub">Activity per recruiter over the last <?= (int) $days ?> days.</p>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/reports" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+            <a href="/recruit/reports" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
         </div>
     </div>
 </div>
 
-<form method="GET" action="/reports/productivity" class="mb-3">
+<form method="GET" action="/recruit/reports/productivity" class="mb-3">
     <div class="d-flex gap-2 align-items-center">
         <label class="ra-label mb-0">Window:</label>
         <select name="days" class="ra-input" style="max-width: 200px;" onchange="this.form.submit()">

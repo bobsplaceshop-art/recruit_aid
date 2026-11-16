@@ -38,12 +38,35 @@ ON DUPLICATE KEY UPDATE
     `password_hash` = VALUES(`password_hash`),
     `status`        = VALUES(`status`);
 
--- Attach super_admin role to admin
-INSERT IGNORE INTO `core_user_roles` (`user_id`, `role_id`)
-SELECT u.`id`, r.`id` FROM `core_users` u CROSS JOIN `core_roles` r
-WHERE u.`email` = 'admin@recruitaid.test' AND r.`slug` = 'super_admin';
+-- Attach admin role to admin user.
+-- Note: super_admin was deleted by migration 0061. The admin role is
+-- the tenant-scoped equivalent (grants all permissions except
+-- core.settings.manage and core.audit.view per 0001's role assignments).
+-- The tenant_id column was added to core_user_roles by migration 0061
+-- with NOT NULL — the insert must include it.
+INSERT IGNORE INTO `core_user_roles` (`tenant_id`, `user_id`, `role_id`)
+SELECT u.`tenant_id`, u.`id`, r.`id` FROM `core_users` u CROSS JOIN `core_roles` r
+WHERE u.`email` = 'admin@recruitaid.test'
+  AND r.`slug` = 'admin'
+  AND r.`tenant_id` = u.`tenant_id`;
 
--- Attach researcher role to researcher
-INSERT IGNORE INTO `core_user_roles` (`user_id`, `role_id`)
-SELECT u.`id`, r.`id` FROM `core_users` u CROSS JOIN `core_roles` r
-WHERE u.`email` = 'researcher@recruitaid.test' AND r.`slug` = 'researcher';
+-- Attach researcher role to researcher.
+-- Includes tenant_id (required by migration 0061).
+INSERT IGNORE INTO `core_user_roles` (`tenant_id`, `user_id`, `role_id`)
+SELECT u.`tenant_id`, u.`id`, r.`id` FROM `core_users` u CROSS JOIN `core_roles` r
+WHERE u.`email` = 'researcher@recruitaid.test'
+  AND r.`slug` = 'researcher'
+  AND r.`tenant_id` = u.`tenant_id`;
+
+-- Attach the recruit application to both users.
+-- Required for app_access:recruit middleware — without it, the user
+-- passes authentication but is denied by the app-access gate.
+INSERT IGNORE INTO `core_user_applications` (`user_id`, `module_key`, `is_default`)
+SELECT u.`id`, 'recruit', 1
+FROM `core_users` u
+WHERE u.`email` = 'admin@recruitaid.test';
+
+INSERT IGNORE INTO `core_user_applications` (`user_id`, `module_key`, `is_default`)
+SELECT u.`id`, 'recruit', 1
+FROM `core_users` u
+WHERE u.`email` = 'researcher@recruitaid.test';

@@ -41,7 +41,7 @@ final class OrganisationEntity implements DeletableEntity
             $dependents[] = [
                 'label' => $contactCount === 1 ? 'Contact' : 'Contacts',
                 'count' => $contactCount,
-                'route' => '/organisations/' . $this->organisation->code . '/contacts',
+                'route' => '/recruit/organisations/' . $this->organisation->code . '/contacts',
             ];
         }
 
@@ -50,7 +50,7 @@ final class OrganisationEntity implements DeletableEntity
             $dependents[] = [
                 'label' => $engagementCount === 1 ? 'Engagement' : 'Engagements',
                 'count' => $engagementCount,
-                'route' => '/organisations/' . $this->organisation->code . '/engagements',
+                'route' => '/recruit/organisations/' . $this->organisation->code . '/engagements',
             ];
         }
 
@@ -59,7 +59,7 @@ final class OrganisationEntity implements DeletableEntity
             $dependents[] = [
                 'label' => $vacancyCount === 1 ? 'Vacancy' : 'Vacancies',
                 'count' => $vacancyCount,
-                'route' => '/organisations/' . $this->organisation->code . '/vacancies',
+                'route' => '/recruit/organisations/' . $this->organisation->code . '/vacancies',
             ];
         }
 

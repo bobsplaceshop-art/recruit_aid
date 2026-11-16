@@ -139,7 +139,7 @@ final class RoleController
         $roleName = $role !== null ? Row::str($role, 'name') : 'role';
         $session->flash('success', 'Permissions saved for "' . $roleName . '".');
 
-        return Response::redirect('/admin/roles-perm/permissions?role_id=' . $roleId);
+        return Response::redirect('/recruit/admin/roles-perm/permissions?role_id=' . $roleId);
     }
 
     /** @param array<string, string> $params */
@@ -200,7 +200,7 @@ final class RoleController
         $session = $this->container->get(Session::class);
         $session->flash('success', 'Role "' . $name . '" created.');
 
-        return Response::redirect('/admin/roles-perm/roles');
+        return Response::redirect('/recruit/admin/roles-perm/roles');
     }
 
     /** @param array<string, string> $params */
@@ -271,7 +271,7 @@ final class RoleController
         $session = $this->container->get(Session::class);
         $session->flash('success', 'Role "' . $name . '" updated.');
 
-        return Response::redirect('/admin/roles-perm/roles');
+        return Response::redirect('/recruit/admin/roles-perm/roles');
     }
 
     /**
@@ -296,7 +296,7 @@ final class RoleController
 
         if ($role === null || $user === null) {
             $session->flash('error', 'Role or user not found.');
-            return Response::redirect('/admin/roles-perm/roles');
+            return Response::redirect('/recruit/admin/roles-perm/roles');
         }
 
         // Remove just this role from the user's assignments (keep other roles)
@@ -311,7 +311,7 @@ final class RoleController
             'Removed "' . $user->name . '" from role "' . Row::str($role, 'name') . '".'
         );
 
-        return Response::redirect('/admin/roles-perm/roles/' . $roleId . '/edit');
+        return Response::redirect('/recruit/admin/roles-perm/roles/' . $roleId . '/edit');
     }
 
     /** @param array<string, string> $params */
@@ -326,11 +326,11 @@ final class RoleController
         $role = $roles->findById($id);
         if ($role === null) {
             $session->flash('error', 'Role not found.');
-            return Response::redirect('/admin/roles-perm/roles');
+            return Response::redirect('/recruit/admin/roles-perm/roles');
         }
         if (Row::bool($role, 'is_system')) {
             $session->flash('error', 'Cannot delete a system role.');
-            return Response::redirect('/admin/roles-perm/roles');
+            return Response::redirect('/recruit/admin/roles-perm/roles');
         }
 
         $userCount = $roles->userCountForRole($id);
@@ -340,13 +340,13 @@ final class RoleController
                 . $userCount . ' user' . ($userCount === 1 ? '' : 's')
                 . '. Remove it from those users first.'
             );
-            return Response::redirect('/admin/roles-perm/roles');
+            return Response::redirect('/recruit/admin/roles-perm/roles');
         }
 
         $roleName = Row::str($role, 'name');
         $roles->delete($id);
         $session->flash('success', 'Role "' . $roleName . '" deleted.');
 
-        return Response::redirect('/admin/roles-perm/roles');
+        return Response::redirect('/recruit/admin/roles-perm/roles');
     }
 }

@@ -20,7 +20,7 @@
             <p class="ra-page-sub">Configure who gets notified about what.</p>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin/settings" class="ra-btn ra-btn-outline">
+            <a href="/recruit/admin/settings" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i><span>Back</span>
             </a>
         </div>
@@ -85,7 +85,7 @@
                             <?php endif; ?>
                         </td>
                         <td>
-                            <form method="POST" action="/admin/settings/notifications/<?= (int) $r['id'] ?>/toggle" style="margin:0;">
+                            <form method="POST" action="/recruit/admin/settings/notifications/<?= (int) $r['id'] ?>/toggle" style="margin:0;">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="column" value="channel_inapp">
                                 <input type="hidden" name="value" value="<?= !empty($r['channel_inapp']) ? '0' : '1' ?>">
@@ -95,7 +95,7 @@
                             </form>
                         </td>
                         <td>
-                            <form method="POST" action="/admin/settings/notifications/<?= (int) $r['id'] ?>/toggle" style="margin:0;">
+                            <form method="POST" action="/recruit/admin/settings/notifications/<?= (int) $r['id'] ?>/toggle" style="margin:0;">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="column" value="channel_email">
                                 <input type="hidden" name="value" value="<?= !empty($r['channel_email']) ? '0' : '1' ?>">
@@ -105,7 +105,7 @@
                             </form>
                         </td>
                         <td>
-                            <form method="POST" action="/admin/settings/notifications/<?= (int) $r['id'] ?>/toggle" style="margin:0;">
+                            <form method="POST" action="/recruit/admin/settings/notifications/<?= (int) $r['id'] ?>/toggle" style="margin:0;">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="column" value="is_active">
                                 <input type="hidden" name="value" value="<?= !empty($r['is_active']) ? '0' : '1' ?>">
@@ -116,7 +116,7 @@
                         </td>
                         <td>
                             <?php if (!$isSystem && $isSuper): ?>
-                                <form method="POST" action="/admin/settings/notifications/<?= (int) $r['id'] ?>/delete" style="margin:0;"
+                                <form method="POST" action="/recruit/admin/settings/notifications/<?= (int) $r['id'] ?>/delete" style="margin:0;"
                                       onsubmit="return confirm('Delete this rule?');">
                                     <?= csrf_field() ?>
                                     <button type="submit" class="ra-row-actions" title="Delete">
@@ -139,7 +139,7 @@
     <div class="ra-card mt-4">
         <h2 class="h5 mb-3">Add a new rule</h2>
 
-        <form method="POST" action="/admin/settings/notifications" novalidate>
+        <form method="POST" action="/recruit/admin/settings/notifications" novalidate>
             <?= csrf_field() ?>
 
             <div class="row g-3">

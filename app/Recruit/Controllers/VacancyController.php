@@ -145,7 +145,7 @@ final class VacancyController
 
         if (!$org) {
             $session->flash('error', 'Please choose a valid organisation.');
-            return Response::redirect('/vacancies/create');
+            return Response::redirect('/recruit/vacancies/create');
         }
 
         $input = $this->collectInput($request);
@@ -189,11 +189,11 @@ final class VacancyController
         $vacancy = $result['vacancy'];
         if ($vacancy === null) {
             $session->flash('error', 'Vacancy was created but could not be retrieved.');
-            return Response::redirect('/vacancies');
+            return Response::redirect('/recruit/vacancies');
         }
 
         $session->flash('success', 'Vacancy created: ' . $vacancy->title);
-        return Response::redirect('/vacancies/' . $vacancy->code);
+        return Response::redirect('/recruit/vacancies/' . $vacancy->code);
     }
 
     /** @param array<string, string> $params */
@@ -397,7 +397,7 @@ final class VacancyController
         }
 
         $session->flash('success', 'Vacancy updated.');
-        return Response::redirect('/vacancies/' . $vacancy->code);
+        return Response::redirect('/recruit/vacancies/' . $vacancy->code);
     }
 
     /** @param array<string, string> $params */
@@ -436,11 +436,11 @@ final class VacancyController
 
         if ($result->success) {
             $session->flash('success', $result->message);
-            return Response::redirect('/vacancies');
+            return Response::redirect('/recruit/vacancies');
         }
 
         $session->flash('error', $result->message);
-        return Response::redirect('/vacancies/' . $vacancy->code);
+        return Response::redirect('/recruit/vacancies/' . $vacancy->code);
     }
 
     /** @param array<string, string> $params */
@@ -500,7 +500,7 @@ final class VacancyController
             $session->flash('error', 'Action failed: ' . $e->getMessage());
         }
 
-        return Response::redirect('/vacancies/' . $vacancy->code);
+        return Response::redirect('/recruit/vacancies/' . $vacancy->code);
     }
 
     /** @return array<string, mixed> */

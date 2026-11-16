@@ -5,7 +5,7 @@
             <h1 class="ra-page-band-title"><?= e($title) ?></h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin/roles-perm/roles" class="ra-btn ra-btn-outline">
+            <a href="/recruit/admin/roles-perm/roles" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
@@ -48,12 +48,12 @@
 
     <div class="ra-alert ra-alert-info mb-3">
         <i class="bi bi-info-circle"></i>
-        To assign permissions to this role, go to the <a href="/admin/roles-perm/permissions?role_id=<?= $role ? (int) $role['id'] : '' ?>">Permissions Matrix</a>.
+        To assign permissions to this role, go to the <a href="/recruit/admin/roles-perm/permissions?role_id=<?= $role ? (int) $role['id'] : '' ?>">Permissions Matrix</a>.
     </div>
 
     <div class="d-flex gap-2 mb-4">
         <button type="submit" class="ra-btn ra-btn-primary">Save Role</button>
-        <a href="/admin/roles-perm/roles" class="ra-btn ra-btn-outline">Cancel</a>
+        <a href="/recruit/admin/roles-perm/roles" class="ra-btn ra-btn-outline">Cancel</a>
     </div>
 </form>
 
@@ -81,7 +81,7 @@
                         <td><?= e($au['name']) ?></td>
                         <td class="muted small"><?= e($au['email']) ?></td>
                         <td>
-                            <form method="POST" action="/admin/roles-perm/roles/<?= (int) $role['id'] ?>/users/<?= (int) $au['id'] ?>/remove"
+                            <form method="POST" action="/recruit/admin/roles-perm/roles/<?= (int) $role['id'] ?>/users/<?= (int) $au['id'] ?>/remove"
                                   style="display:inline;"
                                   onsubmit="return confirm('Remove <?= e($au['name']) ?> from this role?');">
                                 <?= csrf_field() ?>

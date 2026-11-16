@@ -172,11 +172,11 @@ final class ContactController
         $contact = $result['contact'];
         if ($contact === null) {
             $session->flash('error', 'Contact was created but could not be retrieved.');
-            return Response::redirect('/organisations/' . $org->code . '/contacts');
+            return Response::redirect('/recruit/organisations/' . $org->code . '/contacts');
         }
 
         $session->flash('success', 'Contact created: ' . $contact->fullName());
-        return Response::redirect('/organisations/' . $org->code . '/contacts/' . $contact->code);
+        return Response::redirect('/recruit/organisations/' . $org->code . '/contacts/' . $contact->code);
     }
 
     /**
@@ -309,7 +309,7 @@ final class ContactController
         }
 
         $session->flash('success', 'Contact updated.');
-        return Response::redirect('/organisations/' . $org->code . '/contacts/' . $contact->code);
+        return Response::redirect('/recruit/organisations/' . $org->code . '/contacts/' . $contact->code);
     }
 
     /** @param array<string, string> $params */
@@ -341,11 +341,11 @@ final class ContactController
 
         if ($result->success) {
             $session->flash('success', $result->message);
-            return Response::redirect('/organisations/' . $org->code . '/contacts');
+            return Response::redirect('/recruit/organisations/' . $org->code . '/contacts');
         }
 
         $session->flash('error', $result->message);
-        return Response::redirect('/organisations/' . $org->code . '/contacts/' . $contact->code);
+        return Response::redirect('/recruit/organisations/' . $org->code . '/contacts/' . $contact->code);
     }
 
     /** @param array<string, string> $params */
@@ -393,7 +393,7 @@ final class ContactController
             $session->flash('error', 'Action failed: ' . $e->getMessage());
         }
 
-        return Response::redirect('/organisations/' . $org->code . '/contacts/' . $contact->code);
+        return Response::redirect('/recruit/organisations/' . $org->code . '/contacts/' . $contact->code);
     }
 
     /**

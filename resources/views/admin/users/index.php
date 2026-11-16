@@ -5,7 +5,7 @@
             <h1 class="ra-page-band-title">Users</h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin/users/create" class="ra-btn ra-btn-primary">
+            <a href="/recruit/admin/users/create" class="ra-btn ra-btn-primary">
                 <i class="bi bi-plus-lg"></i>
                 <span>Create User</span>
             </a>
@@ -59,7 +59,7 @@
                     </td>
                     <td class="muted small"><?= e($u['last_login_at'] ?? 'Never') ?></td>
                     <td>
-                        <a href="/admin/users/<?= (int) $u['id'] ?>/edit" class="ra-btn ra-btn-outline" style="padding:.25rem .5rem;font-size:.85rem;">Edit</a>
+                        <a href="/recruit/admin/users/<?= (int) $u['id'] ?>/edit" class="ra-btn ra-btn-outline" style="padding:.25rem .5rem;font-size:.85rem;">Edit</a>
                     </td>
                 </tr>
             <?php endforeach; ?>

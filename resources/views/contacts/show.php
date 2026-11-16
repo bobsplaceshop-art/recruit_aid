@@ -13,19 +13,19 @@ $renderer = App::instance()
 
 $customFieldsHtml = $renderer->renderDetail('contact', $contact->id);
 $activityHtml = \CorporateAid\Core\App::instance()->container()->get(\CorporateAid\Platform\Services\ActivityTimelineService::class)->render('contact', $contact->id);
-$contactDeleteUrl = '/organisations/' . $organisation->code . '/contacts/' . $contact->code;
+$contactDeleteUrl = '/recruit/organisations/' . $organisation->code . '/contacts/' . $contact->code;
 
 // Context-aware back URL
 $returnTo = $returnTo ?? '';
 $backUrl = ($returnTo === 'contacts') 
     ? '/contacts' 
-    : '/organisations/' . $organisation->code . '/contacts';
+    : '/recruit/organisations/' . $organisation->code . '/contacts';
 ?>
 <div class="ra-page-band">
     <div class="ra-page-band-row">
         <div>
             <div class="ra-page-band-label">
-                Clients · <a href="/organisations/<?= e($organisation->code) ?>" class="text-decoration-none">
+                Clients · <a href="/recruit/organisations/<?= e($organisation->code) ?>" class="text-decoration-none">
                     <?= e($organisation->name) ?>
                 </a> · <code><?= e($contact->code) ?></code>
             </div>
@@ -142,7 +142,7 @@ $backUrl = ($returnTo === 'contacts')
 
         <div class="ra-card mt-3">
             <h2 class="h6 mb-3 muted">Belongs to</h2>
-            <a href="/organisations/<?= e($organisation->code) ?>" class="ra-dropdown-item">
+            <a href="/recruit/organisations/<?= e($organisation->code) ?>" class="ra-dropdown-item">
                 <i class="bi bi-buildings"></i>
                 <span><?= e($organisation->name) ?></span>
             </a>

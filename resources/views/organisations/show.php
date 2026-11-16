@@ -37,13 +37,13 @@ $activityHtml = \CorporateAid\Core\App::instance()->container()->get(\CorporateA
                 <span>Back</span>
             </a>
             <?php if ($user->can('recruit.organisations.edit')): ?>
-                <a href="/organisations/<?= e($organisation->code) ?>/edit" class="ra-btn ra-btn-outline">
+                <a href="/recruit/organisations/<?= e($organisation->code) ?>/edit" class="ra-btn ra-btn-outline">
                     <i class="bi bi-pencil"></i>
                     <span>Edit</span>
                 </a>
             <?php endif; ?>
             <?php if ($user->can('recruit.organisations.delete')): ?>
-                <form method="POST" action="/organisations/<?= e($organisation->code) ?>/archive" style="margin:0;"
+                <form method="POST" action="/recruit/organisations/<?= e($organisation->code) ?>/archive" style="margin:0;"
                       onsubmit="return confirm('Archive this organisation? It will disappear from the list but can be restored.');">
                     <?= csrf_field() ?>
                     <button type="submit" class="ra-btn ra-btn-outline">
@@ -55,8 +55,8 @@ $activityHtml = \CorporateAid\Core\App::instance()->container()->get(\CorporateA
                         style="color:var(--ra-error-fg);border-color:var(--ra-error-bd);"
                         onclick="RA_DeletionModal.open({
                             entityLabel: '<?= e(addslashes($organisation->name)) ?> (<?= e($organisation->code) ?>)',
-                            infoUrl: '/organisations/<?= e($organisation->code) ?>/delete-info',
-                            submitUrl: '/organisations/<?= e($organisation->code) ?>/delete',
+                            infoUrl: '/recruit/organisations/<?= e($organisation->code) ?>/delete-info',
+                            submitUrl: '/recruit/organisations/<?= e($organisation->code) ?>/delete',
                             csrfToken: '<?= e(csrf_token()) ?>'
                         })">
                     <i class="bi bi-trash"></i>
@@ -69,16 +69,16 @@ $activityHtml = \CorporateAid\Core\App::instance()->container()->get(\CorporateA
 
 <!-- Tabs -->
 <div class="d-flex gap-1 mb-3 border-bottom" style="border-color:var(--ra-border);">
-    <a href="/organisations/<?= e($organisation->code) ?>" class="ra-tab is-active">
+    <a href="/recruit/organisations/<?= e($organisation->code) ?>" class="ra-tab is-active">
         Overview
     </a>
-    <a href="/organisations/<?= e($organisation->code) ?>/contacts" class="ra-tab">
+    <a href="/recruit/organisations/<?= e($organisation->code) ?>/contacts" class="ra-tab">
         Contacts
     </a>
-    <a href="/engagements?q=<?= e($organisation->name) ?>" class="ra-tab">
+    <a href="/recruit/engagements?q=<?= e($organisation->name) ?>" class="ra-tab">
         Engagements
     </a>
-    <a href="/vacancies?q=<?= urlencode($organisation->name) ?>" class="ra-tab">
+    <a href="/recruit/vacancies?q=<?= urlencode($organisation->name) ?>" class="ra-tab">
         Vacancies
     </a>
     <a href="#" class="ra-tab disabled" onclick="return false;">
@@ -206,21 +206,21 @@ $activityHtml = \CorporateAid\Core\App::instance()->container()->get(\CorporateA
             <h2 class="h6 mb-3 muted">Quick actions</h2>
 
             <?php if ($user->can('recruit.organisations.edit')): ?>
-                <a href="/organisations/<?= e($organisation->code) ?>/edit" class="ra-dropdown-item mb-1">
+                <a href="/recruit/organisations/<?= e($organisation->code) ?>/edit" class="ra-dropdown-item mb-1">
                     <i class="bi bi-pencil"></i>
                     <span>Edit details</span>
                 </a>
             <?php endif; ?>
 
             <?php if ($user->can('recruit.contacts.create')): ?>
-                <a href="/organisations/<?= e($organisation->code) ?>/contacts/create" class="ra-dropdown-item mb-1">
+                <a href="/recruit/organisations/<?= e($organisation->code) ?>/contacts/create" class="ra-dropdown-item mb-1">
                     <i class="bi bi-person-plus"></i>
                     <span>Add contact</span>
                 </a>
             <?php endif; ?>
 
             <?php if ($user->can('recruit.engagements.create')): ?>
-                <a href="/engagements/create?organisation=<?= e($organisation->code) ?>" class="ra-dropdown-item mb-1">
+                <a href="/recruit/engagements/create?organisation=<?= e($organisation->code) ?>" class="ra-dropdown-item mb-1">
                     <i class="bi bi-file-earmark-text"></i>
                     <span>Create engagement</span>
                 </a>

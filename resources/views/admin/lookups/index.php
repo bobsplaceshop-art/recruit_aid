@@ -16,7 +16,7 @@
     <?php else: ?>
         <?php foreach ($groups as $g): ?>
             <div class="col-md-6 col-lg-4">
-                <a href="/admin/lookups/<?= e($g['group_slug']) ?>" class="ra-card text-decoration-none d-block h-100" style="color:inherit;">
+                <a href="/recruit/admin/lookups/<?= e($g['group_slug']) ?>" class="ra-card text-decoration-none d-block h-100" style="color:inherit;">
                     <div style="font-size:2rem;color:var(--ra-primary);"><i class="bi bi-list-ul"></i></div>
                     <h3 class="h5 mt-2 mb-1"><?= e(ucwords(str_replace('_', ' ', $g['group_slug']))) ?></h3>
                     <p class="muted small mb-0"><?= (int) $g['item_count'] ?> value<?= $g['item_count'] === 1 ? '' : 's' ?></p>

@@ -177,7 +177,7 @@ final class InterviewController
         $created = $result['interview'];
         $code = $created !== null ? $created->code : '';
         $session->flash('success', 'Interview scheduled.');
-        return Response::redirect('/interviews/' . $code);
+        return Response::redirect('/recruit/interviews/' . $code);
     }
 
     /**
@@ -264,7 +264,7 @@ final class InterviewController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
         $session->flash('success', 'Interview marked as completed.');
-        return Response::redirect('/interviews/' . $code);
+        return Response::redirect('/recruit/interviews/' . $code);
     }
 
     /**
@@ -286,6 +286,6 @@ final class InterviewController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
         $session->flash('success', 'Interview cancelled.');
-        return Response::redirect('/interviews/' . $code);
+        return Response::redirect('/recruit/interviews/' . $code);
     }
 }

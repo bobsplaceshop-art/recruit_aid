@@ -20,7 +20,7 @@ $statusPills = [
 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
     <div class="ra-pill-group">
         <?php foreach ($statusPills as $key => $label): ?>
-            <a href="/interviews?status=<?= $key === 'all' ? '' : urlencode($key) ?>"
+            <a href="/recruit/interviews?status=<?= $key === 'all' ? '' : urlencode($key) ?>"
                class="ra-pill <?= $activeStatus === $key ? 'is-active' : '' ?>">
                 <?= e($label) ?>
                 <span class="muted ms-1" style="font-size:.75rem;">(<?= (int) ($counts[$key] ?? 0) ?>)</span>
@@ -65,12 +65,12 @@ $statusPills = [
                     <tr>
                         <td><code style="font-size:.85rem;"><?= e($i->code) ?></code></td>
                         <td>
-                            <a href="/candidates/<?= e($c->code) ?>" class="text-decoration-none">
+                            <a href="/recruit/candidates/<?= e($c->code) ?>" class="text-decoration-none">
                                 <strong><?= e($c->fullName()) ?></strong>
                             </a>
                         </td>
                         <td>
-                            <a href="/vacancies/<?= e($v->code) ?>" class="text-decoration-none">
+                            <a href="/recruit/vacancies/<?= e($v->code) ?>" class="text-decoration-none">
                                 <?= e($v->title) ?>
                             </a>
                         </td>
@@ -83,7 +83,7 @@ $statusPills = [
                         <td class="muted small"><?= e($i->typeLabel()) ?></td>
                         <td><span class="<?= $i->statusBadgeClass() ?>"><?= e($i->statusLabel()) ?></span></td>
                         <td>
-                            <a href="/interviews/<?= e($i->code) ?>" class="ra-row-actions" title="View">
+                            <a href="/recruit/interviews/<?= e($i->code) ?>" class="ra-row-actions" title="View">
                                 <i class="bi bi-eye"></i>
                             </a>
                         </td>

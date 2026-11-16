@@ -2,20 +2,20 @@
     <div class="ra-page-band-row">
         <div>
             <div class="ra-page-band-label">
-                Recruitment · <a href="/vacancies/<?= e($vacancy->code) ?>" class="text-decoration-none"><?= e($vacancy->title) ?></a> · Add candidate
+                Recruitment · <a href="/recruit/vacancies/<?= e($vacancy->code) ?>" class="text-decoration-none"><?= e($vacancy->title) ?></a> · Add candidate
             </div>
             <h1 class="ra-page-band-title">Add candidate to pipeline</h1>
             <p class="ra-page-sub">Choose a candidate to link to this vacancy. The candidate will start at the first pipeline stage.</p>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/vacancies/<?= e($vacancy->code) ?>" class="ra-btn ra-btn-outline">
+            <a href="/recruit/vacancies/<?= e($vacancy->code) ?>" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i> Back
             </a>
         </div>
     </div>
 </div>
 
-<form method="GET" action="/vacancies/<?= e($vacancy->code) ?>/add-candidate" class="mb-3">
+<form method="GET" action="/recruit/vacancies/<?= e($vacancy->code) ?>/add-candidate" class="mb-3">
     <div class="d-flex gap-2">
         <input type="text" name="q" class="ra-input" placeholder="Search candidates by name, email, code..."
                value="<?= e($q) ?>" style="max-width:400px;" autocomplete="off">
@@ -23,7 +23,7 @@
             <i class="bi bi-search"></i> Search
         </button>
         <?php if ($q !== ''): ?>
-            <a href="/vacancies/<?= e($vacancy->code) ?>/add-candidate" class="ra-btn ra-btn-outline">
+            <a href="/recruit/vacancies/<?= e($vacancy->code) ?>/add-candidate" class="ra-btn ra-btn-outline">
                 <i class="bi bi-x-lg"></i> Clear
             </a>
         <?php endif; ?>
@@ -55,7 +55,7 @@
                 <?php foreach ($candidates as $c): ?>
                     <tr>
                         <td><code style="font-size:.85rem;"><?= e($c->code) ?></code></td>
-                        <td><a href="/candidates/<?= e($c->code) ?>" class="text-decoration-none"><strong><?= e($c->fullName()) ?></strong></a></td>
+                        <td><a href="/recruit/candidates/<?= e($c->code) ?>" class="text-decoration-none"><strong><?= e($c->fullName()) ?></strong></a></td>
                         <td class="muted small"><?= e($c->email) ?></td>
                         <td class="muted small">
                             <?php if ($c->currentJobTitle): ?>
@@ -64,7 +64,7 @@
                         </td>
                         <td><span class="<?= $c->statusBadgeClass() ?>"><?= e($c->statusLabel()) ?></span></td>
                         <td>
-                            <form method="POST" action="/vacancies/<?= e($vacancy->code) ?>/add-candidate">
+                            <form method="POST" action="/recruit/vacancies/<?= e($vacancy->code) ?>/add-candidate">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="candidate_id" value="<?= (int) $c->id ?>">
                                 <button type="submit" class="ra-btn ra-btn-primary ra-btn-sm">
@@ -82,10 +82,10 @@
             <div class="muted small">Page <?= (int) $page ?> of <?= (int) $totalPages ?></div>
             <div class="d-flex gap-2">
                 <?php if ($page > 1): ?>
-                    <a href="/vacancies/<?= e($vacancy->code) ?>/add-candidate?page=<?= $page - 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Previous</a>
+                    <a href="/recruit/vacancies/<?= e($vacancy->code) ?>/add-candidate?page=<?= $page - 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Previous</a>
                 <?php endif; ?>
                 <?php if ($page < $totalPages): ?>
-                    <a href="/vacancies/<?= e($vacancy->code) ?>/add-candidate?page=<?= $page + 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Next</a>
+                    <a href="/recruit/vacancies/<?= e($vacancy->code) ?>/add-candidate?page=<?= $page + 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Next</a>
                 <?php endif; ?>
             </div>
         </div>

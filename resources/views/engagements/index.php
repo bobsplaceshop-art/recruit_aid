@@ -28,7 +28,7 @@ $statusPills = [
         </div>
         <div class="ra-page-band-actions">
             <?php if ($user->can('recruit.engagements.create')): ?>
-                <a href="/engagements/create" class="ra-btn ra-btn-primary">
+                <a href="/recruit/engagements/create" class="ra-btn ra-btn-primary">
                     <i class="bi bi-plus-lg"></i>
                     <span>New Engagement</span>
                 </a>
@@ -40,7 +40,7 @@ $statusPills = [
 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
     <div class="ra-pill-group">
         <?php foreach ($statusPills as $key => $label): ?>
-            <a href="/engagements?status=<?= $key === 'all' ? '' : urlencode($key) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
+            <a href="/recruit/engagements?status=<?= $key === 'all' ? '' : urlencode($key) ?><?= $search !== '' ? '&q=' . urlencode($search) : '' ?>"
                class="ra-pill <?= $activeStatus === $key ? 'is-active' : '' ?>">
                 <?= e($label) ?>
                 <span class="muted ms-1" style="font-size:.75rem;">(<?= (int) ($counts[$key] ?? 0) ?>)</span>
@@ -49,7 +49,7 @@ $statusPills = [
     </div>
 </div>
 
-<form method="GET" action="/engagements" class="mb-3">
+<form method="GET" action="/recruit/engagements" class="mb-3">
     <?php if ($activeStatus !== 'all'): ?>
         <input type="hidden" name="status" value="<?= e($activeStatus) ?>">
     <?php endif; ?>
@@ -97,7 +97,7 @@ $statusPills = [
             <?php else: ?>
                 <div class="mb-3">No engagements yet.</div>
                 <?php if ($user->can('recruit.engagements.create')): ?>
-                    <a href="/engagements/create" class="ra-btn ra-btn-primary">
+                    <a href="/recruit/engagements/create" class="ra-btn ra-btn-primary">
                         <i class="bi bi-plus-lg"></i>
                         <span>Create the first engagement</span>
                     </a>
@@ -121,11 +121,11 @@ $statusPills = [
             <?php foreach ($engagements as $e): ?>
                 <?php $org = $orgMap[$e->clientOrganisationId] ?? null; ?>
                 <tr>
-                    <td><a href="/engagements/<?= e($e->code) ?>" class="text-decoration-none"><code><?= e($e->code) ?></code></a></td>
-                    <td><a href="/engagements/<?= e($e->code) ?>" class="text-decoration-none"><strong><?= e($e->name) ?></strong></a></td>
+                    <td><a href="/recruit/engagements/<?= e($e->code) ?>" class="text-decoration-none"><code><?= e($e->code) ?></code></a></td>
+                    <td><a href="/recruit/engagements/<?= e($e->code) ?>" class="text-decoration-none"><strong><?= e($e->name) ?></strong></a></td>
                     <td class="muted small">
                         <?php if ($org): ?>
-                            <a href="/organisations/<?= e($org->code) ?>"><?= e($org->name) ?></a>
+                            <a href="/recruit/organisations/<?= e($org->code) ?>"><?= e($org->name) ?></a>
                         <?php else: ?>—<?php endif; ?>
                     </td>
                     <td class="muted small"><?= e($e->serviceTypeLabel()) ?></td>
@@ -136,9 +136,9 @@ $statusPills = [
                     <td><span class="<?= $e->statusBadgeClass() ?>"><?= e($e->statusLabel()) ?></span></td>
                     <td>
                         <div class="d-flex gap-1">
-                            <a href="/engagements/<?= e($e->code) ?>" class="ra-row-actions" title="View"><i class="bi bi-eye"></i></a>
+                            <a href="/recruit/engagements/<?= e($e->code) ?>" class="ra-row-actions" title="View"><i class="bi bi-eye"></i></a>
                             <?php if ($user->can('recruit.engagements.edit')): ?>
-                                <a href="/engagements/<?= e($e->code) ?>/edit" class="ra-row-actions" title="Edit"><i class="bi bi-pencil"></i></a>
+                                <a href="/recruit/engagements/<?= e($e->code) ?>/edit" class="ra-row-actions" title="Edit"><i class="bi bi-pencil"></i></a>
                             <?php endif; ?>
                         </div>
                     </td>

@@ -8,17 +8,20 @@
 --   {module}.{entity}.{action}
 -- ============================================================
 
-INSERT INTO `core_roles` (`name`, `slug`, `description`, `is_system`) VALUES
+INSERT INTO `core_roles` (`tenant_id`, `name`, `slug`, `description`, `is_system`) VALUES
   -- Only super_admin is a system role. All others are starting
   -- templates that admins can rename, delete, or replace.
-  ('Super Administrator', 'super_admin',   'Full system access', 1),
-  ('Administrator',       'admin',         'Operational administration', 0),
-  ('Recruitment Manager', 'recruitment_manager', 'Manages recruiters, clients and recruitment performance', 0),
-  ('Recruiter',           'recruiter',     'Manages assigned vacancies and candidates', 0),
-  ('Researcher',          'researcher',    'Sourcing and candidate research', 0),
-  ('Client Administrator','client_admin',  'Client-side organisation administrator', 0),
-  ('Client User',         'client_user',   'Client-side reviewer', 0)
-ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `description` = VALUES(`description`), `is_system` = VALUES(`is_system`);
+  --
+  -- tenant_id = 1: roles are tenant-scoped since migration 0061.
+  -- On a fresh install, tenant 1 is the default installation tenant.
+  (1, 'Super Administrator', 'super_admin',   'Full system access', 1),
+  (1, 'Administrator',       'admin',         'Operational administration', 0),
+  (1, 'Recruitment Manager', 'recruitment_manager', 'Manages recruiters, clients and recruitment performance', 0),
+  (1, 'Recruiter',           'recruiter',     'Manages assigned vacancies and candidates', 0),
+  (1, 'Researcher',          'researcher',    'Sourcing and candidate research', 0),
+  (1, 'Client Administrator','client_admin',  'Client-side organisation administrator', 0),
+  (1, 'Client User',         'client_user',   'Client-side reviewer', 0)
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `description` = VALUES(`description`), `is_system` = VALUES(`is_system`), `tenant_id` = VALUES(`tenant_id`);
 
 -- ============================================================
 -- Permissions
@@ -92,6 +95,12 @@ WHERE r.`slug` = 'super_admin';
 INSERT IGNORE INTO `core_role_permissions` (`role_id`, `permission_id`)
 SELECT r.`id`, p.`id` FROM `core_roles` r CROSS JOIN `core_permissions` p
 WHERE r.`slug` = 'admin' AND p.`slug` NOT IN ('core.settings.manage', 'core.audit.view');
+
+-- Grant dashboard access to the operational roles (admin, manager, recruiter, researcher)
+INSERT IGNORE INTO `core_role_permissions` (`role_id`, `permission_id`)
+SELECT r.`id`, p.`id` FROM `core_roles` r CROSS JOIN `core_permissions` p
+WHERE r.`slug` IN ('admin', 'recruitment_manager', 'recruiter', 'researcher')
+  AND p.`slug` = 'recruit.dashboard.access';
 
 -- Recruitment Manager: operational permissions
 INSERT IGNORE INTO `core_role_permissions` (`role_id`, `permission_id`)

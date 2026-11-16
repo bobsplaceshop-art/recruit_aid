@@ -16,7 +16,7 @@
         <span>Your account</span>
     </a>
 
-    <a href="/account/password" class="ra-dropdown-item">
+    <a href="/recruit/account/password" class="ra-dropdown-item">
         <i class="bi bi-shield-lock"></i>
         <span>Change password</span>
     </a>

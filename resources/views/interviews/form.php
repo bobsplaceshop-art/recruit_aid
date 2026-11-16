@@ -7,7 +7,7 @@
             <h1 class="ra-page-band-title">Schedule Interview</h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/candidates/<?= e($candidate->code ?? '') ?>" class="ra-btn ra-btn-outline">
+            <a href="/recruit/candidates/<?= e($candidate->code ?? '') ?>" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i> Back
             </a>
         </div>
@@ -18,7 +18,7 @@
     <div class="ra-alert ra-alert-error mb-3"><ul class="mb-0"><?php foreach ($errors as $e): ?><li><?= e($e) ?></li><?php endforeach; ?></ul></div>
 <?php endif; ?>
 
-<form method="POST" action="/applications/<?= e($application->code) ?>/schedule-interview">
+<form method="POST" action="/recruit/applications/<?= e($application->code) ?>/schedule-interview">
     <?= csrf_field() ?>
     <div class="row g-3">
         <div class="col-lg-8">

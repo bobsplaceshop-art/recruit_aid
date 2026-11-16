@@ -118,7 +118,7 @@ final class EngagementController
 
         if (!$org) {
             $session->flash('error', 'Please choose a valid organisation.');
-            return Response::redirect('/engagements/create');
+            return Response::redirect('/recruit/engagements/create');
         }
 
         $input = $this->collectInput($request);
@@ -141,11 +141,11 @@ final class EngagementController
         $engagement = $result['engagement'];
         if ($engagement === null) {
             $session->flash('error', 'Engagement was created but could not be retrieved.');
-            return Response::redirect('/engagements');
+            return Response::redirect('/recruit/engagements');
         }
 
         $session->flash('success', 'Engagement created: ' . $engagement->name);
-        return Response::redirect('/engagements/' . $engagement->code);
+        return Response::redirect('/recruit/engagements/' . $engagement->code);
     }
 
     /** @param array<string, string> $params */
@@ -269,7 +269,7 @@ final class EngagementController
         }
 
         $session->flash('success', 'Engagement updated.');
-        return Response::redirect('/engagements/' . $engagement->code);
+        return Response::redirect('/recruit/engagements/' . $engagement->code);
     }
 
     /** @param array<string, string> $params */
@@ -308,11 +308,11 @@ final class EngagementController
 
         if ($result->success) {
             $session->flash('success', $result->message);
-            return Response::redirect('/engagements');
+            return Response::redirect('/recruit/engagements');
         }
 
         $session->flash('error', $result->message);
-        return Response::redirect('/engagements/' . $engagement->code);
+        return Response::redirect('/recruit/engagements/' . $engagement->code);
     }
 
     /** @param array<string, string> $params */
@@ -370,7 +370,7 @@ final class EngagementController
             $session->flash('error', 'Please choose a user.');
         }
 
-        return Response::redirect('/engagements/' . $engagement->code);
+        return Response::redirect('/recruit/engagements/' . $engagement->code);
     }
 
     /** @param array<string, string> $params */
@@ -397,7 +397,7 @@ final class EngagementController
             $session->flash('success', 'Recruiter unassigned.');
         }
 
-        return Response::redirect('/engagements/' . $engagement->code);
+        return Response::redirect('/recruit/engagements/' . $engagement->code);
     }
 
     /** @param array<string, string> $params */
@@ -429,7 +429,7 @@ final class EngagementController
             $session->flash('error', 'Action failed: ' . $e->getMessage());
         }
 
-        return Response::redirect('/engagements/' . $engagement->code);
+        return Response::redirect('/recruit/engagements/' . $engagement->code);
     }
 
     /** @return array<string, mixed> */

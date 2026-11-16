@@ -21,23 +21,23 @@ use CorporateAid\Core\Row;
         <div class="ra-page-band-actions">
             <a href="/recruit/offers" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
             <?php if ($offer->isDraft() && $user->can('recruit.offers.send')): ?>
-                <form method="POST" action="/offers/<?= e($offer->code) ?>/send" style="display:inline;">
+                <form method="POST" action="/recruit/offers/<?= e($offer->code) ?>/send" style="display:inline;">
                     <?= csrf_field() ?>
                     <button class="ra-btn ra-btn-primary"><i class="bi bi-send"></i> Send to candidate</button>
                 </form>
             <?php endif; ?>
             <?php if ($offer->status === 'sent' && $user->can('recruit.offers.respond')): ?>
-                <form method="POST" action="/offers/<?= e($offer->code) ?>/accept" style="display:inline;">
+                <form method="POST" action="/recruit/offers/<?= e($offer->code) ?>/accept" style="display:inline;">
                     <?= csrf_field() ?>
                     <button class="ra-btn ra-btn-primary"><i class="bi bi-check2-circle"></i> Accept</button>
                 </form>
-                <form method="POST" action="/offers/<?= e($offer->code) ?>/decline" style="display:inline;">
+                <form method="POST" action="/recruit/offers/<?= e($offer->code) ?>/decline" style="display:inline;">
                     <?= csrf_field() ?>
                     <button class="ra-btn ra-btn-outline text-danger"><i class="bi bi-x-circle"></i> Decline</button>
                 </form>
             <?php endif; ?>
             <?php if (!$offer->isTerminal() && $user->can('recruit.offers.edit')): ?>
-                <form method="POST" action="/offers/<?= e($offer->code) ?>/withdraw" style="display:inline;" onsubmit="return confirm('Withdraw this offer?');">
+                <form method="POST" action="/recruit/offers/<?= e($offer->code) ?>/withdraw" style="display:inline;" onsubmit="return confirm('Withdraw this offer?');">
                     <?= csrf_field() ?>
                     <button class="ra-btn ra-btn-outline text-danger"><i class="bi bi-slash-circle"></i> Withdraw</button>
                 </form>
@@ -124,14 +124,14 @@ use CorporateAid\Core\Row;
         <?php if ($candidate !== null): ?>
         <div class="ra-card mb-3">
             <h2 class="h6 mb-3">Candidate</h2>
-            <a href="/candidates/<?= e($candidate->code) ?>" class="text-decoration-none"><strong><?= e($candidate->fullName()) ?></strong></a>
+            <a href="/recruit/candidates/<?= e($candidate->code) ?>" class="text-decoration-none"><strong><?= e($candidate->fullName()) ?></strong></a>
             <div class="muted small"><?= e($candidate->email) ?></div>
         </div>
         <?php endif; ?>
         <?php if ($vacancy !== null): ?>
         <div class="ra-card mb-3">
             <h2 class="h6 mb-3">Vacancy</h2>
-            <a href="/vacancies/<?= e($vacancy->code) ?>" class="text-decoration-none"><strong><?= e($vacancy->title) ?></strong></a>
+            <a href="/recruit/vacancies/<?= e($vacancy->code) ?>" class="text-decoration-none"><strong><?= e($vacancy->title) ?></strong></a>
             <div class="muted small"><?= e($vacancy->code) ?></div>
         </div>
         <?php endif; ?>

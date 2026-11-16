@@ -61,7 +61,7 @@ final class CustomFieldController
     {
         $entityKey = Row::str($params, 'entity');
         if (!isset(self::ENTITIES[$entityKey])) {
-            return Response::redirect('/admin/custom-fields');
+            return Response::redirect('/recruit/admin/custom-fields');
         }
 
         /** @var View $view */
@@ -88,7 +88,7 @@ final class CustomFieldController
     {
         $entityKey = Row::str($params, 'entity');
         if (!isset(self::ENTITIES[$entityKey])) {
-            return Response::redirect('/admin/custom-fields');
+            return Response::redirect('/recruit/admin/custom-fields');
         }
 
         /** @var View $view */
@@ -116,7 +116,7 @@ final class CustomFieldController
     {
         $entityKey = Row::str($params, 'entity');
         if (!isset(self::ENTITIES[$entityKey])) {
-            return Response::redirect('/admin/custom-fields');
+            return Response::redirect('/recruit/admin/custom-fields');
         }
 
         /** @var CustomFieldService $service */
@@ -133,7 +133,7 @@ final class CustomFieldController
         try {
             $service->create($entityKey, $input);
             $session->flash('success', 'Custom field created successfully.');
-            return Response::redirect('/admin/custom-fields/' . $entityKey);
+            return Response::redirect('/recruit/admin/custom-fields/' . $entityKey);
         } catch (\RuntimeException $e) {
             $html = $view->render('admin/custom-fields/form', [
                 'title'       => 'New Custom Field',
@@ -157,7 +157,7 @@ final class CustomFieldController
         $fieldId   = Row::int($params, 'id');
 
         if (!isset(self::ENTITIES[$entityKey])) {
-            return Response::redirect('/admin/custom-fields');
+            return Response::redirect('/recruit/admin/custom-fields');
         }
 
         /** @var CustomFieldRepository $fields */
@@ -165,7 +165,7 @@ final class CustomFieldController
         $field = $fields->findById($fieldId);
 
         if (!$field || $field->entityType !== $entityKey) {
-            return Response::redirect('/admin/custom-fields/' . $entityKey);
+            return Response::redirect('/recruit/admin/custom-fields/' . $entityKey);
         }
 
         /** @var View $view */
@@ -208,7 +208,7 @@ final class CustomFieldController
             $session->flash('error', $e->getMessage());
         }
 
-        return Response::redirect('/admin/custom-fields/' . $entityKey);
+        return Response::redirect('/recruit/admin/custom-fields/' . $entityKey);
     }
 
     /** @param array<string, string> $params */
@@ -243,7 +243,7 @@ final class CustomFieldController
             $session->flash('error', $e->getMessage());
         }
 
-        return Response::redirect('/admin/custom-fields/' . $entityKey);
+        return Response::redirect('/recruit/admin/custom-fields/' . $entityKey);
     }
 
     /** @param array<string, string> $params */
@@ -265,7 +265,7 @@ final class CustomFieldController
             $session->flash('error', $e->getMessage());
         }
 
-        return Response::redirect('/admin/custom-fields/' . $entityKey);
+        return Response::redirect('/recruit/admin/custom-fields/' . $entityKey);
     }
 
     /** @param array<string, string> $params */
@@ -300,7 +300,7 @@ final class CustomFieldController
             $session->flash('error', $e->getMessage());
         }
 
-        return Response::redirect('/admin/custom-fields/' . $entityKey);
+        return Response::redirect('/recruit/admin/custom-fields/' . $entityKey);
     }
 
     /** @param array<string, string> $params */
@@ -321,7 +321,7 @@ final class CustomFieldController
             $session->flash('error', $e->getMessage());
         }
 
-        return Response::redirect('/admin/custom-fields/' . $entityKey);
+        return Response::redirect('/recruit/admin/custom-fields/' . $entityKey);
     }
 
     /** @return array<string, mixed> */

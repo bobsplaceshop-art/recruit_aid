@@ -11,7 +11,7 @@
 
 <div class="ra-tiles">
     <?php if ($user->can('core.users.view')): ?>
-    <a href="/admin/users" class="ra-tile">
+    <a href="/recruit/admin/users" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--sky">
             <i class="bi bi-people-fill"></i>
         </div>
@@ -20,7 +20,7 @@
     <?php endif; ?>
 
     <?php if ($user->can('core.settings.manage')): ?>
-    <a href="/admin/roles-perm" class="ra-tile">
+    <a href="/recruit/admin/roles-perm" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--clay">
             <i class="bi bi-diagram-3-fill"></i>
         </div>
@@ -29,7 +29,7 @@
     <?php endif; ?>
 
     <?php if ($user->can('core.audit.view')): ?>
-    <a href="/admin/audit" class="ra-tile">
+    <a href="/recruit/admin/audit" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--sage">
             <i class="bi bi-journal-text"></i>
         </div>
@@ -38,28 +38,28 @@
     <?php endif; ?>
 
     <?php if ($user->can('core.settings.manage')): ?>
-    <a href="/admin/branding" class="ra-tile">
+    <a href="/recruit/admin/branding" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--plum">
             <i class="bi bi-palette-fill"></i>
         </div>
         <div class="ra-tile-label">Branding</div>
     </a>
 
-    <a href="/admin/email-templates" class="ra-tile">
+    <a href="/recruit/admin/email-templates" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--mint">
             <i class="bi bi-envelope-fill"></i>
         </div>
         <div class="ra-tile-label">Email Templates</div>
     </a>
 
-    <a href="/admin/custom-fields" class="ra-tile">
+    <a href="/recruit/admin/custom-fields" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--rose">
             <i class="bi bi-input-cursor-text"></i>
         </div>
         <div class="ra-tile-label">Custom Fields</div>
     </a>
 
-    <a href="/admin/settings" class="ra-tile">
+    <a href="/recruit/admin/settings" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--amber">
             <i class="bi bi-gear-fill"></i>
         </div>

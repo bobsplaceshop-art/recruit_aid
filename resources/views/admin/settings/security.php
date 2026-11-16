@@ -16,7 +16,7 @@ $v = fn (string $key, int $default) => (int) ($settings[$key] ?? $default);
             <p class="ra-page-sub">Rate limits, password policy, and session settings.</p>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin/settings" class="ra-btn ra-btn-outline">
+            <a href="/recruit/admin/settings" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i><span>Back</span>
             </a>
         </div>
@@ -37,7 +37,7 @@ $v = fn (string $key, int $default) => (int) ($settings[$key] ?? $default);
     <div class="ra-alert ra-alert-error"><?= e((string) $error) ?></div>
 <?php endif; ?>
 
-<form method="POST" action="/admin/settings/security" novalidate>
+<form method="POST" action="/recruit/admin/settings/security" novalidate>
     <?= csrf_field() ?>
 
     <div class="ra-card">
@@ -147,7 +147,7 @@ $v = fn (string $key, int $default) => (int) ($settings[$key] ?? $default);
                 <i class="bi bi-check2"></i>
                 <span>Save security settings</span>
             </button>
-            <a href="/admin/settings" class="ra-btn ra-btn-outline">Cancel</a>
+            <a href="/recruit/admin/settings" class="ra-btn ra-btn-outline">Cancel</a>
         </div>
     <?php else: ?>
         <div class="muted small mt-3">

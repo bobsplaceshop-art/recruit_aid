@@ -100,6 +100,6 @@ final class BrandingController
         }
 
         $session->flash('success', 'Branding settings saved.');
-        return Response::redirect('/admin/settings/branding');
+        return Response::redirect('/recruit/admin/settings/branding');
     }
 }

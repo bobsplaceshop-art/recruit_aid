@@ -119,6 +119,6 @@ final class ScorecardController
         }
 
         $session->flash('success', 'Scorecard submitted.');
-        return Response::redirect('/interviews/' . $code);
+        return Response::redirect('/recruit/interviews/' . $code);
     }
 }

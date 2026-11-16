@@ -112,7 +112,7 @@ final class AdminSettingsController
         // ---- Gate 1: tenant admin only ----
         if (!$user->can('core.settings.manage')) {
             $session->flash('error', 'You do not have permission to change security settings.');
-            return Response::redirect('/admin/settings/security');
+            return Response::redirect('/recruit/admin/settings/security');
         }
 
         // ---- Gate 2: re-auth within window ----
@@ -237,11 +237,11 @@ final class AdminSettingsController
 
         if (!empty($errors)) {
             $session->flash('error', implode(' ', $errors));
-            return Response::redirect('/admin/settings/security');
+            return Response::redirect('/recruit/admin/settings/security');
         }
 
         $saved = $settings->setMany($changes, 'int');
         $session->flash('success', "Security settings updated ({$saved} values saved). Changes take effect immediately.");
-        return Response::redirect('/admin/settings/security');
+        return Response::redirect('/recruit/admin/settings/security');
     }
 }

@@ -100,7 +100,7 @@ final class NotificationController
             return Response::json(['ok' => true]);
         }
 
-        return Response::redirect('/notifications');
+        return Response::redirect('/recruit/notifications');
     }
 
     /**
@@ -121,6 +121,6 @@ final class NotificationController
             return Response::json(['ok' => true]);
         }
 
-        return Response::redirect('/notifications');
+        return Response::redirect('/recruit/notifications');
     }
 }

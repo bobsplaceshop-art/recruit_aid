@@ -10,7 +10,7 @@ use CorporateAid\Core\Row;
     </div>
 </div>
 
-<form method="GET" action="/applications" class="mb-3">
+<form method="GET" action="/recruit/applications" class="mb-3">
     <div class="d-flex gap-2">
         <input type="text" name="q" class="ra-input" placeholder="Search by candidate, vacancy, or app code..."
                value="<?= e($q) ?>" style="max-width:400px;" autocomplete="off">
@@ -62,19 +62,19 @@ use CorporateAid\Core\Row;
                     <tr>
                         <td><code style="font-size:.85rem;"><?= e($appCode) ?></code></td>
                         <td>
-                            <a href="/candidates/<?= e($candCode) ?>" class="text-decoration-none">
+                            <a href="/recruit/candidates/<?= e($candCode) ?>" class="text-decoration-none">
                                 <strong><?= e($candFirst . ' ' . $candLast) ?></strong>
                             </a>
                         </td>
                         <td>
-                            <a href="/vacancies/<?= e($vacCode) ?>" class="text-decoration-none">
+                            <a href="/recruit/vacancies/<?= e($vacCode) ?>" class="text-decoration-none">
                                 <?= e($vacTitle) ?>
                             </a>
                         </td>
                         <td><span class="ra-badge"><?= e(ucfirst($status)) ?></span></td>
                         <td class="muted small"><?= e(human_time($appliedAt)) ?></td>
                         <td>
-                            <a href="/vacancies/<?= e($vacCode) ?>" class="ra-row-actions" title="View Pipeline">
+                            <a href="/recruit/vacancies/<?= e($vacCode) ?>" class="ra-row-actions" title="View Pipeline">
                                 <i class="bi bi-kanban"></i>
                             </a>
                         </td>
@@ -90,10 +90,10 @@ use CorporateAid\Core\Row;
         <div class="muted small">Page <?= (int) $page ?> of <?= (int) $totalPages ?></div>
         <div class="d-flex gap-2">
             <?php if ($page > 1): ?>
-                <a href="/applications?page=<?= $page - 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Previous</a>
+                <a href="/recruit/applications?page=<?= $page - 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Previous</a>
             <?php endif; ?>
             <?php if ($page < $totalPages): ?>
-                <a href="/applications?page=<?= $page + 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Next</a>
+                <a href="/recruit/applications?page=<?= $page + 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Next</a>
             <?php endif; ?>
         </div>
     </div>

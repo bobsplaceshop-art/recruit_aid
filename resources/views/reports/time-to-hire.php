@@ -6,8 +6,8 @@
             <p class="ra-page-sub">Average days from application to hired, per vacancy.</p>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/reports" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
-            <a href="/reports/time-to-hire.csv" class="ra-btn ra-btn-primary"><i class="bi bi-file-earmark-arrow-down"></i> Export CSV</a>
+            <a href="/recruit/reports" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+            <a href="/recruit/reports/time-to-hire.csv" class="ra-btn ra-btn-primary"><i class="bi bi-file-earmark-arrow-down"></i> Export CSV</a>
         </div>
     </div>
 </div>

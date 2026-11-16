@@ -130,7 +130,7 @@ final class CandidateController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
         $session->flash('success', 'Candidate created successfully.');
-        return Response::redirect('/candidates/' . $code);
+        return Response::redirect('/recruit/candidates/' . $code);
     }
 
     /** @param array<string, string> $params */
@@ -214,7 +214,7 @@ final class CandidateController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
         $session->flash('success', 'Candidate updated.');
-        return Response::redirect('/candidates/' . $code);
+        return Response::redirect('/recruit/candidates/' . $code);
     }
 
     /** @param array<string, string> $params */
@@ -233,7 +233,7 @@ final class CandidateController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
         $session->flash('success', 'Candidate archived.');
-        return Response::redirect('/candidates');
+        return Response::redirect('/recruit/candidates');
     }
 
     /** @param array<string, string> $params */
@@ -252,6 +252,6 @@ final class CandidateController
         /** @var Session $session */
         $session = $this->container->get(Session::class);
         $session->flash('success', 'Candidate restored.');
-        return Response::redirect('/candidates');
+        return Response::redirect('/recruit/candidates');
     }
 }

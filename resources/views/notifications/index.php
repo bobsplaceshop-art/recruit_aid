@@ -6,7 +6,7 @@
             <p class="ra-page-sub">Recent activity and alerts on your account.</p>
         </div>
         <div class="ra-page-band-actions">
-            <form method="POST" action="/notifications/read-all" style="margin:0;">
+            <form method="POST" action="/recruit/notifications/read-all" style="margin:0;">
                 <?= csrf_field() ?>
                 <button type="submit" class="ra-btn ra-btn-outline">
                     <i class="bi bi-check2-all"></i>
@@ -52,7 +52,7 @@
                             </div>
                         </div>
                         <?php if (!$n->isRead()): ?>
-                            <form method="POST" action="/notifications/<?= (int) $n->id ?>/read" style="margin:0;">
+                            <form method="POST" action="/recruit/notifications/<?= (int) $n->id ?>/read" style="margin:0;">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="ra-row-actions" title="Mark as read">
                                     <i class="bi bi-check2"></i>

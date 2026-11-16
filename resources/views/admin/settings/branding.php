@@ -5,7 +5,7 @@
             <h1 class="ra-page-band-title">Branding &amp; Identity</h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin/settings" class="ra-btn ra-btn-outline">
+            <a href="/recruit/admin/settings" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
@@ -13,7 +13,7 @@
     </div>
 </div>
 
-<form method="POST" action="/admin/settings/branding" enctype="multipart/form-data">
+<form method="POST" action="/recruit/admin/settings/branding" enctype="multipart/form-data">
     <?= csrf_field() ?>
 
     <div class="ra-card mb-3">
@@ -113,6 +113,6 @@
 
     <div class="d-flex gap-2">
         <button type="submit" class="ra-btn ra-btn-primary">Save Branding</button>
-        <a href="/admin/settings" class="ra-btn ra-btn-outline">Cancel</a>
+        <a href="/recruit/admin/settings" class="ra-btn ra-btn-outline">Cancel</a>
     </div>
 </form>

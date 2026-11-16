@@ -24,7 +24,7 @@
 
     <div class="d-flex align-items-center gap-2">
         <div class="ra-search-wrap">
-            <form method="GET" action="/search" style="margin:0;display:flex;">
+            <form method="GET" action="/recruit/search" style="margin:0;display:flex;">
                 <input type="text" name="q" class="ra-search" placeholder="Search…"
                        value="<?= e($_GET['q'] ?? '') ?>"
                        autocomplete="off"
@@ -40,7 +40,7 @@
         </button>
 
         <?php if (isset($user) && $user && $user->can('core.settings.manage')): ?>
-            <a href="/admin/settings" class="ra-icon-btn" title="System Settings" id="settings-gear">
+            <a href="/recruit/admin/settings" class="ra-icon-btn" title="System Settings" id="settings-gear">
                 <i class="bi bi-gear"></i>
             </a>
         <?php endif; ?>

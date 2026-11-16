@@ -17,7 +17,7 @@
         <div class="ra-alert ra-alert-error"><?= e((string) $error) ?></div>
     <?php endif; ?>
 
-    <form method="POST" action="/account/confirm-password" novalidate>
+    <form method="POST" action="/recruit/account/confirm-password" novalidate>
         <?= csrf_field() ?>
         <input type="hidden" name="next" value="<?= e($next ?? '/dashboard') ?>">
 

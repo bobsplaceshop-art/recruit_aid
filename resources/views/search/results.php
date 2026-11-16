@@ -9,7 +9,7 @@
     </div>
 </div>
 
-<form method="GET" action="/search" class="ra-card mb-3">
+<form method="GET" action="/recruit/search" class="ra-card mb-3">
     <div class="d-flex gap-2">
         <input type="text" name="q" class="ra-input" value="<?= e($term) ?>"
                placeholder="Search organisations, contacts, engagements, vacancies…"

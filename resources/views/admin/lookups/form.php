@@ -5,7 +5,7 @@
             <h1 class="ra-page-band-title"><?= e($title) ?></h1>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/admin/lookups/<?= e($group) ?>" class="ra-btn ra-btn-outline">
+            <a href="/recruit/admin/lookups/<?= e($group) ?>" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back</span>
             </a>
@@ -74,6 +74,6 @@
 
     <div class="d-flex gap-2">
         <button type="submit" class="ra-btn ra-btn-primary"><?= $item && isset($item['id']) ? 'Save Changes' : 'Create Value' ?></button>
-        <a href="/admin/lookups/<?= e($group) ?>" class="ra-btn ra-btn-outline">Cancel</a>
+        <a href="/recruit/admin/lookups/<?= e($group) ?>" class="ra-btn ra-btn-outline">Cancel</a>
     </div>
 </form>

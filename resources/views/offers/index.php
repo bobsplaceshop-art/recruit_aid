@@ -25,7 +25,7 @@ $statusPills = [
 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
     <div class="ra-pill-group">
         <?php foreach ($statusPills as $key => $label): ?>
-            <a href="/offers?status=<?= $key === 'all' ? '' : urlencode($key) ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?>"
+            <a href="/recruit/offers?status=<?= $key === 'all' ? '' : urlencode($key) ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?>"
                class="ra-pill <?= $activeStatus === $key ? 'is-active' : '' ?>">
                 <?= e($label) ?>
                 <span class="muted ms-1" style="font-size:.75rem;">(<?= (int) ($counts[$key] ?? 0) ?>)</span>
@@ -34,7 +34,7 @@ $statusPills = [
     </div>
 </div>
 
-<form method="GET" action="/offers" class="mb-3">
+<form method="GET" action="/recruit/offers" class="mb-3">
     <?php if ($activeStatus !== 'all'): ?>
         <input type="hidden" name="status" value="<?= e($activeStatus) ?>">
     <?php endif; ?>
@@ -95,13 +95,13 @@ $statusPills = [
                     ?>
                     <tr>
                         <td><code style="font-size:.85rem;"><?= e($code) ?></code></td>
-                        <td><a href="/candidates/<?= e($candCode) ?>" class="text-decoration-none"><strong><?= e($candF . ' ' . $candL) ?></strong></a></td>
-                        <td><a href="/vacancies/<?= e($vacCode) ?>" class="text-decoration-none"><?= e($vacTitle) ?></a></td>
+                        <td><a href="/recruit/candidates/<?= e($candCode) ?>" class="text-decoration-none"><strong><?= e($candF . ' ' . $candL) ?></strong></a></td>
+                        <td><a href="/recruit/vacancies/<?= e($vacCode) ?>" class="text-decoration-none"><?= e($vacTitle) ?></a></td>
                         <td><strong><?= e($currency) ?> <?= e(number_format($salary, 0)) ?></strong></td>
                         <td><span class="<?= $badge ?>"><?= e(ucfirst($statusVal)) ?></span></td>
                         <td class="muted small"><?= e($startDate) ?></td>
                         <td class="muted small"><?= e($expiresAt) ?></td>
-                        <td><a href="/offers/<?= e($code) ?>" class="ra-row-actions"><i class="bi bi-eye"></i></a></td>
+                        <td><a href="/recruit/offers/<?= e($code) ?>" class="ra-row-actions"><i class="bi bi-eye"></i></a></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -114,10 +114,10 @@ $statusPills = [
         <div class="muted small">Page <?= (int) $page ?> of <?= (int) $totalPages ?></div>
         <div class="d-flex gap-2">
             <?php if ($page > 1): ?>
-                <a href="/offers?page=<?= $page - 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?><?= $activeStatus !== 'all' ? '&status=' . urlencode($activeStatus) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Previous</a>
+                <a href="/recruit/offers?page=<?= $page - 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?><?= $activeStatus !== 'all' ? '&status=' . urlencode($activeStatus) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Previous</a>
             <?php endif; ?>
             <?php if ($page < $totalPages): ?>
-                <a href="/offers?page=<?= $page + 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?><?= $activeStatus !== 'all' ? '&status=' . urlencode($activeStatus) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Next</a>
+                <a href="/recruit/offers?page=<?= $page + 1 ?><?= $q !== '' ? '&q=' . urlencode($q) : '' ?><?= $activeStatus !== 'all' ? '&status=' . urlencode($activeStatus) : '' ?>" class="ra-btn ra-btn-outline ra-btn-sm">Next</a>
             <?php endif; ?>
         </div>
     </div>

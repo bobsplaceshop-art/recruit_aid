@@ -32,7 +32,7 @@ $activityHtml = App::instance()->container()->get(\CorporateAid\Platform\Service
                 <i class="bi bi-arrow-left"></i> Back
             </a>
             <?php if ($user->can('recruit.candidates.edit')): ?>
-                <a href="/candidates/<?= e($candidate->code) ?>/edit" class="ra-btn ra-btn-outline">
+                <a href="/recruit/candidates/<?= e($candidate->code) ?>/edit" class="ra-btn ra-btn-outline">
                     <i class="bi bi-pencil"></i> Edit
                 </a>
             <?php endif; ?>
@@ -152,14 +152,14 @@ $activityHtml = App::instance()->container()->get(\CorporateAid\Platform\Service
                             <div class="ra-timeline-dot"></div>
                             <div class="ra-timeline-body">
                                 <div class="ra-timeline-text">
-                                    <a href="/vacancies/<?= e($v->code) ?>" class="fw-bold text-decoration-none"><?= e($v->title) ?></a>
+                                    <a href="/recruit/vacancies/<?= e($v->code) ?>" class="fw-bold text-decoration-none"><?= e($v->title) ?></a>
                                     <span class="muted">·</span>
                                     <span class="ra-badge"><?= e($a->statusLabel()) ?></span>
                                 </div>
                                 <div class="ra-timeline-time muted small d-flex gap-2 align-items-center flex-wrap">
                                     <span>Applied <?= e(human_time($a->appliedAt)) ?> · <code style="font-size:.7rem;"><?= e($a->code) ?></code></span>
                                     <?php if ($user->can('recruit.interviews.create')): ?>
-                                        <a href="/applications/<?= e($a->code) ?>/schedule-interview" class="ra-btn ra-btn-outline ra-btn-sm" style="font-size:.7rem;padding:.15rem .45rem;">
+                                        <a href="/recruit/applications/<?= e($a->code) ?>/schedule-interview" class="ra-btn ra-btn-outline ra-btn-sm" style="font-size:.7rem;padding:.15rem .45rem;">
                                             <i class="bi bi-calendar-plus"></i> Schedule interview
                                         </a>
                                     <?php endif; ?>
@@ -168,11 +168,11 @@ $activityHtml = App::instance()->container()->get(\CorporateAid\Platform\Service
                                         $activeOffer = $offerRepo->findByApplication($a->id);
                                     ?>
                                     <?php if ($activeOffer !== null): ?>
-                                        <a href="/offers/<?= e($activeOffer->code) ?>" class="ra-btn ra-btn-outline ra-btn-sm" style="font-size:.7rem;padding:.15rem .45rem;">
+                                        <a href="/recruit/offers/<?= e($activeOffer->code) ?>" class="ra-btn ra-btn-outline ra-btn-sm" style="font-size:.7rem;padding:.15rem .45rem;">
                                             <i class="bi bi-file-earmark-text"></i> Offer: <?= e($activeOffer->statusLabel()) ?>
                                         </a>
                                     <?php elseif ($user->can('recruit.offers.create')): ?>
-                                        <a href="/applications/<?= e($a->code) ?>/make-offer" class="ra-btn ra-btn-outline ra-btn-sm" style="font-size:.7rem;padding:.15rem .45rem;">
+                                        <a href="/recruit/applications/<?= e($a->code) ?>/make-offer" class="ra-btn ra-btn-outline ra-btn-sm" style="font-size:.7rem;padding:.15rem .45rem;">
                                             <i class="bi bi-file-earmark-plus"></i> Make offer
                                         </a>
                                     <?php endif; ?>
@@ -229,12 +229,12 @@ $activityHtml = App::instance()->container()->get(\CorporateAid\Platform\Service
             <h2 class="h6 mb-3">Actions</h2>
             <?php if ($user->can('recruit.candidates.delete')): ?>
                 <?php if ($candidate->isDeleted()): ?>
-                    <form method="POST" action="/candidates/<?= e($candidate->code) ?>/restore">
+                    <form method="POST" action="/recruit/candidates/<?= e($candidate->code) ?>/restore">
                         <?= csrf_field() ?>
                         <button class="ra-btn ra-btn-outline w-100">Restore Candidate</button>
                     </form>
                 <?php else: ?>
-                    <form method="POST" action="/candidates/<?= e($candidate->code) ?>/archive" onsubmit="return confirm('Archive this candidate?');">
+                    <form method="POST" action="/recruit/candidates/<?= e($candidate->code) ?>/archive" onsubmit="return confirm('Archive this candidate?');">
                         <?= csrf_field() ?>
                         <button class="ra-btn ra-btn-outline text-danger w-100">Archive Candidate</button>
                     </form>

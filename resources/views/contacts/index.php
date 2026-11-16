@@ -19,12 +19,12 @@ $total = count($contacts);
             </p>
         </div>
         <div class="ra-page-band-actions">
-            <a href="/organisations/<?= e($organisation->code) ?>" class="ra-btn ra-btn-outline">
+            <a href="/recruit/organisations/<?= e($organisation->code) ?>" class="ra-btn ra-btn-outline">
                 <i class="bi bi-arrow-left"></i>
                 <span>Back to organisation</span>
             </a>
             <?php if ($user->can('recruit.contacts.create')): ?>
-                <a href="/organisations/<?= e($organisation->code) ?>/contacts/create" class="ra-btn ra-btn-primary">
+                <a href="/recruit/organisations/<?= e($organisation->code) ?>/contacts/create" class="ra-btn ra-btn-primary">
                     <i class="bi bi-plus-lg"></i>
                     <span>New Contact</span>
                 </a>
@@ -46,7 +46,7 @@ $total = count($contacts);
         <div class="text-center muted" style="padding:3rem 1.5rem;">
             <div class="mb-3">No contacts yet for <?= e($organisation->name) ?>.</div>
             <?php if ($user->can('recruit.contacts.create')): ?>
-                <a href="/organisations/<?= e($organisation->code) ?>/contacts/create" class="ra-btn ra-btn-primary">
+                <a href="/recruit/organisations/<?= e($organisation->code) ?>/contacts/create" class="ra-btn ra-btn-primary">
                     <i class="bi bi-plus-lg"></i>
                     <span>Add the first contact</span>
                 </a>
@@ -68,7 +68,7 @@ $total = count($contacts);
             <?php foreach ($contacts as $c): ?>
                 <tr>
                     <td>
-                        <a href="/organisations/<?= e($organisation->code) ?>/contacts/<?= e($c->code) ?>" class="text-decoration-none">
+                        <a href="/recruit/organisations/<?= e($organisation->code) ?>/contacts/<?= e($c->code) ?>" class="text-decoration-none">
                             <strong><?= e($c->fullName()) ?></strong>
                         </a>
                         <?php if ($c->department): ?>
@@ -91,11 +91,11 @@ $total = count($contacts);
                     </td>
                     <td>
                         <div class="d-flex gap-1">
-                            <a href="/organisations/<?= e($organisation->code) ?>/contacts/<?= e($c->code) ?>" class="ra-row-actions" title="View">
+                            <a href="/recruit/organisations/<?= e($organisation->code) ?>/contacts/<?= e($c->code) ?>" class="ra-row-actions" title="View">
                                 <i class="bi bi-eye"></i>
                             </a>
                             <?php if ($user->can('recruit.contacts.edit')): ?>
-                                <a href="/organisations/<?= e($organisation->code) ?>/contacts/<?= e($c->code) ?>/edit" class="ra-row-actions" title="Edit">
+                                <a href="/recruit/organisations/<?= e($organisation->code) ?>/contacts/<?= e($c->code) ?>/edit" class="ra-row-actions" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                             <?php endif; ?>

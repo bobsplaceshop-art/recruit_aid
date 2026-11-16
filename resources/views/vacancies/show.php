@@ -27,7 +27,7 @@ foreach ($requirements as $r) {
             <div class="ra-page-band-label">
                 Recruitment ·
                 <?php if ($organisation): ?>
-                    <a href="/organisations/<?= e($organisation->code) ?>" class="text-decoration-none">
+                    <a href="/recruit/organisations/<?= e($organisation->code) ?>" class="text-decoration-none">
                         <?= e($organisation->name) ?>
                     </a>
                 <?php else: ?>Unknown client<?php endif; ?>
@@ -78,7 +78,7 @@ foreach ($requirements as $r) {
                     <div class="muted small">Client</div>
                     <div>
                         <?php if ($organisation): ?>
-                            <a href="/organisations/<?= e($organisation->code) ?>"><?= e($organisation->name) ?></a>
+                            <a href="/recruit/organisations/<?= e($organisation->code) ?>"><?= e($organisation->name) ?></a>
                         <?php else: ?>—<?php endif; ?>
                     </div>
                 </div>
@@ -86,7 +86,7 @@ foreach ($requirements as $r) {
                 <div class="col-md-6">
                     <div class="muted small">Engagement</div>
                     <div>
-                        <a href="/engagements/<?= e($engagement->code) ?>">
+                        <a href="/recruit/engagements/<?= e($engagement->code) ?>">
                             <?= e($engagement->name) ?> (<?= e($engagement->code) ?>)
                         </a>
                     </div>
@@ -134,7 +134,7 @@ foreach ($requirements as $r) {
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="h5 mb-0">Pipeline</h2>
                 <?php if ($user->can('recruit.pipeline.advance')): ?>
-                    <a href="/vacancies/<?= e($vacancy->code) ?>/add-candidate" class="ra-btn ra-btn-primary ra-btn-sm">
+                    <a href="/recruit/vacancies/<?= e($vacancy->code) ?>/add-candidate" class="ra-btn ra-btn-primary ra-btn-sm">
                         <i class="bi bi-plus-lg"></i> Add candidate
                     </a>
                 <?php endif; ?>
@@ -155,7 +155,7 @@ foreach ($requirements as $r) {
                                 </span>
                                 <span class="ra-pipeline-column-count"><?= (int) $count ?></span>
                                 <?php if ($user->can('recruit.vacancies.edit')): ?>
-                                    <a href="/vacancies/<?= e($vacancy->code) ?>/add-candidate" class="ra-pipeline-add-btn" title="Add candidate to this vacancy">
+                                    <a href="/recruit/vacancies/<?= e($vacancy->code) ?>/add-candidate" class="ra-pipeline-add-btn" title="Add candidate to this vacancy">
                                         <i class="bi bi-plus-lg"></i>
                                     </a>
                                 <?php endif; ?>
@@ -177,7 +177,7 @@ foreach ($requirements as $r) {
                                             <div class="ra-pipeline-card-header">
                                                 <div class="ra-pipeline-avatar"><?= e($initials) ?></div>
                                                 <div class="ra-pipeline-card-info">
-                                                    <a href="/candidates/<?= e($c->code) ?>" class="ra-pipeline-card-name">
+                                                    <a href="/recruit/candidates/<?= e($c->code) ?>" class="ra-pipeline-card-name">
                                                         <?= e($c->fullName()) ?>
                                                     </a>
                                                     <div class="ra-pipeline-card-sub">
@@ -204,7 +204,7 @@ foreach ($requirements as $r) {
                                                             <?php foreach ($stages as $target): ?>
                                                                 <?php if ($target->id === $a->currentStageId) continue; ?>
                                                                 <li>
-                                                                    <form method="POST" action="/applications/<?= e($a->code) ?>/move" class="m-0">
+                                                                    <form method="POST" action="/recruit/applications/<?= e($a->code) ?>/move" class="m-0">
                                                                         <?= csrf_field() ?>
                                                                         <input type="hidden" name="stage_id" value="<?= (int) $target->id ?>">
                                                                         <button type="submit" class="dropdown-item small"><?= e($target->label) ?></button>
@@ -236,7 +236,7 @@ foreach ($requirements as $r) {
                                         <div class="ra-pipeline-card-header">
                                             <div class="ra-pipeline-avatar"><?= e(strtoupper(substr($c->firstName, 0, 1) . substr($c->lastName, 0, 1))) ?></div>
                                             <div class="ra-pipeline-card-info">
-                                                <a href="/candidates/<?= e($c->code) ?>" class="ra-pipeline-card-name"><?= e($c->fullName()) ?></a>
+                                                <a href="/recruit/candidates/<?= e($c->code) ?>" class="ra-pipeline-card-name"><?= e($c->fullName()) ?></a>
                                                 <div class="ra-pipeline-card-sub"><code style="font-size:.7rem;"><?= e($c->code) ?></code></div>
                                             </div>
                                         </div>

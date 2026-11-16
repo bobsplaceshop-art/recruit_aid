@@ -10,14 +10,14 @@
 <p class="muted mb-4">Manage what each type of user can do within <?= e(app_setting('branding.app_name', 'Recruit Aid')) ?>.</p>
 
 <div class="ra-tiles">
-    <a href="/admin/roles-perm/roles" class="ra-tile">
+    <a href="/recruit/admin/roles-perm/roles" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--clay">
             <i class="bi bi-diagram-3-fill"></i>
         </div>
         <div class="ra-tile-label">Roles</div>
     </a>
 
-    <a href="/admin/roles-perm/permissions" class="ra-tile">
+    <a href="/recruit/admin/roles-perm/permissions" class="ra-tile">
         <div class="ra-tile-icon ra-tile-icon--sage">
             <i class="bi bi-shield-check"></i>
         </div>

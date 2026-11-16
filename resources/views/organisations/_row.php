@@ -6,12 +6,12 @@ $user = \CorporateAid\Core\App::instance()->container()->get(\CorporateAid\Core\
 ?>
 <tr>
     <td>
-        <a href="/organisations/<?= e($org->code) ?>" class="text-decoration-none">
+        <a href="/recruit/organisations/<?= e($org->code) ?>" class="text-decoration-none">
             <code style="font-size:.85rem;"><?= e($org->code) ?></code>
         </a>
     </td>
     <td>
-        <a href="/organisations/<?= e($org->code) ?>" class="text-decoration-none">
+        <a href="/recruit/organisations/<?= e($org->code) ?>" class="text-decoration-none">
             <strong><?= e($org->name) ?></strong>
         </a>
         <?php if ($org->legalName): ?>
@@ -26,11 +26,11 @@ $user = \CorporateAid\Core\App::instance()->container()->get(\CorporateAid\Core\
     <td class="muted small"><?= e($org->updatedAt ?? '—') ?></td>
     <td>
         <div class="d-flex gap-1">
-            <a href="/organisations/<?= e($org->code) ?>" class="ra-row-actions" title="View">
+            <a href="/recruit/organisations/<?= e($org->code) ?>" class="ra-row-actions" title="View">
                 <i class="bi bi-eye"></i>
             </a>
             <?php if ($user !== null && $user->can('recruit.organisations.edit')): ?>
-                <a href="/organisations/<?= e($org->code) ?>/edit" class="ra-row-actions" title="Edit">
+                <a href="/recruit/organisations/<?= e($org->code) ?>/edit" class="ra-row-actions" title="Edit">
                     <i class="bi bi-pencil"></i>
                 </a>
             <?php endif; ?>
