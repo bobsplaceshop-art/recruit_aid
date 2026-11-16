@@ -84,8 +84,8 @@ $notes           = (string) $get('notes');
 $submittedCf = $old['cf'] ?? [];
 
 $formAction = $isEdit
-    ? '/organisations/' . $organisation->code . '/contacts/' . $contact->code
-    : '/organisations/' . $organisation->code . '/contacts';
+    ? '/recruit/organisations/' . $organisation->code . '/contacts/' . $contact->code
+    : '/recruit/organisations/' . $organisation->code . '/contacts';
 
 $commOptions = [
     'email'    => 'Email',

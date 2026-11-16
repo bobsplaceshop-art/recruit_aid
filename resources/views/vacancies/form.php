@@ -110,7 +110,7 @@ $workModes = $lookupService->allFor('work_mode');
 $employmentTypes = $lookupService->allFor('employment_type');
 $seniorities = $lookupService->allFor('seniority');
 
-$formAction = $isEdit ? '/vacancies/' . $vacancy->code : '/vacancies';
+$formAction = $isEdit ? '/recruit/vacancies/' . $vacancy->code : '/recruit/vacancies';
 ?>
 <div class="ra-page-band">
     <div class="ra-page-band-row">
@@ -323,7 +323,7 @@ $formAction = $isEdit ? '/vacancies/' . $vacancy->code : '/vacancies';
                     </div>
                 <?php elseif (empty($hmItems)): ?>
                     <div class="ra-alert ra-alert-warn" style="padding:.5rem .75rem;font-size:.85rem;">
-                        This organisation has no contacts yet. <a href="/organisations/<?= e($preselectedOrg->code) ?>/contacts/create">Add a contact</a> first.
+                        This organisation has no contacts yet. <a href="/recruit/organisations/<?= e($preselectedOrg->code) ?>/contacts/create">Add a contact</a> first.
                     </div>
                 <?php else: ?>
                     <?= view_partial('partials/chip-picker', [

@@ -47,8 +47,8 @@ $notes       = (string) $get('notes');
 
 $submittedCf = $old['cf'] ?? [];
 $formAction = $isEdit
-    ? '/organisations/' . $organisation->code
-    : '/organisations';
+    ? '/recruit/organisations/' . $organisation->code
+    : '/recruit/organisations';
 
 $statusOptions = [
     'prospect'      => 'Prospect',
